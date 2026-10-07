@@ -4,7 +4,7 @@ from app.core.exceptions import NotFoundError, PermissionDeniedError
 from app.models import SupportTicket, TicketPriority, TicketStatus, User
 from app.repositories.customer_repository import CustomerRepository
 from app.repositories.ticket_repository import TicketRepository
-from app.services.access import customer_scope, is_staff
+from app.services.access import customer_scope, is_staff, scope_for
 
 
 class TicketService:
@@ -13,8 +13,10 @@ class TicketService:
         self.tickets = TicketRepository(db)
         self.customers = CustomerRepository(db)
 
-    def list_tickets(self, user: User, *, status: TicketStatus | None, limit: int, offset: int) -> tuple[list[SupportTicket], int]:
-        scope = customer_scope(user)
+    def list_tickets(
+        self, user: User, *, customer_id: int | None = None, status: TicketStatus | None, limit: int, offset: int
+    ) -> tuple[list[SupportTicket], int]:
+        scope = scope_for(user, customer_id)
         return (
             self.tickets.list(customer_id=scope, status=status, limit=limit, offset=offset),
             self.tickets.count(customer_id=scope, status=status),
