@@ -1,0 +1,345 @@
+{
+  "retrieval": {
+    "threshold": 0.6,
+    "top_k": 5,
+    "questions": 24,
+    "answerable": 18,
+    "unanswerable": 6,
+    "hit@1": 0.944,
+    "hit@3": 1.0,
+    "hit@5": 1.0,
+    "mrr": 0.972,
+    "context_precision": 0.744,
+    "fact_coverage": 0.944,
+    "answerable_retrieved": 1.0,
+    "unanswerable_abstained": 0.667,
+    "latency_ms_p50": 5.6,
+    "latency_ms_p95": 28.2,
+    "threshold_sweep": [
+      {
+        "threshold": 0.5,
+        "answerable_retrieved": 1.0,
+        "unanswerable_abstained": 0.167
+      },
+      {
+        "threshold": 0.52,
+        "answerable_retrieved": 1.0,
+        "unanswerable_abstained": 0.167
+      },
+      {
+        "threshold": 0.54,
+        "answerable_retrieved": 1.0,
+        "unanswerable_abstained": 0.167
+      },
+      {
+        "threshold": 0.56,
+        "answerable_retrieved": 1.0,
+        "unanswerable_abstained": 0.167
+      },
+      {
+        "threshold": 0.58,
+        "answerable_retrieved": 1.0,
+        "unanswerable_abstained": 0.5
+      },
+      {
+        "threshold": 0.6,
+        "answerable_retrieved": 1.0,
+        "unanswerable_abstained": 0.667
+      },
+      {
+        "threshold": 0.62,
+        "answerable_retrieved": 0.944,
+        "unanswerable_abstained": 0.667
+      },
+      {
+        "threshold": 0.64,
+        "answerable_retrieved": 0.944,
+        "unanswerable_abstained": 0.833
+      },
+      {
+        "threshold": 0.66,
+        "answerable_retrieved": 0.889,
+        "unanswerable_abstained": 1.0
+      },
+      {
+        "threshold": 0.68,
+        "answerable_retrieved": 0.833,
+        "unanswerable_abstained": 1.0
+      },
+      {
+        "threshold": 0.7,
+        "answerable_retrieved": 0.778,
+        "unanswerable_abstained": 1.0
+      }
+    ],
+    "per_question": [
+      {
+        "id": "ret-1",
+        "answerable": true,
+        "best_score": 0.812,
+        "top_document": "Return Policy.pdf",
+        "rank": 1,
+        "precision": 0.6,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 28.2
+      },
+      {
+        "id": "ret-2",
+        "answerable": true,
+        "best_score": 0.784,
+        "top_document": "Return Policy.pdf",
+        "rank": 1,
+        "precision": 0.6,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 9.2
+      },
+      {
+        "id": "ret-3",
+        "answerable": true,
+        "best_score": 0.805,
+        "top_document": "Return Policy.pdf",
+        "rank": 1,
+        "precision": 0.8,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 7.1
+      },
+      {
+        "id": "ret-4",
+        "answerable": true,
+        "best_score": 0.605,
+        "top_document": "Product Information.pdf",
+        "rank": 2,
+        "precision": 0.0,
+        "fact_coverage": 0.0,
+        "abstained": false,
+        "latency_ms": 5.9
+      },
+      {
+        "id": "ret-5",
+        "answerable": true,
+        "best_score": 0.873,
+        "top_document": "Payment FAQ.pdf",
+        "rank": 1,
+        "precision": 1.0,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 31.0
+      },
+      {
+        "id": "shp-1",
+        "answerable": true,
+        "best_score": 0.852,
+        "top_document": "Shipping Policy.pdf",
+        "rank": 1,
+        "precision": 0.6,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 5.6
+      },
+      {
+        "id": "shp-2",
+        "answerable": true,
+        "best_score": 0.725,
+        "top_document": "Shipping Policy.pdf",
+        "rank": 1,
+        "precision": 0.6,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 3.4
+      },
+      {
+        "id": "shp-3",
+        "answerable": true,
+        "best_score": 0.657,
+        "top_document": "Shipping Policy.pdf",
+        "rank": 1,
+        "precision": 0.6,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 4.4
+      },
+      {
+        "id": "shp-4",
+        "answerable": true,
+        "best_score": 0.803,
+        "top_document": "Shipping Policy.pdf",
+        "rank": 1,
+        "precision": 0.6,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 6.3
+      },
+      {
+        "id": "shp-5",
+        "answerable": true,
+        "best_score": 0.705,
+        "top_document": "Shipping Policy.pdf",
+        "rank": 1,
+        "precision": 0.6,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 6.2
+      },
+      {
+        "id": "shp-6",
+        "answerable": true,
+        "best_score": 0.663,
+        "top_document": "Shipping Policy.pdf",
+        "rank": 1,
+        "precision": 1.0,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 5.5
+      },
+      {
+        "id": "war-1",
+        "answerable": true,
+        "best_score": 0.768,
+        "top_document": "Warranty.pdf",
+        "rank": 1,
+        "precision": 0.6,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 7.2
+      },
+      {
+        "id": "war-2",
+        "answerable": true,
+        "best_score": 0.757,
+        "top_document": "Product Information.pdf",
+        "rank": 1,
+        "precision": 1.0,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 5.9
+      },
+      {
+        "id": "war-3",
+        "answerable": true,
+        "best_score": 0.699,
+        "top_document": "Warranty.pdf",
+        "rank": 1,
+        "precision": 1.0,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 10.6
+      },
+      {
+        "id": "pay-1",
+        "answerable": true,
+        "best_score": 0.763,
+        "top_document": "Payment FAQ.pdf",
+        "rank": 1,
+        "precision": 1.0,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 4.9
+      },
+      {
+        "id": "pay-2",
+        "answerable": true,
+        "best_score": 0.749,
+        "top_document": "Payment FAQ.pdf",
+        "rank": 1,
+        "precision": 0.8,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 3.4
+      },
+      {
+        "id": "pay-3",
+        "answerable": true,
+        "best_score": 0.875,
+        "top_document": "Payment FAQ.pdf",
+        "rank": 1,
+        "precision": 1.0,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 5.2
+      },
+      {
+        "id": "prd-1",
+        "answerable": true,
+        "best_score": 0.789,
+        "top_document": "Product Information.pdf",
+        "rank": 1,
+        "precision": 1.0,
+        "fact_coverage": 1.0,
+        "abstained": false,
+        "latency_ms": 5.6
+      },
+      {
+        "id": "na-1",
+        "answerable": false,
+        "best_score": 0.646,
+        "top_document": "Return Policy.pdf",
+        "rank": null,
+        "precision": null,
+        "fact_coverage": null,
+        "abstained": false,
+        "latency_ms": 5.3
+      },
+      {
+        "id": "na-2",
+        "answerable": false,
+        "best_score": 0.59,
+        "top_document": "Shipping Policy.pdf",
+        "rank": null,
+        "precision": null,
+        "fact_coverage": null,
+        "abstained": true,
+        "latency_ms": 3.8
+      },
+      {
+        "id": "na-3",
+        "answerable": false,
+        "best_score": 0.567,
+        "top_document": "Payment FAQ.pdf",
+        "rank": null,
+        "precision": null,
+        "fact_coverage": null,
+        "abstained": true,
+        "latency_ms": 9.2
+      },
+      {
+        "id": "na-4",
+        "answerable": false,
+        "best_score": 0.475,
+        "top_document": "Payment FAQ.pdf",
+        "rank": null,
+        "precision": null,
+        "fact_coverage": null,
+        "abstained": true,
+        "latency_ms": 3.6
+      },
+      {
+        "id": "na-5",
+        "answerable": false,
+        "best_score": 0.567,
+        "top_document": "Product Information.pdf",
+        "rank": null,
+        "precision": null,
+        "fact_coverage": null,
+        "abstained": true,
+        "latency_ms": 5.2
+      },
+      {
+        "id": "na-6",
+        "answerable": false,
+        "best_score": 0.636,
+        "top_document": "Shipping Policy.pdf",
+        "rank": null,
+        "precision": null,
+        "fact_coverage": null,
+        "abstained": false,
+        "latency_ms": 3.9
+      }
+    ]
+  },
+  "answers": {
+    "skipped": "ANTHROPIC_API_KEY is not set, so no answers were generated."
+  }
+}
