@@ -1,9 +1,10 @@
 """Application settings, read from environment variables (and a local .env file)."""
 
 from functools import lru_cache
+from typing import Annotated
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -18,7 +19,8 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 60
 
-    cors_origins: list[str] = ["http://localhost:5173"]
+    # NoDecode: read "a,b" as plain text and split it ourselves instead of expecting JSON.
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
 
     embedding_dim: int = 384
 
@@ -26,7 +28,7 @@ class Settings(BaseSettings):
     @classmethod
     def split_origins(cls, value: object) -> object:
         # Allow CORS_ORIGINS="http://a,http://b" in .env files.
-        if isinstance(value, str) and not value.startswith("["):
+        if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
 
