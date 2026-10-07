@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+
+/* Design tokens. Components only use these names (bg-surface, text-muted, border-line, …),
+   so dark mode is just a second set of values. */
+:root {
+  --canvas: #f2f4f6;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;
+  --ink: #121a21;
+  --ink-2: #36424d;
+  --muted: #5f6c78;
+  --line: #dfe4e9;
+  --line-strong: #c5cdd5;
+  --brand: #0c5c8c;
+  --brand-hover: #0a4d76;
+  --brand-ink: #ffffff;
+  --brand-soft: #e2eef6;
+  --ok: #12704a;
+  --ok-soft: #e1f3ea;
+  --warn: #8f5400;
+  --warn-soft: #fbf0dc;
+  --bad: #b42318;
+  --bad-soft: #fce8e6;
+  --info: #3e4fb8;
+  --info-soft: #e8ebfa;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #0d1318;
+    --surface: #141c23;
+    --surface-2: #19232b;
+    --ink: #e7ecf0;
+    --ink-2: #c2ccd5;
+    --muted: #93a0ac;
+    --line: #25313b;
+    --line-strong: #34424e;
+    --brand: #5baee0;
+    --brand-hover: #7cc0ea;
+    --brand-ink: #06202f;
+    --brand-soft: #13324a;
+    --ok: #4cc38a;
+    --ok-soft: #133126;
+    --warn: #e5a93b;
+    --warn-soft: #3a2b10;
+    --bad: #f07b6f;
+    --bad-soft: #3d1b18;
+    --info: #9aa6f2;
+    --info-soft: #1f2546;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  /* One visible focus style for every interactive element. */
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--brand-soft);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
