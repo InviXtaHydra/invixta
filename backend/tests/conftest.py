@@ -19,10 +19,13 @@ from sqlalchemy.engine import make_url  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from alembic import command  # noqa: E402
+from app.agents.llm import get_llm  # noqa: E402
 from app.core.database import get_db  # noqa: E402
 from app.core.security import create_access_token, hash_password  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Customer, Order, OrderItem, OrderStatus, Product, SupportTicket, User, UserRole  # noqa: E402
+from app.rag.embeddings import Embedder, get_embedder  # noqa: E402
+from app.rag.ingestion import IngestionService  # noqa: E402
 
 PASSWORD = "CorrectHorse9"
 
@@ -71,9 +74,23 @@ def db(engine) -> Iterator[Session]:  # type: ignore[no-untyped-def]
 @pytest.fixture
 def client(db: Session) -> Iterator[TestClient]:
     app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[get_llm] = lambda: None  # no real LLM in tests; tests that need one set it
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="session")
+def embedder() -> Embedder:
+    """The real local embedding model (loaded once per test run)."""
+    model = get_embedder()
+    model.embed_query("warm-up")
+    return model
+
+
+def ingest(db: Session, embedder: Embedder, filename: str, data: bytes) -> int:
+    document, _ = IngestionService(db, embedder).ingest_pdf(filename=filename, data=data)
+    return document.id
 
 
 # --- Test data helpers ------------------------------------------------------------------------
