@@ -1,10 +1,12 @@
 """FastAPI application entry point."""
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-from app.api import health
+from app.api import auth, health, users
 from app.core.config import get_settings
+from app.core.exceptions import AppError
 
 settings = get_settings()
 
@@ -22,4 +24,14 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
+
+@app.exception_handler(AppError)
+def handle_app_error(_request: Request, exc: AppError) -> JSONResponse:
+    """Turn domain errors from the service layer into JSON responses with the right status code."""
+    headers = {"WWW-Authenticate": "Bearer"} if exc.status_code == 401 else None
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=headers)
+
+
 app.include_router(health.router)
+app.include_router(auth.router)
+app.include_router(users.router)
