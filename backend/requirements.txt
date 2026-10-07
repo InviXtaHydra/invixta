@@ -11,3 +11,8 @@ pyjwt==2.15.1
 bcrypt==5.0.0
 pgvector==0.5.0
 python-multipart==0.0.32
+
+# Phase 2: RAG + AI agent
+fastembed==0.8.1   # local embedding model (ONNX, no GPU or API key needed)
+anthropic==1.11.0  # Claude API (LLM with tool calling)
+pypdf==6.19.0      # PDF text extraction

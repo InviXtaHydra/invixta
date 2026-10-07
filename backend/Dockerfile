@@ -11,6 +11,11 @@ COPY requirements.txt requirements-dev.txt ./
 ARG INSTALL_DEV=false
 RUN if [ "$INSTALL_DEV" = "true" ]; then pip install -r requirements-dev.txt; else pip install -r requirements.txt; fi
 
+# Bake the embedding model (~70 MB) into the image so the app works offline and starts fast.
+ENV EMBEDDING_CACHE_DIR=/opt/models
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding('BAAI/bge-small-en-v1.5', cache_dir='/opt/models')" \
+    && chmod -R a+rX /opt/models
+
 # Run as a non-root user that owns the app directory (pytest/ruff caches are written here).
 RUN useradd --create-home appuser && chown appuser:appuser /app
 COPY --chown=appuser:appuser . .
