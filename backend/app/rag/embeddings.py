@@ -28,7 +28,7 @@ class FastEmbedEmbedder:
     def __init__(self, model_name: str, cache_dir: str | None = None) -> None:
         self.model_name = model_name
         self.cache_dir = cache_dir
-        self._model: TextEmbedding | None = None
+        self._model: "TextEmbedding | None" = None
         self._lock = threading.Lock()
 
     def _load(self) -> "TextEmbedding":
