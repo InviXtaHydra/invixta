@@ -11,10 +11,9 @@ COPY requirements.txt requirements-dev.txt ./
 ARG INSTALL_DEV=false
 RUN if [ "$INSTALL_DEV" = "true" ]; then pip install -r requirements-dev.txt; else pip install -r requirements.txt; fi
 
-COPY . .
-
-# Run as a non-root user.
-RUN useradd --create-home appuser
+# Run as a non-root user that owns the app directory (pytest/ruff caches are written here).
+RUN useradd --create-home appuser && chown appuser:appuser /app
+COPY --chown=appuser:appuser . .
 USER appuser
 
 EXPOSE 8000

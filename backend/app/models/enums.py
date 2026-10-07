@@ -3,13 +3,13 @@
 import enum
 
 
-class UserRole(str, enum.Enum):
+class UserRole(enum.StrEnum):
     CUSTOMER = "CUSTOMER"
     AGENT = "AGENT"  # human support agent
     ADMIN = "ADMIN"
 
 
-class OrderStatus(str, enum.Enum):
+class OrderStatus(enum.StrEnum):
     PENDING = "pending"
     PROCESSING = "processing"
     SHIPPED = "shipped"
@@ -17,21 +17,21 @@ class OrderStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
-class TicketStatus(str, enum.Enum):
+class TicketStatus(enum.StrEnum):
     OPEN = "open"
     IN_PROGRESS = "in_progress"
     RESOLVED = "resolved"
     CLOSED = "closed"
 
 
-class TicketPriority(str, enum.Enum):
+class TicketPriority(enum.StrEnum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     URGENT = "urgent"
 
 
-class MessageRole(str, enum.Enum):
+class MessageRole(enum.StrEnum):
     USER = "user"
     ASSISTANT = "assistant"
     TOOL = "tool"

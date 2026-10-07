@@ -26,6 +26,8 @@ def list_conversations(
     return Page(items=items, total=total, limit=limit, offset=offset)
 
 
-@router.get("/{conversation_id}", response_model=ConversationRead, responses={404: {"description": "Conversation not found (or not yours)"}})
+@router.get(
+    "/{conversation_id}", response_model=ConversationRead, responses={404: {"description": "Conversation not found (or not yours)"}}
+)
 def get_conversation(conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> ConversationRead:
     return ConversationRead.model_validate(ConversationService(db).get_conversation(user, conversation_id))

@@ -10,9 +10,7 @@ class CreatedAtMixin:
 
 
 class TimestampMixin(CreatedAtMixin):
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
-    )
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
 def pg_enum(enum_cls: type[enum.Enum], name: str) -> Enum:

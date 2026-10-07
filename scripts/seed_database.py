@@ -17,12 +17,12 @@ from pathlib import Path
 # Make `import app` work when the script is run from /app/scripts.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from sqlalchemy import func, select, text  # noqa: E402
-from sqlalchemy.orm import Session  # noqa: E402
+from sqlalchemy import func, select, text
+from sqlalchemy.orm import Session
 
-from app.core.database import SessionLocal  # noqa: E402
-from app.core.security import hash_password  # noqa: E402
-from app.models import (  # noqa: E402
+from app.core.database import SessionLocal
+from app.core.security import hash_password
+from app.models import (
     Conversation,
     Customer,
     Message,
@@ -74,18 +74,66 @@ ORDER_AGES_DAYS = [0, 1, 2, 3, 4, 5, 6, 8, 9, 11, 13, 16, 21, 27, 34, 41, 48, 57
 
 TICKETS = [
     # (customer index, subject, description, status, priority)
-    (0, "Parcel arrived damaged", "The box was crushed and one of the Nordic mugs is cracked. I have photos of the packaging.", TicketStatus.OPEN, TicketPriority.HIGH),
-    (0, "Change delivery address", "Can you deliver my processing order to my office address instead? It's in the same city.", TicketStatus.RESOLVED, TicketPriority.MEDIUM),
-    (1, "Headphones won't pair", "The Aurora headphones don't show up in my phone's Bluetooth list after a reset.", TicketStatus.IN_PROGRESS, TicketPriority.MEDIUM),
-    (1, "Invoice with VAT number", "I need an invoice with my company VAT number for my last order.", TicketStatus.CLOSED, TicketPriority.LOW),
-    (2, "Tracking hasn't updated", "My tracking number has shown 'in transit' for five days without any update.", TicketStatus.OPEN, TicketPriority.MEDIUM),
-    (3, "Refund not received", "I cancelled my order two weeks ago but haven't received the refund yet.", TicketStatus.IN_PROGRESS, TicketPriority.URGENT),
+    (
+        0,
+        "Parcel arrived damaged",
+        "The box was crushed and one of the Nordic mugs is cracked. I have photos of the packaging.",
+        TicketStatus.OPEN,
+        TicketPriority.HIGH,
+    ),
+    (
+        0,
+        "Change delivery address",
+        "Can you deliver my processing order to my office address instead? It's in the same city.",
+        TicketStatus.RESOLVED,
+        TicketPriority.MEDIUM,
+    ),
+    (
+        1,
+        "Headphones won't pair",
+        "The Aurora headphones don't show up in my phone's Bluetooth list after a reset.",
+        TicketStatus.IN_PROGRESS,
+        TicketPriority.MEDIUM,
+    ),
+    (
+        1,
+        "Invoice with VAT number",
+        "I need an invoice with my company VAT number for my last order.",
+        TicketStatus.CLOSED,
+        TicketPriority.LOW,
+    ),
+    (
+        2,
+        "Tracking hasn't updated",
+        "My tracking number has shown 'in transit' for five days without any update.",
+        TicketStatus.OPEN,
+        TicketPriority.MEDIUM,
+    ),
+    (
+        3,
+        "Refund not received",
+        "I cancelled my order two weeks ago but haven't received the refund yet.",
+        TicketStatus.IN_PROGRESS,
+        TicketPriority.URGENT,
+    ),
     (3, "Wrong colour keyboard", "I ordered the keyboard in white but received the black version.", TicketStatus.OPEN, TicketPriority.HIGH),
-    (4, "Question about warranty", "How long is the warranty on the smart desk lamp, and does it cover the LED?", TicketStatus.RESOLVED, TicketPriority.LOW),
+    (
+        4,
+        "Question about warranty",
+        "How long is the warranty on the smart desk lamp, and does it cover the LED?",
+        TicketStatus.RESOLVED,
+        TicketPriority.LOW,
+    ),
 ]
 
 CONVERSATIONS = [
-    (0, [(MessageRole.USER, "Hi, where is my latest order?"), (MessageRole.ASSISTANT, "Let me check that for you. Your most recent order has shipped and is on its way.")]),
+    (
+        0,
+        [
+            (MessageRole.USER, "Hi, where is my latest order?"),
+            (MessageRole.ASSISTANT, "Let me check that for you. Your most recent order has shipped and is on its way."),
+        ],
+    ),
     (2, [(MessageRole.USER, "What is your return policy?"), (MessageRole.ASSISTANT, "I'll look that up in our policy documents.")]),
 ]
 
@@ -120,7 +168,9 @@ def seed(db: Session) -> dict[str, int]:
     orders: list[Order] = []
     for age in sorted(ORDER_AGES_DAYS, reverse=True):
         created_at = now - timedelta(days=age, hours=rng.randint(0, 20))
-        order = Order(customer_id=rng.choice(customers).id, status=_status_for_age(age, rng), total_amount=Decimal("0"), created_at=created_at)
+        order = Order(
+            customer_id=rng.choice(customers).id, status=_status_for_age(age, rng), total_amount=Decimal("0"), created_at=created_at
+        )
         for product in rng.sample(products, k=rng.randint(1, 3)):
             order.items.append(OrderItem(product_id=product.id, quantity=rng.randint(1, 2), price=product.price))
         order.total_amount = sum((i.price * i.quantity for i in order.items), Decimal("0"))
@@ -130,7 +180,17 @@ def seed(db: Session) -> dict[str, int]:
 
     for idx, subject, description, status, priority in TICKETS:
         created = now - timedelta(days=rng.randint(1, 30))
-        db.add(SupportTicket(customer_id=customers[idx].id, subject=subject, description=description, status=status, priority=priority, created_at=created, updated_at=created))
+        db.add(
+            SupportTicket(
+                customer_id=customers[idx].id,
+                subject=subject,
+                description=description,
+                status=status,
+                priority=priority,
+                created_at=created,
+                updated_at=created,
+            )
+        )
 
     for idx, messages in CONVERSATIONS:
         conv = Conversation(customer_id=customers[idx].id)

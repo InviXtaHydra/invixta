@@ -31,7 +31,9 @@ class TicketRepository:
         return self.db.scalar(query)
 
     def create(self, *, customer_id: int, subject: str, description: str, priority: TicketPriority) -> SupportTicket:
-        ticket = SupportTicket(customer_id=customer_id, subject=subject, description=description, priority=priority, status=TicketStatus.OPEN)
+        ticket = SupportTicket(
+            customer_id=customer_id, subject=subject, description=description, priority=priority, status=TicketStatus.OPEN
+        )
         self.db.add(ticket)
         self.db.flush()
         return ticket
