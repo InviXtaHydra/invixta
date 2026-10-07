@@ -30,8 +30,9 @@ class Message(CreatedAtMixin, Base):
     role: Mapped[MessageRole] = mapped_column(pg_enum(MessageRole, "message_role"))
     content: Mapped[str] = mapped_column(Text)
     # For assistant messages: what the agent did and which documents it used (shown in the chat UI).
-    tool_calls: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB)
-    sources: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB)
+    # none_as_null: store Python None as SQL NULL, not as the JSON value null.
+    tool_calls: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB(none_as_null=True))
+    sources: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB(none_as_null=True))
     latency_ms: Mapped[int | None] = mapped_column(Integer)
 
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
