@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -12,6 +13,9 @@ class MessageRead(BaseModel):
     role: MessageRole
     content: str
     created_at: datetime
+    tool_calls: list[dict[str, Any]] | None = None
+    sources: list[dict[str, Any]] | None = None
+    latency_ms: int | None = None
 
 
 class ConversationSummary(BaseModel):

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.agents.llm import LLMClient, get_llm
+from app.agents.llm import LLMClient, get_llm, require_llm
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models import User
@@ -32,10 +32,10 @@ def ask(
     _: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     embedder: Embedder = Depends(get_embedder),
-    llm: LLMClient = Depends(get_llm),
+    llm: LLMClient | None = Depends(get_llm),
 ) -> AskResponse:
     """RAG answer: retrieve relevant chunks, let the LLM answer from them only, and return the sources."""
-    result = RagService(db, embedder, llm).answer(body.question)
+    result = RagService(db, embedder, require_llm(llm)).answer(body.question)
     return AskResponse(
         question=body.question,
         answer=result.answer,

@@ -116,9 +116,17 @@ def _anthropic_client(api_key: str, model: str, effort: str, max_tokens: int) ->
     return AnthropicClient(api_key, model, effort, max_tokens)
 
 
-def get_llm() -> LLMClient:
-    """FastAPI dependency. Raises 503 when no API key is configured."""
+def get_llm() -> LLMClient | None:
+    """FastAPI dependency: the configured LLM, or None when no API key is set.
+
+    Endpoints call require_llm() after request validation, so bad input still gets a 422."""
     settings = get_settings()
     if not settings.anthropic_api_key:
-        raise ServiceUnavailableError("The AI assistant isn't configured: set ANTHROPIC_API_KEY in .env")
+        return None
     return _anthropic_client(settings.anthropic_api_key, settings.llm_model, settings.llm_effort, settings.llm_max_tokens)
+
+
+def require_llm(llm: LLMClient | None) -> LLMClient:
+    if llm is None:
+        raise ServiceUnavailableError("The AI assistant isn't configured: set ANTHROPIC_API_KEY in .env")
+    return llm
