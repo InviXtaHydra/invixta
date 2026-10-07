@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router'
 import { RequireAuth } from './auth/RequireAuth'
 import { AppShell } from './components/AppShell'
+import { ChatPage } from './pages/ChatPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage, RegisterPage } from './pages/AuthPages'
 import { NotFoundPage } from './pages/NotFoundPage'
@@ -22,6 +23,14 @@ export function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route
+          path="/chat/:conversationId?"
+          element={
+            <RequireAuth roles={['CUSTOMER']}>
+              <ChatPage />
+            </RequireAuth>
+          }
+        />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/orders/:orderId" element={<OrderDetailPage />} />
         <Route path="/tickets" element={<TicketsPage />} />

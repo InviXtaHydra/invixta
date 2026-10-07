@@ -113,8 +113,11 @@ class ScriptedSupportLLM:
         if name == "search_knowledge_base":
             if not data["results"]:
                 return NOT_FOUND_MESSAGE
-            first = data["results"][0]
-            return f"From {first['document']}: {first['text']} [{first['source']}]"
+            # The two best passages, cited like the real model would.
+            top = data["results"][:2]
+            passages = " ".join(f"{r['text']} [{r['source']}]" for r in top)
+            documents = " and ".join(sorted({r["document"] for r in top}))
+            return f"Here is what I found in {documents}: {passages}"
         return "Done."
 
     def _answer(self, text: str, on_text: TextCallback | None) -> LLMTurn:
