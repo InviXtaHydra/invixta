@@ -90,3 +90,18 @@ def test_ask_endpoint(client: TestClient, db: Session, embedder: Embedder, alice
     body = client.post("/knowledge-base/ask", json={"question": "How long do I have to return a product?"}, headers=headers).json()
     assert body["answered"] is True
     assert body["sources"][0]["filename"] == "Return Policy.pdf"
+
+
+def test_ask_is_rate_limited_per_user(client: TestClient, db: Session, embedder: Embedder, alice: User) -> None:
+    from app.core.rate_limit import chat_limiter
+
+    index_two_documents(db, embedder)
+    limiter = chat_limiter()
+    original, limiter.limit = limiter.limit, 1
+    try:
+        app.dependency_overrides[get_llm] = lambda: ScriptedLLM(text_turn("Within 30 days [1]."))
+        body = {"question": "How long do I have to return a product?"}
+        assert client.post("/knowledge-base/ask", json=body, headers=auth_header(alice)).status_code == 200
+        assert client.post("/knowledge-base/ask", json=body, headers=auth_header(alice)).status_code == 429
+    finally:
+        limiter.limit = original

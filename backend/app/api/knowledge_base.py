@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.agents.llm import LLMClient, get_llm, require_llm
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.rate_limit import chat_limiter
 from app.models import User
 from app.rag.embeddings import Embedder, get_embedder
 from app.rag.rag_service import RagService
@@ -26,16 +27,22 @@ def search(
     return SearchResponse(query=q, results=[SourceRead.model_validate(r.as_source()) for r in results])
 
 
-@router.post("/ask", response_model=AskResponse, responses={503: {"description": "No LLM configured"}})
+@router.post(
+    "/ask",
+    response_model=AskResponse,
+    responses={429: {"description": "Too many questions per minute"}, 503: {"description": "No LLM configured"}},
+)
 def ask(
     body: AskRequest,
-    _: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     embedder: Embedder = Depends(get_embedder),
     llm: LLMClient | None = Depends(get_llm),
 ) -> AskResponse:
     """RAG answer: retrieve relevant chunks, let the LLM answer from them only, and return the sources."""
-    result = RagService(db, embedder, require_llm(llm)).answer(body.question)
+    client = require_llm(llm)
+    chat_limiter().hit(f"user:{user.id}")  # every answer costs LLM tokens: same per-user limit as the chat
+    result = RagService(db, embedder, client).answer(body.question)
     return AskResponse(
         question=body.question,
         answer=result.answer,
