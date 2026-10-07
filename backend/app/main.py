@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import auth, conversations, documents, health, orders, tickets, users
+from app.api import auth, conversations, documents, health, knowledge_base, orders, tickets, users
 from app.core.config import get_settings
 from app.core.exceptions import AppError
 
@@ -39,3 +39,4 @@ app.include_router(orders.router)
 app.include_router(tickets.router)
 app.include_router(conversations.router)
 app.include_router(documents.router)
+app.include_router(knowledge_base.router)
