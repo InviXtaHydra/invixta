@@ -22,7 +22,9 @@ class Document(Base):
     sha256: Mapped[str] = mapped_column(String(64))
     page_count: Mapped[int] = mapped_column(Integer)
     size_bytes: Mapped[int] = mapped_column(Integer)
-    uploaded_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL", name="fk_documents_uploaded_by_id_users"))
+    uploaded_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL", name="fk_documents_uploaded_by_id_users")
+    )
 
     chunks: Mapped[list["DocumentChunk"]] = relationship(
         back_populates="document", cascade="all, delete-orphan", order_by="DocumentChunk.chunk_index"

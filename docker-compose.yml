@@ -28,6 +28,7 @@ services:
         condition: service_healthy
     volumes:
       - ./scripts:/app/scripts:ro
+      - ./sample_documents:/app/sample_documents:ro
 
 volumes:
   postgres_data:

@@ -24,3 +24,21 @@ class AuthenticationError(AppError):
 
 class PermissionDeniedError(AppError):
     status_code = 403
+
+
+class BadRequestError(AppError):
+    status_code = 400
+
+
+class PayloadTooLargeError(AppError):
+    status_code = 413
+
+
+class UnsupportedMediaTypeError(AppError):
+    status_code = 415
+
+
+class ServiceUnavailableError(AppError):
+    """An external dependency (e.g. the LLM) isn't configured or is unreachable."""
+
+    status_code = 503
