@@ -9,7 +9,7 @@ class SourceRead(BaseModel):
     filename: str
     page_number: int | None
     chunk_index: int
-    score: float = Field(description="Cosine similarity between question and chunk (0–1)")
+    score: float = Field(description="Cosine similarity between question and chunk (0 to 1)")
     excerpt: str
 
 
