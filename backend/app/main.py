@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import auth, health, users
+from app.api import auth, conversations, health, orders, tickets, users
 from app.core.config import get_settings
 from app.core.exceptions import AppError
 
@@ -35,3 +35,6 @@ def handle_app_error(_request: Request, exc: AppError) -> JSONResponse:
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(orders.router)
+app.include_router(tickets.router)
+app.include_router(conversations.router)
