@@ -5,7 +5,7 @@ from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models import TicketStatus, User
 from app.schemas.common import Page
-from app.schemas.ticket import TicketCreate, TicketRead
+from app.schemas.ticket import TicketCreate, TicketRead, TicketUpdate
 from app.services.ticket_service import TicketService
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
@@ -34,3 +34,14 @@ def create_ticket(body: TicketCreate, user: User = Depends(get_current_user), db
 @router.get("/{ticket_id}", response_model=TicketRead, responses={404: {"description": "Ticket not found (or not yours)"}})
 def get_ticket(ticket_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> TicketRead:
     return TicketRead.model_validate(TicketService(db).get_ticket(user, ticket_id))
+
+
+@router.patch(
+    "/{ticket_id}",
+    response_model=TicketRead,
+    responses={403: {"description": "Only staff can update tickets"}, 404: {"description": "Ticket not found"}},
+)
+def update_ticket(ticket_id: int, body: TicketUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> TicketRead:
+    """Staff (AGENT/ADMIN): change a ticket's status (open → in_progress → resolved → closed) or priority."""
+    ticket = TicketService(db).update_ticket(user, ticket_id, status=body.status, priority=body.priority)
+    return TicketRead.model_validate(ticket)

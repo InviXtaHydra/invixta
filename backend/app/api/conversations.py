@@ -20,8 +20,15 @@ def list_conversations(
 ) -> Page[ConversationSummary]:
     rows, total = ConversationService(db).list_conversations(user, limit=limit, offset=offset)
     items = [
-        ConversationSummary(id=c.id, customer_id=c.customer_id, created_at=c.created_at, updated_at=c.updated_at, message_count=n)
-        for c, n in rows
+        ConversationSummary(
+            id=c.id,
+            customer_id=c.customer_id,
+            created_at=c.created_at,
+            updated_at=c.updated_at,
+            message_count=n,
+            title=_shorten(title) if title else None,
+        )
+        for c, n, title in rows
     ]
     return Page(items=items, total=total, limit=limit, offset=offset)
 
@@ -31,3 +38,8 @@ def list_conversations(
 )
 def get_conversation(conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> ConversationRead:
     return ConversationRead.model_validate(ConversationService(db).get_conversation(user, conversation_id))
+
+
+def _shorten(text: str, limit: int = 80) -> str:
+    text = " ".join(text.split())
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"

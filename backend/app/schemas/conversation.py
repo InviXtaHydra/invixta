@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import MessageRole
 
@@ -24,6 +24,7 @@ class ConversationSummary(BaseModel):
     created_at: datetime
     updated_at: datetime
     message_count: int
+    title: str | None = Field(default=None, description="The first question in the conversation, shortened")
 
 
 class ConversationRead(BaseModel):

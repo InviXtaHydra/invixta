@@ -45,6 +45,10 @@ class Settings(BaseSettings):
 
     log_level: str = "INFO"
 
+    # Simple per-process rate limits (see app/core/rate_limit.py)
+    login_attempts_per_minute: int = 10
+    chat_messages_per_minute: int = 20
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def split_origins(cls, value: object) -> object:

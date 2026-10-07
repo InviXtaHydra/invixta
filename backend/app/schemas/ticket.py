@@ -12,6 +12,13 @@ class TicketCreate(BaseModel):
     customer_id: int | None = Field(default=None, description="Only for staff creating a ticket on behalf of a customer")
 
 
+class TicketUpdate(BaseModel):
+    """Staff only: move a ticket through its workflow or change its priority."""
+
+    status: TicketStatus | None = None
+    priority: TicketPriority | None = None
+
+
 class TicketRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

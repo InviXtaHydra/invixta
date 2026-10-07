@@ -10,7 +10,7 @@ class ConversationService:
     def __init__(self, db: Session) -> None:
         self.conversations = ConversationRepository(db)
 
-    def list_conversations(self, user: User, *, limit: int, offset: int) -> tuple[list[tuple[Conversation, int]], int]:
+    def list_conversations(self, user: User, *, limit: int, offset: int) -> tuple[list[tuple[Conversation, int, str | None]], int]:
         scope = customer_scope(user)
         return self.conversations.list(customer_id=scope, limit=limit, offset=offset), self.conversations.count(customer_id=scope)
 

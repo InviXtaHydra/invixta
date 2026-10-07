@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session  # noqa: E402
 from alembic import command  # noqa: E402
 from app.agents.llm import get_llm  # noqa: E402
 from app.core.database import get_db  # noqa: E402
+from app.core.rate_limit import chat_limiter, login_limiter  # noqa: E402
 from app.core.security import create_access_token, hash_password  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Customer, Order, OrderItem, OrderStatus, Product, SupportTicket, User, UserRole  # noqa: E402
@@ -69,6 +70,12 @@ def db(engine) -> Iterator[Session]:  # type: ignore[no-untyped-def]
         session.close()
         transaction.rollback()
         connection.close()
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limits() -> None:
+    login_limiter().reset()
+    chat_limiter().reset()
 
 
 @pytest.fixture

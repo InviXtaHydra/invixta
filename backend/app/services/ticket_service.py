@@ -47,3 +47,15 @@ class TicketService:
         ticket = self.tickets.create(customer_id=target, subject=subject, description=description, priority=priority)
         self.db.commit()
         return ticket
+
+    def update_ticket(self, user: User, ticket_id: int, *, status: TicketStatus | None, priority: TicketPriority | None) -> SupportTicket:
+        if not is_staff(user):
+            raise PermissionDeniedError("Only support staff can change a ticket's status or priority")
+        ticket = self.get_ticket(user, ticket_id)
+        if status is not None:
+            ticket.status = status
+        if priority is not None:
+            ticket.priority = priority
+        self.db.commit()
+        self.db.refresh(ticket)  # updated_at is set by the database
+        return ticket

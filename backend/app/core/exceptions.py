@@ -38,6 +38,14 @@ class UnsupportedMediaTypeError(AppError):
     status_code = 415
 
 
+class TooManyRequestsError(AppError):
+    status_code = 429
+
+    def __init__(self, detail: str, retry_after: int) -> None:
+        super().__init__(detail)
+        self.retry_after = retry_after
+
+
 class ServiceUnavailableError(AppError):
     """An external dependency (e.g. the LLM) isn't configured or is unreachable."""
 

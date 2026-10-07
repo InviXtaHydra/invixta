@@ -28,6 +28,18 @@ class RegisterRequest(BaseModel):
         return value
 
 
+class PasswordChangeRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(min_length=8, description="At least 8 characters (max. 72 bytes)")
+
+    @field_validator("new_password")
+    @classmethod
+    def password_fits_bcrypt(cls, value: str) -> str:
+        if len(value.encode()) > MAX_PASSWORD_BYTES:
+            raise ValueError(f"Password must be at most {MAX_PASSWORD_BYTES} bytes")
+        return value
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
