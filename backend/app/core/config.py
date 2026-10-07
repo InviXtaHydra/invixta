@@ -1,9 +1,9 @@
 """Application settings, read from environment variables (and a local .env file)."""
 
 from functools import lru_cache
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     rag_min_score: float = 0.6
 
     # LLM (Claude). Without an API key the chat and RAG-answer endpoints return 503.
+    # "anthropic" = Claude. "scripted" = a deterministic rule-based stand-in for the end-to-end tests
+    # (app/agents/scripted_llm.py); refused when ENVIRONMENT=production.
+    llm_provider: Literal["anthropic", "scripted"] = "anthropic"
     anthropic_api_key: str | None = None
     llm_model: str = "claude-opus-5-5"
     llm_effort: str = "medium"  # low | medium | high — trades answer depth against latency and cost
@@ -56,6 +59,12 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @model_validator(mode="after")
+    def no_test_llm_in_production(self) -> "Settings":
+        if self.environment == "production" and self.llm_provider == "scripted":
+            raise ValueError("LLM_PROVIDER=scripted is only for tests and can't be used with ENVIRONMENT=production")
+        return self
 
 
 @lru_cache

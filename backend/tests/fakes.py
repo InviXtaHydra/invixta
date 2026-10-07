@@ -4,7 +4,7 @@ need no API key — while the agent loop, the tools and the database are all rea
 from collections.abc import Callable
 from typing import Any
 
-from app.agents.llm import LLMRefusalError, LLMTurn, ToolCall
+from app.agents.llm import LLMRefusalError, LLMTurn, TextCallback, ToolCall
 
 
 def text_turn(text: str) -> LLMTurn:
@@ -17,25 +17,33 @@ def text_turn(text: str) -> LLMTurn:
     )
 
 
-def tool_turn(*calls: tuple[str, dict[str, Any]]) -> LLMTurn:
+def tool_turn(*calls: tuple[str, dict[str, Any]], text: str = "") -> LLMTurn:
     tool_calls = [ToolCall(id=f"toolu_{i}", name=name, arguments=args) for i, (name, args) in enumerate(calls)]
-    content = [{"type": "tool_use", "id": c.id, "name": c.name, "input": c.arguments} for c in tool_calls]
+    content = [{"type": "text", "text": text}] if text else []
+    content += [{"type": "tool_use", "id": c.id, "name": c.name, "input": c.arguments} for c in tool_calls]
     return LLMTurn(
-        text="", tool_calls=tool_calls, stop_reason="tool_use", assistant_content=content, usage={"input_tokens": 10, "output_tokens": 5}
+        text=text, tool_calls=tool_calls, stop_reason="tool_use", assistant_content=content, usage={"input_tokens": 10, "output_tokens": 5}
     )
 
 
 class ScriptedLLM:
     """Returns the given turns in order. A turn may also be a function of the request (e.g. to echo
-    tool results back), or the string "refuse" to simulate a refusal."""
+    tool results back), the string "refuse" to simulate a refusal, or an exception to raise."""
 
     model = "scripted-test-llm"
 
-    def __init__(self, *turns: LLMTurn | Callable[[dict[str, Any]], LLMTurn] | str) -> None:
+    def __init__(self, *turns: LLMTurn | Callable[[dict[str, Any]], LLMTurn] | str | Exception) -> None:
         self.turns = list(turns)
         self.calls: list[dict[str, Any]] = []
 
-    def generate(self, *, system: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> LLMTurn:
+    def generate(
+        self,
+        *,
+        system: str,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
+        on_text: TextCallback | None = None,
+    ) -> LLMTurn:
         request = {"system": system, "messages": [dict(m) for m in messages], "tools": tools}
         self.calls.append(request)
         if not self.turns:
@@ -43,9 +51,14 @@ class ScriptedLLM:
         turn = self.turns.pop(0)
         if turn == "refuse":
             raise LLMRefusalError("declined")
+        if isinstance(turn, Exception):
+            raise turn
         if callable(turn):
-            return turn(request)
+            turn = turn(request)
         assert isinstance(turn, LLMTurn)
+        if on_text is not None and turn.text:  # stream the text word by word, like the real client
+            for i, word in enumerate(turn.text.split(" ")):
+                on_text(word if i == 0 else f" {word}")
         return turn
 
 

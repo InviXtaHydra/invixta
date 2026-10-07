@@ -10,6 +10,7 @@ orders and tickets factual, and other customers' data out of reach.
 import logging
 import re
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -21,6 +22,12 @@ from app.rag.retrieval import RetrievedChunk
 from app.tools.support_tools import TOOL_DEFINITIONS, SupportTools
 
 logger = logging.getLogger("supportai.agent")
+
+# Progress events for streaming clients (see POST /chat/stream):
+#   {"type": "tool_start", "name": ..., "arguments": {...}}
+#   {"type": "tool_end", "name": ..., "status": "ok" | "error", "summary": ..., "duration_ms": ...}
+#   {"type": "text", "delta": "..."}
+AgentEventCallback = Callable[[dict[str, Any]], None]
 
 FALLBACK_REPLY = "Sorry, I couldn't finish that request. Please try again, or open a support ticket so a colleague can help."
 
@@ -82,49 +89,62 @@ class SupportAgent:
         self.user = user
         self.max_tool_rounds = max_tool_rounds
 
-    def run(self, history: list[dict[str, Any]], user_message: str) -> AgentResult:
-        """history: earlier turns as [{"role": "user"|"assistant", "content": str}, …]."""
+    def run(self, history: list[dict[str, Any]], user_message: str, on_event: AgentEventCallback | None = None) -> AgentResult:
+        """history: earlier turns as [{"role": "user"|"assistant", "content": str}, …].
+
+        on_event (optional) receives progress events while the agent works, so a client can show
+        "Checking your order…" and the answer text as it's being written."""
+        emit = on_event or (lambda _event: None)
         messages: list[dict[str, Any]] = [*history, {"role": "user", "content": user_message}]
         system = system_prompt(self.user)
         result = AgentResult(text="")
+        texts: list[str] = []  # text from every round, e.g. "Let me check that." + the final answer
         all_sources: list[RetrievedChunk] = []
         usage: dict[str, int] = {"input_tokens": 0, "output_tokens": 0}
+        round_text: list[str] = []  # text streamed in the current round
+
+        def on_text(piece: str) -> None:
+            # Separate the text of a new round from the previous round's text.
+            emit({"type": "text", "delta": f"\n\n{piece}" if texts and not round_text else piece})
+            round_text.append(piece)
 
         try:
             for round_number in range(self.max_tool_rounds + 1):
+                round_text.clear()
                 # On the last round, take the tools away so the model has to answer.
                 tools = TOOL_DEFINITIONS if round_number < self.max_tool_rounds else None
-                turn = self.llm.generate(system=system, messages=messages, tools=tools)
+                turn = self.llm.generate(system=system, messages=messages, tools=tools, on_text=on_text)
                 for key, value in turn.usage.items():
                     usage[key] = usage.get(key, 0) + value
+                if turn.text:
+                    texts.append(turn.text)
 
                 if not turn.tool_calls:
-                    result.text = turn.text or FALLBACK_REPLY
                     break
 
                 # Keep the model's turn (including its tool requests) in the history, then answer each request.
                 messages.append({"role": "assistant", "content": turn.assistant_content})
                 tool_results = []
                 for call in turn.tool_calls:
+                    emit({"type": "tool_start", "name": call.name, "arguments": call.arguments})
                     started = time.perf_counter()
                     outcome = self.tools.execute(call.name, call.arguments)
-                    result.tool_calls.append(
-                        ToolCallRecord(
-                            name=call.name,
-                            arguments=call.arguments,
-                            status="error" if outcome.is_error else "ok",
-                            summary=outcome.summary,
-                            duration_ms=round((time.perf_counter() - started) * 1000),
-                        )
+                    record = ToolCallRecord(
+                        name=call.name,
+                        arguments=call.arguments,
+                        status="error" if outcome.is_error else "ok",
+                        summary=outcome.summary,
+                        duration_ms=round((time.perf_counter() - started) * 1000),
                     )
+                    result.tool_calls.append(record)
+                    emit({"type": "tool_end", **record.as_dict()})
                     all_sources.extend(outcome.sources)
                     tool_results.append(
                         {"type": "tool_result", "tool_use_id": call.id, "content": outcome.content, "is_error": outcome.is_error}
                     )
                 # All results of one turn go back together in a single user message.
                 messages.append({"role": "user", "content": tool_results})
-            else:  # pragma: no cover - the last round has no tools, so the loop always breaks
-                result.text = FALLBACK_REPLY
+            result.text = "\n\n".join(texts) or FALLBACK_REPLY
         except LLMRefusalError:
             result.text = FALLBACK_REPLY
 

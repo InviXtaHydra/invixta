@@ -7,6 +7,7 @@ Messages use the widely used Messages-API shape:
 
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any, Literal, Protocol, cast
@@ -41,10 +42,22 @@ class LLMTurn:
     usage: dict[str, int] = field(default_factory=dict)
 
 
+TextCallback = Callable[[str], None]
+
+
 class LLMClient(Protocol):
     model: str
 
-    def generate(self, *, system: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> LLMTurn: ...
+    def generate(
+        self,
+        *,
+        system: str,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
+        on_text: TextCallback | None = None,
+    ) -> LLMTurn:
+        """One model turn. If on_text is given, it's called with each piece of text as it's generated."""
+        ...
 
 
 class LLMRefusalError(Exception):
@@ -57,6 +70,8 @@ class AnthropicClient:
     - `fallbacks="default"`: if the model declines a request, the API retries it on a suitable
       fallback model server-side instead of returning a refusal.
     - `effort` trades answer depth against latency/cost; support answers do well at medium.
+    - Responses are always streamed: text reaches the user while it's generated, and long answers
+      don't run into request timeouts. `get_final_message()` gives the complete response afterwards.
     """
 
     def __init__(self, api_key: str, model: str, effort: str, max_tokens: int) -> None:
@@ -68,11 +83,18 @@ class AnthropicClient:
         self.effort = effort
         self.max_tokens = max_tokens
 
-    def generate(self, *, system: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> LLMTurn:
+    def generate(
+        self,
+        *,
+        system: str,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
+        on_text: TextCallback | None = None,
+    ) -> LLMTurn:
         anthropic = self._anthropic
         started = time.perf_counter()
         try:
-            response = self.client.beta.messages.create(
+            with self.client.beta.messages.stream(
                 model=self.model,
                 max_tokens=self.max_tokens,
                 system=system,
@@ -81,7 +103,11 @@ class AnthropicClient:
                 output_config={"effort": cast(Effort, self.effort)},
                 betas=["server-side-fallback-2026-07-01"],
                 fallbacks="default",
-            )
+            ) as stream:
+                for piece in stream.text_stream:
+                    if on_text is not None:
+                        on_text(piece)
+                response = stream.get_final_message()
         except anthropic.AuthenticationError as exc:
             logger.error("llm request failed", extra={"error": "authentication", "model": self.model})
             raise ServiceUnavailableError("The AI assistant is misconfigured (invalid API key)") from exc
@@ -119,8 +145,13 @@ def _anthropic_client(api_key: str, model: str, effort: str, max_tokens: int) ->
 def get_llm() -> LLMClient | None:
     """FastAPI dependency: the configured LLM, or None when no API key is set.
 
-    Endpoints call require_llm() after request validation, so bad input still gets a 422."""
+    Endpoints call require_llm() after request validation, so bad input still gets a 422.
+    LLM_PROVIDER=scripted selects the deterministic stand-in used by the end-to-end tests."""
     settings = get_settings()
+    if settings.llm_provider == "scripted":
+        from app.agents.scripted_llm import ScriptedSupportLLM
+
+        return ScriptedSupportLLM()
     if not settings.anthropic_api_key:
         return None
     return _anthropic_client(settings.anthropic_api_key, settings.llm_model, settings.llm_effort, settings.llm_max_tokens)
