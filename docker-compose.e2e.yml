@@ -1,0 +1,8 @@
+# Override for the browser end-to-end tests (and CI): the backend uses the deterministic,
+# rule-based LLM stand-in instead of Claude, so tests are repeatable and need no API key.
+#   docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build
+services:
+  backend:
+    environment:
+      LLM_PROVIDER: scripted
+      CHAT_MESSAGES_PER_MINUTE: "200"
