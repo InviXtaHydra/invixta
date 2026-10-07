@@ -19,10 +19,11 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 60
 
+    # Origins allowed to call the API from a browser directly (the React app uses a same-origin proxy).
     # NoDecode: read "a,b" as plain text and split it ourselves instead of expecting JSON.
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
 
-    # --- Phase 2: RAG + AI agent -------------------------------------------------------------
+    # --- RAG + AI agent -------------------------------------------------------------
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     embedding_dim: int = 384
     embedding_cache_dir: str | None = None  # where the model files live (baked into the Docker image)
@@ -61,9 +62,13 @@ class Settings(BaseSettings):
         return value
 
     @model_validator(mode="after")
-    def no_test_llm_in_production(self) -> "Settings":
-        if self.environment == "production" and self.llm_provider == "scripted":
+    def safe_production_settings(self) -> "Settings":
+        if self.environment != "production":
+            return self
+        if self.llm_provider == "scripted":
             raise ValueError("LLM_PROVIDER=scripted is only for tests and can't be used with ENVIRONMENT=production")
+        if "change-me" in self.jwt_secret_key:
+            raise ValueError("JWT_SECRET_KEY still has the placeholder value from .env.example; generate a real secret")
         return self
 
 

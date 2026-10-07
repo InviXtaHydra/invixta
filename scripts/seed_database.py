@@ -194,8 +194,8 @@ def seed(db: Session) -> dict[str, int]:
 
     for idx, messages in CONVERSATIONS:
         conv = Conversation(customer_id=customers[idx].id)
-        for role, content in messages:
-            conv.messages.append(Message(role=role, content=content))
+        for message_role, content in messages:
+            conv.messages.append(Message(role=message_role, content=content))
         db.add(conv)
 
     db.commit()

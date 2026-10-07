@@ -89,7 +89,8 @@ def test_agent_creates_a_ticket_for_a_damaged_item(db: Session, embedder: Embedd
     result = run(db, alice, embedder, llm, "My mug arrived broken")
 
     assert [c.name for c in result.tool_calls] == ["get_order_status", "create_support_ticket"]
-    ticket = db.scalars(select(SupportTicket).where(SupportTicket.customer_id == alice.customer.id)).one()  # type: ignore[union-attr]
+    assert alice.customer is not None
+    ticket = db.scalars(select(SupportTicket).where(SupportTicket.customer_id == alice.customer.id)).one()
     assert ticket.priority == TicketPriority.HIGH
     assert ticket.description.startswith(f"Order #{order.id}: ")
     assert result.text == f"I've opened ticket #{ticket.id}."

@@ -19,7 +19,7 @@ def text_turn(text: str) -> LLMTurn:
 
 def tool_turn(*calls: tuple[str, dict[str, Any]], text: str = "") -> LLMTurn:
     tool_calls = [ToolCall(id=f"toolu_{i}", name=name, arguments=args) for i, (name, args) in enumerate(calls)]
-    content = [{"type": "text", "text": text}] if text else []
+    content: list[dict[str, Any]] = [{"type": "text", "text": text}] if text else []
     content += [{"type": "tool_use", "id": c.id, "name": c.name, "input": c.arguments} for c in tool_calls]
     return LLMTurn(
         text=text, tool_calls=tool_calls, stop_reason="tool_use", assistant_content=content, usage={"input_tokens": 10, "output_tokens": 5}

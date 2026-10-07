@@ -29,7 +29,7 @@ def test_admin_uploads_a_pdf_and_chunks_are_embedded(client: TestClient, db: Ses
     assert {c.page_number for c in chunks} == {1, 2}
     assert chunks[0].content.startswith("Return Policy: ")
     assert any(c.content.startswith("Return window: ") for c in chunks)  # each chunk carries its section heading
-    assert all(len(c.embedding) == 384 for c in chunks)
+    assert all(c.embedding is not None and len(c.embedding) == 384 for c in chunks)
 
 
 def test_document_list_detail_and_delete(client: TestClient, db: Session) -> None:

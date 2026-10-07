@@ -53,3 +53,12 @@ def test_damaged_item_opens_a_ticket(db: Session, embedder: Embedder, alice: Use
 def test_scripted_llm_is_refused_in_production() -> None:
     with pytest.raises(ValidationError):
         Settings(environment="production", llm_provider="scripted", database_url="postgresql://x", jwt_secret_key="x" * 32)
+
+
+def test_placeholder_jwt_secret_is_refused_in_production() -> None:
+    placeholder = "change-me-to-a-long-random-string"
+    with pytest.raises(ValidationError):
+        Settings(environment="production", database_url="postgresql://x", jwt_secret_key=placeholder)
+    Settings(environment="development", database_url="postgresql://x", jwt_secret_key=placeholder)  # fine locally
+    with pytest.raises(ValidationError):
+        Settings(database_url="postgresql://x", jwt_secret_key="too-short")

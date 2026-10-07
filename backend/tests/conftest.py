@@ -6,9 +6,9 @@ from collections.abc import Iterator
 from decimal import Decimal
 
 # Point the app at the test database *before* any app module creates its engine.
-TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
-if not TEST_DATABASE_URL:
+if not os.environ.get("TEST_DATABASE_URL"):
     raise RuntimeError("Set TEST_DATABASE_URL (see .env.example) to run the tests")
+TEST_DATABASE_URL: str = os.environ["TEST_DATABASE_URL"]
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 
 import pytest  # noqa: E402
