@@ -83,7 +83,7 @@ def test_chat_input_validation_and_auth(client: TestClient, alice: User) -> None
     assert client.post("/chat", json={"message": "Hi"}).status_code == 401
 
 
-def test_chat_without_llm_is_unavailable(client: TestClient, db: Session, alice: User) -> None:
+def test_chat_when_ollama_is_down_is_unavailable(client: TestClient, db: Session, alice: User) -> None:
     response = client.post("/chat", json={"message": "Hi"}, headers=auth_header(alice))
     assert response.status_code == 503
     assert db.scalars(select(Message)).first() is None  # nothing stored when the AI isn't available

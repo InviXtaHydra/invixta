@@ -1,6 +1,7 @@
 # The whole application:  docker compose up --build
 #   http://localhost:3000       the React app (nginx, forwards /api to the backend)
 #   http://localhost:8000/docs  the API's Swagger UI
+# The language model runs in Ollama on your machine (not in a container), see README.
 services:
   postgres:
     image: pgvector/pgvector:pg16  # PostgreSQL 16 with the pgvector extension available
@@ -26,6 +27,10 @@ services:
     env_file: .env
     ports:
       - "8000:8000"
+    # Ollama runs on the host machine (it can use the Mac's GPU there). This name points to the host,
+    # also on Linux where Docker doesn't define it by itself.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       postgres:
         condition: service_healthy

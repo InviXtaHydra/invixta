@@ -36,7 +36,7 @@ flowchart LR
     React -->|"/api · JWT · SSE"| FastAPI["FastAPI<br/>routers"]
     FastAPI --> Services["Services<br/>business rules + authorization"]
     FastAPI --> Agent["Support agent<br/>tool-calling loop"]
-    Agent <-->|messages, tool calls| LLM["Claude<br/>(LLMClient)"]
+    Agent <-->|messages, tool calls| LLM["Local LLM in Ollama<br/>qwen3:8b (LLMClient)"]
     Agent --> Tools["Tools<br/>run as the signed-in user"]
     Tools --> Services
     Tools --> RAG["RAG search"]
@@ -54,7 +54,7 @@ The backend has one job per layer:
 | Services | `backend/app/services/` | Business rules, such as "a customer only sees their own orders". They raise domain errors (`NotFoundError`, …) that `main.py` maps to HTTP status codes. |
 | Repositories | `backend/app/repositories/` | The only place that builds database queries. |
 | RAG | `backend/app/rag/` | PDF extraction, cleaning, chunking, embeddings, vector search, RAG answers. |
-| Agent | `backend/app/agents/` | The `LLMClient` interface, the Claude client and the agent loop. |
+| Agent | `backend/app/agents/` | The `LLMClient` interface, the Ollama client and the agent loop. |
 | Tools | `backend/app/tools/` | What the agent may call. Tools reuse the services, so the agent gets exactly the REST API's authorization rules. |
 | Core | `backend/app/core/` | Settings, database, security (bcrypt/JWT), dependencies, rate limiting, JSON logging. |
 
@@ -65,7 +65,7 @@ The frontend is a single-page React app. `src/api/` holds a typed fetch client w
 | | |
 |---|---|
 | **Backend** | Python 3.12, FastAPI, SQLAlchemy 2, PostgreSQL 16 + pgvector, Alembic, Pydantic 2, PyJWT, bcrypt |
-| **AI** | Claude API (Anthropic Python SDK) via an `LLMClient` abstraction, FastEmbed (`BAAI/bge-small-en-v1.5`, runs locally), pypdf |
+| **AI** | Ollama with `qwen3:8b` (local, free) via an `LLMClient` abstraction, FastEmbed (`BAAI/bge-small-en-v1.5`, local), pypdf |
 | **Frontend** | React 19, TypeScript, Tailwind CSS 4, React Router, Vite |
 | **Testing** | Pytest (real PostgreSQL), Vitest + Testing Library, Playwright |
 | **Quality** | Ruff, MyPy (strict), oxlint, tsc |
@@ -74,7 +74,7 @@ The frontend is a single-page React app. `src/api/` holds a typed fetch client w
 Why these choices:
 
 - **pgvector** instead of a separate vector database. Embeddings live next to the orders and tickets, in the same transactions, backups and SQL, with one less service to run.
-- **Local embeddings, hosted LLM.** Embedding runs on every upload and question, so it runs locally: free, private, about 5 ms. Writing answers and choosing tools needs a strong model, so that goes to Claude.
+- **Everything local, nothing paid.** Embeddings run in the app (FastEmbed, about 5 ms). The language model runs in [Ollama](https://ollama.com) on the same machine: no API key, no costs, and customer data never leaves the computer. `qwen3:8b` is small enough for a laptop and good at tool calling. The trade-off: a local 8-billion-parameter model is slower and less capable than a large hosted model, which is why the app never lets it guess. Data comes from tools, policies from retrieved documents.
 - **A hand-written agent loop** (about 60 lines) instead of an agent framework, so every step can be read, logged, tested and explained.
 - **Synchronous SQLAlchemy.** It's simpler to read than async, and FastAPI runs sync endpoints in a thread pool.
 
@@ -95,7 +95,7 @@ supportai/
 ├── backend/
 │   ├── app/
 │   │   ├── api/            # routers: auth, users, orders, tickets, conversations, chat, knowledge base, documents, admin
-│   │   ├── agents/         # LLM client (Claude), support agent loop, scripted test model
+│   │   ├── agents/         # LLM interface, Ollama client, support agent loop, scripted test model
 │   │   ├── core/           # config, database, security, deps, exceptions, rate limiting, logging
 │   │   ├── models/         # SQLAlchemy models + enums
 │   │   ├── rag/            # pdf, text processing, embeddings, ingestion, retrieval, rag_service
@@ -129,9 +129,23 @@ supportai/
 
 ## Getting Started
 
-Requirements: [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine with Compose). Node.js 24 is only needed to run the frontend outside Docker or the end-to-end tests.
+Requirements:
 
-1. **Configure.** Copy the example settings and fill in the secrets:
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine with Compose);
+- [Ollama](https://ollama.com) for the language model. It is free and runs on your own machine, so no API key or subscription is needed. About 6 GB of disk space and 16 GB of RAM are comfortable for `qwen3:8b`.
+- Node.js 24, only to run the frontend outside Docker or the end-to-end tests.
+
+1. **Install Ollama and download the model** (once, about 5 GB):
+
+   ```bash
+   brew install ollama            # macOS; Windows/Linux: download it from https://ollama.com/download
+   brew services start ollama     # runs Ollama in the background, also after a restart
+   ollama pull qwen3:8b
+   ```
+
+   Check that it works: `ollama run qwen3:8b "Say hello"`. Ollama runs on your machine and not in Docker, because on a Mac only native apps can use the GPU.
+
+2. **Configure.** Copy the example settings and fill in the secrets:
 
    ```bash
    cp .env.example .env
@@ -139,11 +153,9 @@ Requirements: [Docker Desktop](https://www.docker.com/products/docker-desktop/) 
 
    - Change `POSTGRES_PASSWORD`. The password appears in 3 places: `POSTGRES_PASSWORD`, `DATABASE_URL` and `TEST_DATABASE_URL`.
    - Set `JWT_SECRET_KEY` to a random value: `python3 -c "import secrets; print(secrets.token_urlsafe(48))"`.
-   - Set `ANTHROPIC_API_KEY` to a key from <https://console.anthropic.com/settings/keys>, so the chat can use Claude.
-
    `.env` is git-ignored, so it's never committed.
 
-2. **Start everything:**
+3. **Start everything:**
 
    ```bash
    docker compose up --build
@@ -151,14 +163,14 @@ Requirements: [Docker Desktop](https://www.docker.com/products/docker-desktop/) 
 
    Migrations run automatically when the backend starts.
 
-3. **Load the demo data and index the sample documents** (in a second terminal):
+4. **Load the demo data and index the sample documents** (in a second terminal):
 
    ```bash
    docker compose exec backend python scripts/seed_database.py --reset
    docker compose exec backend python scripts/ingest_documents.py
    ```
 
-4. **Open** <http://localhost:3000> and sign in with a demo account. The login page has one-click buttons for them.
+5. **Open** <http://localhost:3000> and sign in with a demo account. The login page has one-click buttons for them.
 
 | Role | Email | Password |
 |---|---|---|
@@ -168,7 +180,7 @@ Requirements: [Docker Desktop](https://www.docker.com/products/docker-desktop/) 
 
 The seed creates 7 users, 5 customers, 10 products, 20 orders (10001–10020) with 40 items, 8 tickets and 2 conversations. Order statuses follow the order's age, as in a real shop.
 
-**Without an API key**, everything works except the AI answers: the chat shows "The AI assistant isn't configured". To try the whole flow without a key, start the backend with the scripted test model: `docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build`.
+**Is the AI ready?** <http://localhost:8000/health> shows `"llm": "ok"` when Ollama runs and has the model. `"unreachable"` means Ollama isn't running (`brew services start ollama`); `"model_missing"` means the model isn't downloaded yet (`ollama pull qwen3:8b`). Without Ollama, everything except the AI answers still works, and the chat tells you what's missing. The first question after starting takes longer (10–30 s), while Ollama loads the model into memory.
 
 **Frontend development with hot reload:** keep the backend running in Docker, then run `cd frontend && npm install && npm run dev` and open <http://localhost:5173>. Vite forwards `/api` to `localhost:8000`.
 
@@ -182,8 +194,10 @@ All settings are in [`.env.example`](.env.example). The important ones:
 | `DATABASE_URL`, `TEST_DATABASE_URL` | SQLAlchemy URLs of the app and test databases (the test database is created automatically) |
 | `ENVIRONMENT` | `development` or `production`. Production refuses the placeholder JWT secret and the scripted LLM. |
 | `JWT_SECRET_KEY`, `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | Token signing secret (at least 32 characters) and lifetime (60 minutes) |
-| `ANTHROPIC_API_KEY` | Claude API key. When empty, `/chat` and `/knowledge-base/ask` return 503. |
-| `LLM_PROVIDER`, `LLM_MODEL`, `LLM_EFFORT` | `anthropic` (default) or `scripted`; model `claude-opus-5-5`; effort `medium` |
+| `OLLAMA_URL` | Where Ollama runs. From Docker: `http://host.docker.internal:11434` (your own machine). |
+| `LLM_MODEL` | The Ollama model, `qwen3:8b` by default (any model with tool support works, e.g. `llama3.1:8b`) |
+| `LLM_PROVIDER` | `ollama` (default) or `scripted` (the rule-based test model used by the end-to-end tests) |
+| `LLM_THINK` | `false` by default. qwen3's thinking mode reasons more but is much slower on a laptop. |
 | `EMBEDDING_MODEL`, `EMBEDDING_DIM` | Local embedding model and vector size (384) |
 | `RAG_TOP_K`, `RAG_MIN_SCORE` | Chunks per search (5) and relevance threshold (0.6, chosen with the evaluation) |
 | `MAX_UPLOAD_MB` | Maximum PDF size (10) |
@@ -256,7 +270,7 @@ flowchart LR
     Chunk --> Embed["embed<br/>384-dim vectors"]
     Embed --> Store[("document_chunks<br/>pgvector + HNSW")]
     Q["question"] --> QE["embed query"] --> Search["cosine search<br/>top 5, score ≥ 0.6"]
-    Store --> Search --> LLM["Claude answers<br/>from sources only"] --> A["answer + sources"]
+    Store --> Search --> LLM["local LLM answers<br/>from sources only"] --> A["answer + sources"]
 ```
 
 1. **Ingestion** (`rag/ingestion.py`). The upload is checked on its *content*: size, the `%PDF-` signature rather than the file extension, a SHA-256 hash against duplicates, and a page limit. Encrypted or unreadable PDFs are refused.
@@ -264,7 +278,7 @@ flowchart LR
 3. **Embeddings** (`rag/embeddings.py`). An embedding turns text into a vector of 384 numbers, so that texts with a similar meaning get similar vectors. `bge-small-en-v1.5` runs locally via FastEmbed (ONNX, CPU).
 4. **Storage.** Chunks are stored with their metadata (document id, filename, page, chunk index, `created_at`) and a `vector(384)` column with an **HNSW index** for fast cosine search.
 5. **Search** (`rag/retrieval.py`). The question is embedded and PostgreSQL orders the chunks by cosine distance (`ORDER BY embedding <=> :query LIMIT 5`). Only chunks with similarity ≥ `RAG_MIN_SCORE` count.
-6. **Answer** (`rag/rag_service.py`). The chunks go to Claude as numbered sources, with instructions to answer **only** from them, cite them, and ignore instructions inside documents (a prompt-injection defence). **If nothing is relevant, the LLM isn't called at all** and the answer is the fixed not-found message.
+6. **Answer** (`rag/rag_service.py`). The chunks go to the model as numbered sources, with instructions to answer **only** from them, cite them, and ignore instructions inside documents (a prompt-injection defence). **If nothing is relevant, the LLM isn't called at all** and the answer is the fixed not-found message.
 
 ## AI Agent Architecture
 
@@ -273,7 +287,7 @@ sequenceDiagram
     participant C as Customer
     participant API as POST /chat/stream
     participant A as SupportAgent
-    participant L as Claude
+    participant L as Local LLM (Ollama)
     participant T as SupportTools
     participant DB as PostgreSQL
     C->>API: "Where is order 10014?"
@@ -316,7 +330,7 @@ sequenceDiagram
 
 Even a model that was manipulated by a prompt can only reach data the user may see anyway. Tests check exactly this, at the unit, API and browser level.
 
-**LLM abstraction.** The agent and RAG code depend on the `LLMClient` interface (`agents/llm.py`), not on the SDK. `AnthropicClient` streams from `claude-opus-5-5` with `effort: medium` and server-side fallbacks. Authentication, rate-limit and connection errors become a clean 503. Tests plug in a scripted fake.
+**LLM abstraction.** The agent and RAG code depend on the `LLMClient` interface (`agents/llm.py`), not on a model server. `OllamaClient` (`agents/ollama_client.py`) translates the app's messages and tool definitions to Ollama's `/api/chat` format, streams the answer line by line, and turns "Ollama isn't running" or "model not downloaded" into a clear 503 that tells you the command to fix it. Switching to another model is one line in `.env` (`LLM_MODEL`); switching to another provider is one new class. Tests plug in a scripted fake.
 
 **Persistence.** The user message and the answer are stored together, including tool calls, cited sources and latency, and only after the agent succeeded. A failed request leaves nothing half-finished.
 
@@ -357,7 +371,7 @@ The tests run against a real PostgreSQL rather than SQLite, so enums, JSONB and 
 - The admin sees the documents and metrics.
 - A support agent changes a ticket's status.
 
-For repeatable runs without an API key, `docker-compose.e2e.yml` sets `LLM_PROVIDER=scripted`. This is a small rule-based stand-in (`agents/scripted_llm.py`): an order number leads to `get_order_status`, a question leads to `search_knowledge_base`, and it writes the answer from the tool result. The agent loop, tools, database, vector search and streaming stay real. It is clearly marked as test code and refused when `ENVIRONMENT=production`. The same tests also run against Claude, because they check data from the database, not exact wording.
+For repeatable runs (and in CI, where there's no GPU or 5 GB model), `docker-compose.e2e.yml` sets `LLM_PROVIDER=scripted`. This is a small rule-based stand-in (`agents/scripted_llm.py`): an order number leads to `get_order_status`, a question leads to `search_knowledge_base`, and it writes the answer from the tool result. The agent loop, tools, database, vector search and streaming stay real. It is clearly marked as test code and refused when `ENVIRONMENT=production`. The same tests also run against Claude, because they check data from the database, not exact wording.
 
 **CI** (`.github/workflows/ci.yml`) runs on every push:
 
@@ -374,7 +388,7 @@ For repeatable runs without an API key, `docker-compose.e2e.yml` sets `LLM_PROVI
 
 ```bash
 docker compose exec backend python scripts/evaluate_rag.py                 # retrieval + answers
-docker compose exec backend python scripts/evaluate_rag.py --skip-answers  # retrieval only (no API key needed)
+docker compose exec backend python scripts/evaluate_rag.py --skip-answers  # retrieval only (no model needed)
 ```
 
 Measured retrieval results (`top_k=5`, threshold 0.6; full report in `scripts/eval/results/latest.json`):
@@ -440,7 +454,7 @@ What was checked in the security review, and how:
 ## Future Improvements
 
 - **Multilingual embeddings.** `bge-small-en` is English-only. Dutch or French questions would retrieve better with a multilingual model such as `multilingual-e5`; measure it with the evaluation first.
-- **Answer evaluation** with a Claude API key, plus an LLM-as-judge for answers whose wording differs from the expected facts.
+- **An LLM-as-judge** in the evaluation, for answers whose wording differs from the expected facts.
 - **Hybrid search** (keyword + vector) and a re-ranker for better context precision (0.744 now).
 - **Background ingestion** with a job queue, for large PDFs and OCR of scanned documents.
 - **Human handoff:** an agent inbox where staff take over a conversation, with the AI's trace as context.

@@ -11,7 +11,7 @@ Retrieval metrics always run (local embeddings + pgvector, no API key needed):
   abstention         unanswerable questions where nothing passes the threshold (so we say "not found")
   threshold sweep    coverage of answerable vs. abstention on unanswerable questions per threshold
 
-Answer metrics need ANTHROPIC_API_KEY (otherwise they're reported as skipped):
+Answer metrics use the local model in Ollama (skipped when Ollama isn't reachable or the model isn't pulled):
   answer correctness every required fact appears in the generated answer
   abstention         unanswerable questions answered with the not-found message
   latency            end-to-end p50/p95
@@ -30,6 +30,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.agents.llm import get_llm
+from app.agents.ollama_client import OllamaClient
 from app.core.config import get_settings
 from app.core.database import SessionLocal
 from app.rag.embeddings import get_embedder
@@ -126,8 +127,9 @@ def evaluate_retrieval(questions: list[dict[str, Any]], threshold: float) -> dic
 
 def evaluate_answers(questions: list[dict[str, Any]]) -> dict[str, Any]:
     llm = get_llm()
-    if llm is None:
-        return {"skipped": "ANTHROPIC_API_KEY is not set, so no answers were generated."}
+    if isinstance(llm, OllamaClient) and (status := llm.status()) != "ok":
+        reason = "isn't running" if status == "unreachable" else f"doesn't have the model (run: ollama pull {llm.model})"
+        return {"skipped": f"Ollama at {llm.url} {reason}, so no answers were generated."}
     rows = []
     with SessionLocal() as db:
         rag = RagService(db, get_embedder(), llm)

@@ -1,26 +1,25 @@
-"""LLM abstraction. The rest of the app talks to `LLMClient`, never to a vendor SDK directly, so the
-provider can be swapped (or faked in tests) without touching the agent or RAG code.
+"""LLM abstraction. The rest of the app talks to `LLMClient`, never to a model server directly, so the
+model can be swapped (or faked in tests) without touching the agent or RAG code.
 
-Messages use the widely used Messages-API shape:
-    {"role": "user" | "assistant", "content": str | list[content blocks]}
+The app's own message format (each client translates it to what its model server expects):
+
+    {"role": "user" | "assistant", "content": "plain text"}
+    {"role": "assistant", "content": [{"type": "text", "text": ...},
+                                      {"type": "tool_use", "id": ..., "name": ..., "input": {...}}]}
+    {"role": "user", "content": [{"type": "tool_result", "tool_use_id": ..., "content": "json", "is_error": bool}]}
+
+Tools are described as {"name": ..., "description": ..., "input_schema": {JSON Schema}}.
 """
 
-import logging
-import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, Literal, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol
 
 from app.core.config import get_settings
-from app.core.exceptions import ServiceUnavailableError
 
 if TYPE_CHECKING:
-    from anthropic.types.beta import BetaMessageParam, BetaToolParam
-
-logger = logging.getLogger("supportai.llm")
-
-Effort = Literal["low", "medium", "high", "xhigh", "max"]
+    from app.agents.ollama_client import OllamaClient
 
 
 @dataclass(frozen=True)
@@ -37,8 +36,8 @@ class LLMTurn:
     text: str
     tool_calls: list[ToolCall]
     stop_reason: str
-    # The provider's own content blocks, appended to the history as-is for the next request.
-    assistant_content: Any
+    # This turn in the app's message format; the agent appends it to the history for the next request.
+    assistant_content: list[dict[str, Any]]
     usage: dict[str, int] = field(default_factory=dict)
 
 
@@ -56,108 +55,50 @@ class LLMClient(Protocol):
         tools: list[dict[str, Any]] | None = None,
         on_text: TextCallback | None = None,
     ) -> LLMTurn:
-        """One model turn. If on_text is given, it's called with each piece of text as it's generated."""
+        """One model turn. If on_text is given, it's called with each piece of text as it's generated.
+
+        Raises ServiceUnavailableError when the model server can't be reached or fails."""
         ...
 
 
 class LLMRefusalError(Exception):
-    """The model declined the request (safety classifiers)."""
-
-
-class AnthropicClient:
-    """Claude via the official Anthropic SDK.
-
-    - `fallbacks="default"`: if the model declines a request, the API retries it on a suitable
-      fallback model server-side instead of returning a refusal.
-    - `effort` trades answer depth against latency/cost; support answers do well at medium.
-    - Responses are always streamed: text reaches the user while it's generated, and long answers
-      don't run into request timeouts. `get_final_message()` gives the complete response afterwards.
-    """
-
-    def __init__(self, api_key: str, model: str, effort: str, max_tokens: int) -> None:
-        import anthropic
-
-        self._anthropic = anthropic
-        self.client = anthropic.Anthropic(api_key=api_key, max_retries=2, timeout=90.0)
-        self.model = model
-        self.effort = effort
-        self.max_tokens = max_tokens
-
-    def generate(
-        self,
-        *,
-        system: str,
-        messages: list[dict[str, Any]],
-        tools: list[dict[str, Any]] | None = None,
-        on_text: TextCallback | None = None,
-    ) -> LLMTurn:
-        anthropic = self._anthropic
-        started = time.perf_counter()
-        try:
-            with self.client.beta.messages.stream(
-                model=self.model,
-                max_tokens=self.max_tokens,
-                system=system,
-                messages=cast("list[BetaMessageParam]", messages),
-                tools=cast("list[BetaToolParam]", tools or []),
-                output_config={"effort": cast(Effort, self.effort)},
-                betas=["server-side-fallback-2026-07-01"],
-                fallbacks="default",
-            ) as stream:
-                for piece in stream.text_stream:
-                    if on_text is not None:
-                        on_text(piece)
-                response = stream.get_final_message()
-        except anthropic.AuthenticationError as exc:
-            logger.error("llm request failed", extra={"error": "authentication", "model": self.model})
-            raise ServiceUnavailableError("The AI assistant is misconfigured (invalid API key)") from exc
-        except anthropic.RateLimitError as exc:
-            logger.warning("llm request failed", extra={"error": "rate_limited", "model": self.model})
-            raise ServiceUnavailableError("The AI assistant is busy right now. Please try again in a moment.") from exc
-        except (anthropic.APIConnectionError, anthropic.APIStatusError) as exc:
-            logger.error("llm request failed", extra={"error": type(exc).__name__, "model": self.model})
-            raise ServiceUnavailableError("The AI assistant is temporarily unavailable. Please try again.") from exc
-
-        usage = {"input_tokens": response.usage.input_tokens, "output_tokens": response.usage.output_tokens}
-        logger.info(
-            "llm request",
-            extra={
-                "model": response.model,
-                "stop_reason": response.stop_reason,
-                "duration_ms": round((time.perf_counter() - started) * 1000),
-                "tools_offered": len(tools or []),
-                **usage,
-            },
-        )
-        if response.stop_reason == "refusal":
-            raise LLMRefusalError("The request was declined")
-
-        text = "".join(block.text for block in response.content if block.type == "text").strip()
-        calls = [ToolCall(id=b.id, name=b.name, arguments=dict(b.input)) for b in response.content if b.type == "tool_use"]
-        return LLMTurn(text=text, tool_calls=calls, stop_reason=response.stop_reason or "", assistant_content=response.content, usage=usage)
+    """The model declined to answer. The agent then replies with a polite fallback message."""
 
 
 @lru_cache
-def _anthropic_client(api_key: str, model: str, effort: str, max_tokens: int) -> AnthropicClient:
-    return AnthropicClient(api_key, model, effort, max_tokens)
+def _ollama_client(
+    url: str, model: str, temperature: float, context_tokens: int, max_tokens: int, think: bool, timeout: int
+) -> "OllamaClient":
+    """One client per configuration (lru_cache), created on first use."""
+    from app.agents.ollama_client import OllamaClient
+
+    return OllamaClient(
+        url=url,
+        model=model,
+        temperature=temperature,
+        context_tokens=context_tokens,
+        max_tokens=max_tokens,
+        think=think,
+        timeout_seconds=timeout,
+    )
 
 
-def get_llm() -> LLMClient | None:
-    """FastAPI dependency: the configured LLM, or None when no API key is set.
+def get_llm() -> LLMClient:
+    """FastAPI dependency: the configured model.
 
-    Endpoints call require_llm() after request validation, so bad input still gets a 422.
-    LLM_PROVIDER=scripted selects the deterministic stand-in used by the end-to-end tests."""
+    LLM_PROVIDER=ollama (default): a local model served by Ollama, free and private.
+    LLM_PROVIDER=scripted: the deterministic stand-in used by the end-to-end tests in CI."""
     settings = get_settings()
     if settings.llm_provider == "scripted":
         from app.agents.scripted_llm import ScriptedSupportLLM
 
         return ScriptedSupportLLM()
-    if not settings.anthropic_api_key:
-        return None
-    return _anthropic_client(settings.anthropic_api_key, settings.llm_model, settings.llm_effort, settings.llm_max_tokens)
-
-
-def require_llm(llm: LLMClient | None) -> LLMClient:
-    if llm is None:
-        raise ServiceUnavailableError("The AI assistant isn't configured: set ANTHROPIC_API_KEY in .env")
-    return llm
+    return _ollama_client(
+        settings.ollama_url.rstrip("/"),
+        settings.llm_model,
+        settings.llm_temperature,
+        settings.llm_context_tokens,
+        settings.llm_max_tokens,
+        settings.llm_think,
+        settings.llm_timeout_seconds,
+    )

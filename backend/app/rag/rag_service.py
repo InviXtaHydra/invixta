@@ -58,7 +58,7 @@ def is_not_found(answer: str) -> bool:
 
 
 class RagService:
-    def __init__(self, db: Session, embedder: Embedder, llm: LLMClient | None) -> None:
+    def __init__(self, db: Session, embedder: Embedder, llm: LLMClient) -> None:
         self.search = KnowledgeBaseSearch(db, embedder)
         self.llm = llm
 
@@ -67,9 +67,6 @@ class RagService:
         if not chunks:
             logger.info("rag answer", extra={"answered": False, "reason": "no_relevant_chunks"})
             return RagAnswer(answer=NOT_FOUND_MESSAGE, sources=[], answered=False)
-        if self.llm is None:
-            raise RuntimeError("An LLM is required to generate an answer")
-
         try:
             turn = self.llm.generate(
                 system=RAG_SYSTEM_PROMPT,

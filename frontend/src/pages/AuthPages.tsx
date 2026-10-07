@@ -46,7 +46,7 @@ function Showcase() {
           <p className="mt-4 leading-relaxed">Your order is on its way with PostNL and should arrive on Friday.</p>
         </div>
       </div>
-      <p className="text-xs text-brand-ink/70">A portfolio project: FastAPI, PostgreSQL + pgvector, Claude and React.</p>
+      <p className="text-xs text-brand-ink/70">A portfolio project: FastAPI, PostgreSQL + pgvector, a local LLM (Ollama) and React.</p>
     </div>
   )
 }

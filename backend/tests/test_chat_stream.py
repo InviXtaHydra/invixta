@@ -78,8 +78,11 @@ def test_access_errors_happen_before_streaming(client: TestClient, db: Session, 
     assert client.post("/chat/stream", json={"message": "Hi"}, headers=auth_header(staff)).status_code == 403
 
 
-def test_stream_without_llm_is_unavailable(client: TestClient, alice: User) -> None:
-    assert client.post("/chat/stream", json={"message": "Hi"}, headers=auth_header(alice)).status_code == 503
+def test_stream_when_ollama_is_down_ends_with_a_helpful_error(client: TestClient, db: Session, alice: User) -> None:
+    events = read_events(client.post("/chat/stream", json={"message": "Hi"}, headers=auth_header(alice)))
+    assert [e["type"] for e in events] == ["start", "error"]
+    assert "ollama serve" in events[1]["detail"]
+    assert db.scalars(select(Message)).first() is None
 
 
 def test_chat_messages_are_rate_limited(client: TestClient, alice: User) -> None:

@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.agents.llm import LLMClient, get_llm, require_llm
+from app.agents.llm import LLMClient, get_llm
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.exceptions import AppError
@@ -30,7 +30,7 @@ ERRORS: dict[int | str, dict[str, Any]] = {
     403: {"description": "Only customer accounts can chat"},
     404: {"description": "Conversation not found (or not yours)"},
     429: {"description": "Too many messages per minute"},
-    503: {"description": "AI assistant unavailable"},
+    503: {"description": "The AI model (Ollama) isn't reachable"},
 }
 
 
@@ -51,14 +51,13 @@ def chat(
     body: ChatRequest,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-    llm: LLMClient | None = Depends(get_llm),
+    llm: LLMClient = Depends(get_llm),
     embedder: Embedder = Depends(get_embedder),
 ) -> ChatResponse:
     """Send a message to the AI support agent. It looks up orders and tickets and searches the
     knowledge base with tools, then answers. Returns the answer, its sources and the tools it used."""
-    client = require_llm(llm)
     chat_limiter().hit(f"user:{user.id}")
-    return to_response(ChatService(db, client, embedder).chat(user, conversation_id=body.conversation_id, message=body.message))
+    return to_response(ChatService(db, llm, embedder).chat(user, conversation_id=body.conversation_id, message=body.message))
 
 
 def sse(event: dict[str, Any]) -> str:
@@ -74,7 +73,7 @@ def chat_stream(
     body: ChatRequest,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-    llm: LLMClient | None = Depends(get_llm),
+    llm: LLMClient = Depends(get_llm),
     embedder: Embedder = Depends(get_embedder),
 ) -> StreamingResponse:
     """Like POST /chat, but streams progress as Server-Sent Events, one JSON object per event:
@@ -85,11 +84,11 @@ def chat_stream(
     - `{"type": "text", "delta": "Your order "}`, repeated while the answer is written
     - `{"type": "done", ...}` with the same fields as the POST /chat response, or `{"type": "error", "detail": ...}`
 
-    Access checks happen before the stream starts, so they still return normal 403/404/429/503 responses.
+    Access checks happen before the stream starts, so they still return normal 403/404/429 responses.
+    If the model fails while answering (e.g. Ollama isn't running), the stream ends with an error event.
     """
-    client = require_llm(llm)
     chat_limiter().hit(f"user:{user.id}")
-    service = ChatService(db, client, embedder)
+    service = ChatService(db, llm, embedder)
     turn = service.start(user, body.conversation_id)
     events: queue.Queue[dict[str, Any] | None] = queue.Queue()
 

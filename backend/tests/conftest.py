@@ -27,6 +27,7 @@ from app.main import app  # noqa: E402
 from app.models import Customer, Order, OrderItem, OrderStatus, Product, SupportTicket, User, UserRole  # noqa: E402
 from app.rag.embeddings import Embedder, get_embedder  # noqa: E402
 from app.rag.ingestion import IngestionService  # noqa: E402
+from tests.fakes import UnavailableLLM  # noqa: E402
 
 PASSWORD = "CorrectHorse9"
 
@@ -81,7 +82,7 @@ def reset_rate_limits() -> None:
 @pytest.fixture
 def client(db: Session) -> Iterator[TestClient]:
     app.dependency_overrides[get_db] = lambda: db
-    app.dependency_overrides[get_llm] = lambda: None  # no real LLM in tests; tests that need one set it
+    app.dependency_overrides[get_llm] = UnavailableLLM  # tests never call a real model; tests that need one set it
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()

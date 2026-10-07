@@ -1,10 +1,11 @@
 """Test doubles. ScriptedLLM plays back pre-written model turns, so agent tests are deterministic and
-need no API key — while the agent loop, the tools and the database are all real."""
+need no model server — while the agent loop, the tools and the database are all real."""
 
 from collections.abc import Callable
 from typing import Any
 
 from app.agents.llm import LLMRefusalError, LLMTurn, TextCallback, ToolCall
+from app.core.exceptions import ServiceUnavailableError
 
 
 def text_turn(text: str) -> LLMTurn:
@@ -67,3 +68,15 @@ def tool_results(request: dict[str, Any]) -> list[dict[str, Any]]:
     content = request["messages"][-1]["content"]
     assert isinstance(content, list)
     return [block for block in content if block.get("type") == "tool_result"]
+
+
+class UnavailableLLM:
+    """Behaves like the app when Ollama isn't running: every request fails with a 503-style error."""
+
+    model = "unavailable"
+
+    def status(self) -> str:
+        return "unreachable"
+
+    def generate(self, **_: Any) -> LLMTurn:
+        raise ServiceUnavailableError("Can't reach Ollama at http://localhost:11434. Is it running? Start it with: ollama serve")

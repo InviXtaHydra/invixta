@@ -1,5 +1,5 @@
 # Override for the browser end-to-end tests (and CI): the backend uses the deterministic,
-# rule-based LLM stand-in instead of Claude, so tests are repeatable and need no API key.
+# rule-based LLM stand-in instead of Ollama, so tests are repeatable and CI needs no 5 GB model.
 #   docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build
 services:
   backend:

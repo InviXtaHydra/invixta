@@ -32,14 +32,17 @@ class Settings(BaseSettings):
     rag_top_k: int = 5
     rag_min_score: float = 0.6
 
-    # LLM (Claude). Without an API key the chat and RAG-answer endpoints return 503.
-    # "anthropic" = Claude. "scripted" = a deterministic rule-based stand-in for the end-to-end tests
+    # LLM: a local model served by Ollama (free, runs on your own machine).
+    # "scripted" = a deterministic rule-based stand-in for the end-to-end tests in CI
     # (app/agents/scripted_llm.py); refused when ENVIRONMENT=production.
-    llm_provider: Literal["anthropic", "scripted"] = "anthropic"
-    anthropic_api_key: str | None = None
-    llm_model: str = "claude-opus-5-5"
-    llm_effort: str = "medium"  # low | medium | high — trades answer depth against latency and cost
-    llm_max_tokens: int = 16000
+    llm_provider: Literal["ollama", "scripted"] = "ollama"
+    ollama_url: str = "http://localhost:11434"  # in Docker: http://host.docker.internal:11434
+    llm_model: str = "qwen3:8b"
+    llm_temperature: float = 0.2
+    llm_context_tokens: int = 8192  # context window: system prompt + tools + history + sources must fit
+    llm_max_tokens: int = 1024  # maximum length of one answer
+    llm_think: bool = False  # qwen3 "thinking" mode: better reasoning, but much slower on a laptop
+    llm_timeout_seconds: int = 300
     agent_max_tool_rounds: int = 6
     chat_history_messages: int = 20  # earlier messages sent to the model for context
 

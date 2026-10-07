@@ -97,7 +97,7 @@ jobs:
           password=$(openssl rand -hex 16)
           sed -i "s/change-me-to-a-long-random-string/$(openssl rand -hex 32)/" .env
           sed -i "s/change-me/$password/g" .env
-      - name: Start frontend, backend and PostgreSQL (scripted LLM, no API key needed)
+      - name: Start frontend, backend and PostgreSQL (scripted LLM instead of Ollama)
         run: docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build --wait
       - name: Load demo data and index the sample documents
         run: |

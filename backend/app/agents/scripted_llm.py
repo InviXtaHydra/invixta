@@ -1,7 +1,7 @@
 """A deterministic, rule-based stand-in for the LLM — for end-to-end tests only.
 
-The browser end-to-end test (frontend/e2e) must be repeatable and must run in CI without an API
-key. With LLM_PROVIDER=scripted the backend uses this class instead of Claude. Everything else
+The browser end-to-end tests (frontend/e2e) must be repeatable and must run in CI, where there is no
+GPU or 5 GB model to run Ollama with. With LLM_PROVIDER=scripted the backend uses this class instead of Ollama. Everything else
 stays real: the agent loop, the tools, the database queries, the vector search and the streaming.
 Only the "thinking" is replaced by simple rules:
 

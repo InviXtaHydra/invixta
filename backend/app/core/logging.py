@@ -55,7 +55,7 @@ def configure_logging(level: str = "INFO") -> None:
     root.setLevel(level.upper())
     # Uvicorn's own access log would duplicate our request log (and includes query strings).
     logging.getLogger("uvicorn.access").disabled = True
-    for noisy in ("httpx", "httpcore", "anthropic"):
+    for noisy in ("httpx", "httpcore"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
 

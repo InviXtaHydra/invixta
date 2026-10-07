@@ -1,29 +1,371 @@
 {
-  "description": "Questions phrased the way customers ask them. 'expected_documents' lists every document that contains the answer. 'facts' are short strings a correct answer must contain (case-insensitive). Unanswerable questions have an empty expected_documents list: the right behaviour is to say the knowledge base doesn't cover it.",
+  "description": "Questions phrased the way customers ask them. 'expected_documents' lists every document that contains the answer. 'facts' are short strings a correct answer must contain (case-insensitive). Unanswerable questions have an empty expected_documents list: the right behaviour is to say the knowledge base doesn't cover it. Dutch questions ('language': 'nl') test that customers can ask in their own language; their facts are language-neutral (numbers, names) because the answer may be in Dutch.",
   "questions": [
-    {"id": "ret-1", "question": "How many days do I have to send something back?", "expected_documents": ["Return Policy.pdf"], "facts": ["30 days"]},
-    {"id": "ret-2", "question": "Do I have to pay for the return shipping if I live in the Netherlands?", "expected_documents": ["Return Policy.pdf"], "facts": ["free"]},
-    {"id": "ret-3", "question": "Can I return bed sheets I already opened?", "expected_documents": ["Return Policy.pdf"], "facts": ["seal"]},
-    {"id": "ret-4", "question": "My mug arrived broken, what should I do?", "expected_documents": ["Return Policy.pdf"], "facts": ["48 hours", "photos"]},
-    {"id": "ret-5", "question": "How long until I get my money back after returning an item?", "expected_documents": ["Return Policy.pdf", "Payment FAQ.pdf"], "facts": ["5 working days"]},
-    {"id": "shp-1", "question": "How long does delivery to Belgium take?", "expected_documents": ["Shipping Policy.pdf"], "facts": ["1 to 3 working days"]},
-    {"id": "shp-2", "question": "Is shipping free?", "expected_documents": ["Shipping Policy.pdf"], "facts": ["50"]},
-    {"id": "shp-3", "question": "Which delivery companies do you work with?", "expected_documents": ["Shipping Policy.pdf"], "facts": ["PostNL", "DHL"]},
-    {"id": "shp-4", "question": "My tracking hasn't moved in a week, what happens now?", "expected_documents": ["Shipping Policy.pdf"], "facts": ["5 working days"]},
-    {"id": "shp-5", "question": "Can I still change my delivery address?", "expected_documents": ["Shipping Policy.pdf"], "facts": ["processing"]},
-    {"id": "shp-6", "question": "Do you deliver to the United States?", "expected_documents": ["Shipping Policy.pdf"], "facts": ["European Union"]},
-    {"id": "war-1", "question": "How long is the warranty on your products?", "expected_documents": ["Warranty.pdf"], "facts": ["2-year"]},
-    {"id": "war-2", "question": "Is the LED in the desk lamp covered for longer?", "expected_documents": ["Warranty.pdf", "Product Information.pdf"], "facts": ["3-year"]},
-    {"id": "war-3", "question": "I dropped my headphones in water, is that covered by warranty?", "expected_documents": ["Warranty.pdf"], "facts": ["water"]},
-    {"id": "pay-1", "question": "Can I pay with Bancontact?", "expected_documents": ["Payment FAQ.pdf"], "facts": ["Bancontact"]},
-    {"id": "pay-2", "question": "Is it possible to pay after delivery?", "expected_documents": ["Payment FAQ.pdf"], "facts": ["Klarna", "30 days"]},
-    {"id": "pay-3", "question": "I need an invoice with my company VAT number", "expected_documents": ["Payment FAQ.pdf"], "facts": ["support ticket"]},
-    {"id": "prd-1", "question": "How do I pair the Aurora headphones with my phone?", "expected_documents": ["Product Information.pdf"], "facts": ["5 seconds"]},
-    {"id": "na-1", "question": "Do you offer gift wrapping?", "expected_documents": [], "facts": []},
-    {"id": "na-2", "question": "What are the opening hours of your physical store?", "expected_documents": [], "facts": []},
-    {"id": "na-3", "question": "Is there a student discount?", "expected_documents": [], "facts": []},
-    {"id": "na-4", "question": "Who is the CEO of the company?", "expected_documents": [], "facts": []},
-    {"id": "na-5", "question": "Do you sell gaming laptops?", "expected_documents": [], "facts": []},
-    {"id": "na-6", "question": "Can I collect my order at a pickup point instead of home delivery?", "expected_documents": [], "facts": []}
+    {
+      "id": "ret-1",
+      "question": "How many days do I have to send something back?",
+      "expected_documents": [
+        "Return Policy.pdf"
+      ],
+      "facts": [
+        "30 days"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "ret-2",
+      "question": "Do I have to pay for the return shipping if I live in the Netherlands?",
+      "expected_documents": [
+        "Return Policy.pdf"
+      ],
+      "facts": [
+        "free"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "ret-3",
+      "question": "Can I return bed sheets I already opened?",
+      "expected_documents": [
+        "Return Policy.pdf"
+      ],
+      "facts": [
+        "seal"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "ret-4",
+      "question": "My mug arrived broken, what should I do?",
+      "expected_documents": [
+        "Return Policy.pdf"
+      ],
+      "facts": [
+        "48 hours",
+        "photos"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "ret-5",
+      "question": "How long until I get my money back after returning an item?",
+      "expected_documents": [
+        "Return Policy.pdf",
+        "Payment FAQ.pdf"
+      ],
+      "facts": [
+        "5 working days"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "shp-1",
+      "question": "How long does delivery to Belgium take?",
+      "expected_documents": [
+        "Shipping Policy.pdf"
+      ],
+      "facts": [
+        "1 to 3 working days"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "shp-2",
+      "question": "Is shipping free?",
+      "expected_documents": [
+        "Shipping Policy.pdf"
+      ],
+      "facts": [
+        "50"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "shp-3",
+      "question": "Which delivery companies do you work with?",
+      "expected_documents": [
+        "Shipping Policy.pdf"
+      ],
+      "facts": [
+        "PostNL",
+        "DHL"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "shp-4",
+      "question": "My tracking hasn't moved in a week, what happens now?",
+      "expected_documents": [
+        "Shipping Policy.pdf"
+      ],
+      "facts": [
+        "5 working days"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "shp-5",
+      "question": "Can I still change my delivery address?",
+      "expected_documents": [
+        "Shipping Policy.pdf"
+      ],
+      "facts": [
+        "processing"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "shp-6",
+      "question": "Do you deliver to the United States?",
+      "expected_documents": [
+        "Shipping Policy.pdf"
+      ],
+      "facts": [
+        "European Union"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "war-1",
+      "question": "How long is the warranty on your products?",
+      "expected_documents": [
+        "Warranty.pdf"
+      ],
+      "facts": [
+        "2-year"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "war-2",
+      "question": "Is the LED in the desk lamp covered for longer?",
+      "expected_documents": [
+        "Warranty.pdf",
+        "Product Information.pdf"
+      ],
+      "facts": [
+        "3-year"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "war-3",
+      "question": "I dropped my headphones in water, is that covered by warranty?",
+      "expected_documents": [
+        "Warranty.pdf"
+      ],
+      "facts": [
+        "water"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "pay-1",
+      "question": "Can I pay with Bancontact?",
+      "expected_documents": [
+        "Payment FAQ.pdf"
+      ],
+      "facts": [
+        "Bancontact"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "pay-2",
+      "question": "Is it possible to pay after delivery?",
+      "expected_documents": [
+        "Payment FAQ.pdf"
+      ],
+      "facts": [
+        "Klarna",
+        "30 days"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "pay-3",
+      "question": "I need an invoice with my company VAT number",
+      "expected_documents": [
+        "Payment FAQ.pdf"
+      ],
+      "facts": [
+        "support ticket"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "prd-1",
+      "question": "How do I pair the Aurora headphones with my phone?",
+      "expected_documents": [
+        "Product Information.pdf"
+      ],
+      "facts": [
+        "5 seconds"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "na-1",
+      "question": "Do you offer gift wrapping?",
+      "expected_documents": [],
+      "facts": [],
+      "language": "en"
+    },
+    {
+      "id": "na-2",
+      "question": "What are the opening hours of your physical store?",
+      "expected_documents": [],
+      "facts": [],
+      "language": "en"
+    },
+    {
+      "id": "na-3",
+      "question": "Is there a student discount?",
+      "expected_documents": [],
+      "facts": [],
+      "language": "en"
+    },
+    {
+      "id": "na-4",
+      "question": "Who is the CEO of the company?",
+      "expected_documents": [],
+      "facts": [],
+      "language": "en"
+    },
+    {
+      "id": "na-5",
+      "question": "Do you sell gaming laptops?",
+      "expected_documents": [],
+      "facts": [],
+      "language": "en"
+    },
+    {
+      "id": "na-6",
+      "question": "Can I collect my order at a pickup point instead of home delivery?",
+      "expected_documents": [],
+      "facts": [],
+      "language": "en"
+    },
+    {
+      "id": "nl-ret-0",
+      "question": "Wat is jullie retourbeleid?",
+      "expected_documents": [
+        "Return Policy.pdf"
+      ],
+      "facts": [
+        "30"
+      ],
+      "language": "nl"
+    },
+    {
+      "id": "nl-ret-1",
+      "question": "Hoeveel dagen heb ik om iets terug te sturen?",
+      "expected_documents": [
+        "Return Policy.pdf"
+      ],
+      "facts": [
+        "30"
+      ],
+      "language": "nl"
+    },
+    {
+      "id": "nl-ret-4",
+      "question": "Mijn mok kwam kapot aan, wat moet ik doen?",
+      "expected_documents": [
+        "Return Policy.pdf"
+      ],
+      "facts": [
+        "48"
+      ],
+      "language": "nl"
+    },
+    {
+      "id": "nl-shp-1",
+      "question": "Hoe lang duurt de levering naar België?",
+      "expected_documents": [
+        "Shipping Policy.pdf"
+      ],
+      "facts": [
+        "3"
+      ],
+      "language": "nl"
+    },
+    {
+      "id": "nl-shp-2",
+      "question": "Is verzending gratis?",
+      "expected_documents": [
+        "Shipping Policy.pdf"
+      ],
+      "facts": [
+        "50"
+      ],
+      "language": "nl"
+    },
+    {
+      "id": "nl-shp-3",
+      "question": "Met welke vervoerders werken jullie?",
+      "expected_documents": [
+        "Shipping Policy.pdf"
+      ],
+      "facts": [
+        "PostNL",
+        "DHL"
+      ],
+      "language": "nl"
+    },
+    {
+      "id": "nl-war-1",
+      "question": "Hoe lang is de garantie op jullie producten?",
+      "expected_documents": [
+        "Warranty.pdf"
+      ],
+      "facts": [
+        "2"
+      ],
+      "language": "nl"
+    },
+    {
+      "id": "nl-pay-1",
+      "question": "Kan ik betalen met Bancontact?",
+      "expected_documents": [
+        "Payment FAQ.pdf"
+      ],
+      "facts": [
+        "Bancontact"
+      ],
+      "language": "nl"
+    },
+    {
+      "id": "nl-pay-2",
+      "question": "Kan ik achteraf betalen?",
+      "expected_documents": [
+        "Payment FAQ.pdf"
+      ],
+      "facts": [
+        "Klarna"
+      ],
+      "language": "nl"
+    },
+    {
+      "id": "nl-na-1",
+      "question": "Bieden jullie cadeauverpakking aan?",
+      "expected_documents": [],
+      "facts": [],
+      "language": "nl"
+    },
+    {
+      "id": "nl-na-2",
+      "question": "Wie is de CEO van het bedrijf?",
+      "expected_documents": [],
+      "facts": [],
+      "language": "nl"
+    },
+    {
+      "id": "nl-na-3",
+      "question": "Is er studentenkorting?",
+      "expected_documents": [],
+      "facts": [],
+      "language": "nl"
+    }
   ]
 }
