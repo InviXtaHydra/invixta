@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router'
 import { RequireAuth } from './auth/RequireAuth'
 import { AppShell } from './components/AppShell'
+import { AdminDocumentsPage } from './pages/AdminDocumentsPage'
+import { AdminMetricsPage } from './pages/AdminMetricsPage'
 import { ChatPage } from './pages/ChatPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage, RegisterPage } from './pages/AuthPages'
@@ -36,6 +38,22 @@ export function App() {
         <Route path="/tickets" element={<TicketsPage />} />
         <Route path="/tickets/:ticketId" element={<TicketDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route
+          path="/admin/documents"
+          element={
+            <RequireAuth roles={['ADMIN']}>
+              <AdminDocumentsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/metrics"
+          element={
+            <RequireAuth roles={['ADMIN']}>
+              <AdminMetricsPage />
+            </RequireAuth>
+          }
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
