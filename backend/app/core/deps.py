@@ -13,6 +13,7 @@ from app.repositories.user_repository import UserRepository
 
 # tokenUrl makes the "Authorize" button in Swagger UI work.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
@@ -28,6 +29,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user is None:  # account deleted after the token was issued
         raise unauthorized
     return user
+
+
+def get_optional_user(token: str | None = Depends(optional_oauth2_scheme), db: Session = Depends(get_db)) -> User | None:
+    """For endpoints that work for guests too (the cart): the user if a valid token was sent, else None."""
+    if not token:
+        return None
+    return get_current_user(token, db)  # a token that is sent must be valid (401 otherwise)
 
 
 def require_roles(*roles: UserRole) -> Callable[[User], User]:
