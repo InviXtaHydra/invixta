@@ -1,4 +1,4 @@
-"""The fictional warehouse and carrier. In a real shop these updates come from the warehouse system
+"""Fulfillment: stands in for the warehouse and carrier integration. With a real integration these updates come from the warehouse system
 and the carrier's tracking; here advance() makes them happen after a few minutes:
 
     processing (paid)  ──after SIMULATION_SHIP_AFTER_MINUTES──▶    shipped (carrier + tracking number)
@@ -23,7 +23,7 @@ from app.core.config import get_settings
 from app.models import Order, OrderStatus, PaymentStatus
 from app.services.checkout_service import cancel_order, estimated_delivery
 
-logger = logging.getLogger("supportai.fulfillment")
+logger = logging.getLogger("invixta.fulfillment")
 
 CARRIER_BY_COUNTRY = {"NL": "PostNL", "BE": "bpost", "LU": "bpost", "DE": "DHL"}
 TRACKING_PREFIX = {"PostNL": "3S", "bpost": "BP", "DHL": "JD", "DPD": "DP", "UPS": "1Z"}

@@ -46,7 +46,7 @@ class PaymentRead(BaseModel):
 
 class CheckoutResponse(BaseModel):
     order: OrderRead
-    payment: PaymentRead = Field(description="Open the TestPay page for this payment to approve or decline it")
+    payment: PaymentRead = Field(description="Open the payment page for this payment")
 
 
 class PaymentDecision(BaseModel):

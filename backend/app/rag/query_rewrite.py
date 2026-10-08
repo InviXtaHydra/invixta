@@ -14,7 +14,7 @@ from typing import Any
 
 from app.agents.llm import LLMClient
 
-logger = logging.getLogger("supportai.rag")
+logger = logging.getLogger("invixta.rag")
 
 SEARCH_QUERY_PROMPT = """You turn a customer's message into one short ENGLISH search query for the policy documents of a
 web shop (returns, refunds, shipping, delivery, warranty, payments, products).

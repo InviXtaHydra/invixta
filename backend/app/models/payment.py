@@ -1,4 +1,4 @@
-"""Payments. There is no real payment provider: the shop's "TestPay" page lets you approve or decline
+"""Payments. No payment provider is connected yet: the payment page runs in test mode and lets you approve or cancel
 a payment, which is how a real provider (iDEAL, Bancontact, …) reports back. No money moves."""
 
 from datetime import datetime

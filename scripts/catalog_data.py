@@ -1,4 +1,4 @@
-"""The fictional catalogue of Kopbal: clubs, leagues and products. Every club, league and crest is
+"""The fictional catalogue of Invixta: clubs, leagues and products. Every club, league and crest is
 made up; any resemblance to real clubs is accidental. Used by seed_database.py."""
 
 from decimal import Decimal
@@ -103,16 +103,16 @@ RETRO_SHIRTS = [
 
 # (slug, name, price, compare_at_price, sizes, description)
 ACCESSORIES = [
-    ("kopbal-match-ball", "Kopbal Pro Match Ball", Decimal("29.95"), None, ONE_SIZE,
+    ("invixta-match-ball", "Invixta Pro Match Ball", Decimal("29.95"), None, ONE_SIZE,
      "Size 5 match ball with thermally bonded panels. Inflated on delivery."),
-    ("kopbal-training-ball", "Kopbal Training Ball", Decimal("14.95"), Decimal("19.95"), ONE_SIZE,
+    ("invixta-training-ball", "Invixta Training Ball", Decimal("14.95"), Decimal("19.95"), ONE_SIZE,
      "Durable size 5 ball for training and the park."),
-    ("kopbal-grip-socks", "Kopbal Grip Socks", Decimal("12.95"), None, ["S", "M", "L"],
+    ("invixta-grip-socks", "Invixta Grip Socks", Decimal("12.95"), None, ["S", "M", "L"],
      "Anti-slip grip socks (S = EU 36-39, M = 40-43, L = 44-47)."),
-    ("kopbal-shin-guards", "Kopbal Shin Guards", Decimal("17.95"), None, ["S", "M", "L"],
+    ("invixta-shin-guards", "Invixta Shin Guards", Decimal("17.95"), None, ["S", "M", "L"],
      "Lightweight shin guards with a soft foam back."),
-    ("kopbal-goalkeeper-gloves", "Kopbal Goalkeeper Gloves", Decimal("34.95"), None, ["7", "8", "9", "10"],
+    ("invixta-goalkeeper-gloves", "Invixta Goalkeeper Gloves", Decimal("34.95"), None, ["7", "8", "9", "10"],
      "Latex palm with finger protection. Size = hand circumference in inches."),
-    ("kopbal-kit-bag", "Kopbal Kit Bag", Decimal("24.95"), None, ONE_SIZE, "35 L sports bag with a separate shoe compartment."),
+    ("invixta-kit-bag", "Invixta Kit Bag", Decimal("24.95"), None, ONE_SIZE, "35 L sports bag with a separate shoe compartment."),
 ]  # fmt: skip
 SCARF_PRICE = Decimal("19.95")

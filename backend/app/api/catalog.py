@@ -48,5 +48,5 @@ def get_product(slug: str, db: Session = Depends(get_db)) -> ProductRead:
 
 @router.get("/leagues", response_model=list[League])
 def leagues(db: Session = Depends(get_db)) -> list[League]:
-    """Leagues with their (fictional) clubs, for the shop's menu."""
+    """Leagues with their clubs, for the shop's menu."""
     return League.group(CatalogRepository(db).teams())

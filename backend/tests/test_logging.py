@@ -7,7 +7,7 @@ from app.core.logging import JsonFormatter
 
 
 def log_line(**extra: object) -> dict[str, object]:
-    record = logging.LogRecord("supportai.test", logging.INFO, __file__, 1, "something happened", (), None)
+    record = logging.LogRecord("invixta.test", logging.INFO, __file__, 1, "something happened", (), None)
     for key, value in extra.items():
         setattr(record, key, value)
     return json.loads(JsonFormatter().format(record))  # type: ignore[no-any-return]

@@ -59,7 +59,7 @@ class PaymentMethod(enum.StrEnum):
 
 
 class PaymentStatus(enum.StrEnum):
-    PENDING = "pending"  # waiting for the customer on the (simulated) payment page
+    PENDING = "pending"  # waiting for the customer on the payment page
     PAID = "paid"
     FAILED = "failed"
     REFUNDED = "refunded"

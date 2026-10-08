@@ -23,7 +23,7 @@ from app.rag.embeddings import Embedder
 from app.repositories.conversation_repository import ConversationRepository
 from app.tools.support_tools import SupportTools
 
-logger = logging.getLogger("supportai.chat")
+logger = logging.getLogger("invixta.chat")
 
 
 @dataclass

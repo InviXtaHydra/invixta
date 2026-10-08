@@ -16,7 +16,7 @@ from app.rag.pdf import extract_pages
 from app.rag.text_processing import chunk_page
 from app.repositories.document_repository import DocumentRepository
 
-logger = logging.getLogger("supportai.rag")
+logger = logging.getLogger("invixta.rag")
 
 
 def safe_filename(name: str | None) -> str:

@@ -1,11 +1,10 @@
-"""Generate the Kopbal knowledge-base PDFs in sample_documents/.
+"""Generate the Invixta knowledge-base PDFs in sample_documents/.
 
     docker compose run --rm -v ./sample_documents:/app/sample_documents backend python scripts/generate_sample_documents.py
 
 The policies match what the shop really does (backend/app/core/config.py, app/services/pricing.py,
 the fulfillment simulator and the checkout), so the AI agent's answers line up with the orders in the
-database. Kopbal is fictional: every club, league and crest is made up. The text lives here, readable
-in Git; the PDFs are generated from it.
+database. The text lives here, readable in Git; the PDFs are generated from it.
 """
 
 from pathlib import Path
@@ -19,7 +18,7 @@ DOCUMENTS: dict[str, list[tuple[str, list[str]]]] = {
         (
             "Returns and Exchanges",
             [
-                "This policy explains how to return or exchange something you bought at Kopbal and how refunds work. It applies "
+                "This policy explains how to return or exchange something you bought at Invixta and how refunds work. It applies "
                 "to all orders delivered in the Netherlands, Belgium and the rest of the European Union.",
             ],
         ),
@@ -212,8 +211,7 @@ DOCUMENTS: dict[str, list[tuple[str, list[str]]]] = {
         (
             "Payment FAQ",
             [
-                "Answers to common questions about paying for your order, invoices and refunds. Kopbal is a fictional shop: "
-                "payments are simulated on the TestPay page and no real money moves.",
+                "Answers to common questions about paying for your order, invoices and refunds.",
             ],
         ),
         (
@@ -296,7 +294,7 @@ def build(filename: str, sections: list[tuple[str, list[str]]]) -> None:
     pdf = FPDF(format="A4")
     pdf.set_auto_page_break(auto=True, margin=20)
     pdf.set_title(filename.removesuffix(".pdf"))
-    pdf.set_author("Kopbal")
+    pdf.set_author("Invixta")
     pdf.add_page()
     title, intro = sections[0]
     pdf.set_font("Helvetica", "B", 20)

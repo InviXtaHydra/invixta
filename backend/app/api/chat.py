@@ -24,7 +24,7 @@ from app.schemas.knowledge_base import SourceRead
 from app.services.chat_service import ChatResult, ChatService
 
 router = APIRouter(tags=["chat"])
-logger = logging.getLogger("supportai.chat")
+logger = logging.getLogger("invixta.chat")
 
 ERRORS: dict[int | str, dict[str, Any]] = {
     403: {"description": "Only customer accounts can chat"},

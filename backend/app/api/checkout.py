@@ -1,4 +1,4 @@
-"""Checkout and the simulated payment provider ("TestPay"). Everything is fictional: no money moves."""
+"""Checkout and payments. No payment provider is connected yet: payments run in test mode (see PayPage)."""
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
@@ -65,7 +65,7 @@ def get_payment(payment_id: int, user: User = Depends(get_current_user), db: Ses
 def complete_payment(
     payment_id: int, body: PaymentDecision, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> PaymentRead:
-    """TestPay: approve or decline the payment, like a bank would. Approved orders go to "processing"."""
+    """Complete a payment (test mode): approve or cancel it, as a payment provider would report back. Approved orders go to "processing"."""
     payment = CheckoutService(db).complete_payment(user, payment_id, approve=body.outcome == "approve")
     return PaymentRead.model_validate(payment)
 
@@ -80,6 +80,6 @@ def retry_payment(
 
 @router.post("/orders/{order_id}/cancel", response_model=OrderRead, tags=["orders"], responses={409: {"description": "Already shipped"}})
 def cancel_order(order_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> OrderRead:
-    """Cancel an order that hasn't shipped yet. Stock goes back; a paid order is refunded (fictionally)."""
+    """Cancel an order that hasn't shipped yet. Stock goes back; a paid order is refunded."""
     CheckoutService(db).cancel(user, order_id)
     return OrderRead.from_order(OrderService(db).get_order(user, order_id))

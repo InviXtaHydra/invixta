@@ -1,7 +1,7 @@
 """Structured JSON logging with a request id.
 
 Every log line is one JSON object, e.g.
-  {"time": "...", "level": "INFO", "logger": "supportai.tools", "message": "tool call",
+  {"time": "...", "level": "INFO", "logger": "invixta.tools", "message": "tool call",
    "request_id": "3f2a…", "tool": "get_order_status", "ok": true, "duration_ms": 4}
 
 What we never log: passwords, tokens, API keys, request headers or bodies, query strings, chat text.
@@ -69,7 +69,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         request_id = incoming if re.fullmatch(r"[A-Za-z0-9-]{8,64}", incoming) else uuid.uuid4().hex
         token = request_id_var.set(request_id)
         started = time.perf_counter()
-        logger = logging.getLogger("supportai.http")
+        logger = logging.getLogger("invixta.http")
         try:
             response = await call_next(request)
             logger.info(

@@ -30,7 +30,7 @@ from app.rag.rag_service import NOT_FOUND_MESSAGE
 from app.rag.retrieval import RetrievedChunk
 from app.tools.support_tools import TOOL_DEFINITIONS, SupportTools, ToolResult
 
-logger = logging.getLogger("supportai.agent")
+logger = logging.getLogger("invixta.agent")
 
 # Progress events for streaming clients (see POST /chat/stream):
 #   {"type": "tool_start", "name": ..., "arguments": {...}}
@@ -44,7 +44,7 @@ FALLBACK_REPLY = "Sorry, I couldn't finish that request. Please try again, or op
 def system_prompt(user: User) -> str:
     name = user.customer.name if user.customer else user.email
     today = datetime.now(UTC).date().isoformat()
-    return f"""You are the customer support assistant of Kopbal, an online shop for football shirts of the (fictional) clubs of the
+    return f"""You are the customer support assistant of Invixta, an online shop for football shirts of the clubs of the
 Lage Landen League and the Noordzee Divisie. It sells home, away, retro, training and kids shirts with name and number
 printing, and accessories. You are talking to {name}, a signed-in customer. Today is {today}.
 

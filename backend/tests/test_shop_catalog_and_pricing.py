@@ -41,7 +41,7 @@ def test_catalogue_filters_and_sorting(client: TestClient, db: Session) -> None:
         db, "FC Dijkstad Home", "69.95", {"M": 0, "L": 4}, category=ProductCategory.HOME, team=dijkstad, personalizable=True
     )
     make_product(db, "Polder United Home", "49.95", {"M": 3}, category=ProductCategory.HOME, team=polder, compare_at_price="69.95")
-    make_product(db, "Kopbal Ball", "29.95", {"One size": 5})
+    make_product(db, "Invixta Ball", "29.95", {"One size": 5})
 
     def names(**params: str | int | bool) -> list[str]:
         response = client.get("/catalog/products", params=params)
@@ -53,7 +53,7 @@ def test_catalogue_filters_and_sorting(client: TestClient, db: Session) -> None:
     assert names(size="M", category="home") == ["Polder United Home"]  # Dijkstad is sold out in M
     assert names(on_sale=True) == ["Polder United Home"]
     assert names(q="dijkstad home") == ["FC Dijkstad Home"]
-    assert names(max_price=30) == ["Kopbal Ball"]
+    assert names(max_price=30) == ["Invixta Ball"]
 
     detail = client.get(f"/catalog/products/{home.slug}").json()
     assert [(v["size"], v["stock"]) for v in detail["variants"]] == [("M", 0), ("L", 4)]

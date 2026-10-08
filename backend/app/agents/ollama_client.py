@@ -22,7 +22,7 @@ from typing import Any
 from app.agents.llm import LLMTurn, TextCallback, ToolCall
 from app.core.exceptions import ServiceUnavailableError
 
-logger = logging.getLogger("supportai.llm")
+logger = logging.getLogger("invixta.llm")
 
 
 def to_ollama_tools(tools: list[dict[str, Any]]) -> list[dict[str, Any]]:

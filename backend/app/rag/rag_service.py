@@ -17,11 +17,11 @@ from app.rag.embeddings import Embedder
 from app.rag.query_rewrite import rewrite_search_query
 from app.rag.retrieval import KnowledgeBaseSearch, RetrievedChunk
 
-logger = logging.getLogger("supportai.rag")
+logger = logging.getLogger("invixta.rag")
 
 NOT_FOUND_MESSAGE = "I couldn't find enough information in the knowledge base to answer that reliably."
 
-RAG_SYSTEM_PROMPT = f"""You answer customer questions for SupportAI Store using ONLY the numbered sources provided.
+RAG_SYSTEM_PROMPT = f"""You answer customer questions for Invixta using ONLY the numbered sources provided.
 
 Rules:
 - Use only facts stated in the sources. Never add policies, numbers, prices or promises that aren't in them.

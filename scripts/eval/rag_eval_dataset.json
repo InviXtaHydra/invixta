@@ -1,5 +1,5 @@
 {
-  "description": "Questions about the Kopbal shop, phrased the way customers ask them. 'expected_documents' lists every document that contains the answer. 'facts' are short strings a correct answer must contain (case-insensitive). Unanswerable questions have an empty expected_documents list: the right behaviour is to say the knowledge base doesn't cover it. Dutch questions ('language': 'nl') test that customers can ask in their own language; their facts are language-neutral (numbers, names) because the answer may be in Dutch.",
+  "description": "Questions about the Invixta shop, phrased the way customers ask them. 'expected_documents' lists every document that contains the answer. 'facts' are short strings a correct answer must contain (case-insensitive). Unanswerable questions have an empty expected_documents list: the right behaviour is to say the knowledge base doesn't cover it. Dutch questions ('language': 'nl') test that customers can ask in their own language; their facts are language-neutral (numbers, names) because the answer may be in Dutch.",
   "questions": [
     {
       "id": "ret-1",
@@ -248,7 +248,7 @@
     },
     {
       "id": "na-4",
-      "question": "Who is the CEO of Kopbal?",
+      "question": "Who is the CEO of Invixta?",
       "expected_documents": [],
       "facts": [],
       "language": "en"

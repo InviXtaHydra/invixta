@@ -39,7 +39,7 @@ class SalesRead(BaseModel):
 
     orders: int = Field(description="Orders that weren't cancelled")
     cancelled_orders: int
-    revenue_eur: Decimal = Field(description="Total of paid orders (fictional money); refunded orders don't count")
+    revenue_eur: Decimal = Field(description="Total of paid orders; refunded orders don't count")
     average_order_value_eur: Decimal | None
     items_sold: int
     top_products: list[TopProductRead]

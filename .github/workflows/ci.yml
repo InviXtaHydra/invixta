@@ -24,21 +24,21 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_USER: supportai
+          POSTGRES_USER: invixta
           POSTGRES_PASSWORD: ci-password
-          POSTGRES_DB: supportai
+          POSTGRES_DB: invixta
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U supportai"
+          --health-cmd "pg_isready -U invixta"
           --health-interval 3s
           --health-timeout 3s
           --health-retries 20
     env:
-      DATABASE_URL: postgresql+psycopg://supportai:ci-password@localhost:5432/supportai
-      TEST_DATABASE_URL: postgresql+psycopg://supportai:ci-password@localhost:5432/supportai_test
+      DATABASE_URL: postgresql+psycopg://invixta:ci-password@localhost:5432/invixta
+      TEST_DATABASE_URL: postgresql+psycopg://invixta:ci-password@localhost:5432/invixta_test
       JWT_SECRET_KEY: ci-only-secret-not-used-anywhere-else-0123456789
-      EMBEDDING_CACHE_DIR: /home/runner/.cache/supportai-models
+      EMBEDDING_CACHE_DIR: /home/runner/.cache/invixta-models
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -51,7 +51,7 @@ jobs:
       - name: Cache the embedding model
         uses: actions/cache@v4
         with:
-          path: /home/runner/.cache/supportai-models
+          path: /home/runner/.cache/invixta-models
           key: embedding-model-bge-small-en-v1.5
       - name: Lint (ruff)
         run: |

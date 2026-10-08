@@ -28,7 +28,7 @@ from app.repositories.catalog_repository import CatalogRepository, ProductFilter
 from app.services.order_service import OrderService
 from app.services.ticket_service import TicketService
 
-logger = logging.getLogger("supportai.tools")
+logger = logging.getLogger("invixta.tools")
 
 # Words that don't narrow a product search ("Polder United home shirt" → "Polder United home").
 GENERIC_PRODUCT_WORDS = {"shirt", "shirts", "kit", "jersey", "the", "a", "an", "de", "het", "een"}

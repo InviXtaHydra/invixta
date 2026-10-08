@@ -1,4 +1,4 @@
-"""The fictional warehouse: ships paid orders, delivers shipped ones and cancels unpaid ones.
+"""Fulfillment simulator (stands in for the warehouse/carrier integration): ships paid orders, delivers shipped ones and cancels unpaid ones.
 
     docker compose exec backend python scripts/fulfillment_simulator.py --once   # one round
     python scripts/fulfillment_simulator.py                                      # every 20 s (the `simulator` service)

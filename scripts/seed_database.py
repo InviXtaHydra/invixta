@@ -1,4 +1,4 @@
-"""Fill the database with the fictional Kopbal shop: clubs, products, stock, customers, orders, tickets.
+"""Fill the database with the fictional Invixta shop: clubs, products, stock, customers, orders, tickets.
 
 Run inside the backend container:
     docker compose exec backend python scripts/seed_database.py          # only if the database is empty
@@ -56,8 +56,8 @@ from app.services.pricing import shipping_cost
 DEMO_PASSWORD = "Password123!"
 
 STAFF = [
-    ("admin@kopbal.shop", UserRole.ADMIN),
-    ("agent@kopbal.shop", UserRole.AGENT),
+    ("admin@invixta.shop", UserRole.ADMIN),
+    ("agent@invixta.shop", UserRole.AGENT),
 ]
 
 # (name, email, street, postcode, city, country)
@@ -69,7 +69,7 @@ CUSTOMERS = [
     ("Mila Claes", "mila.claes@example.com", "Am Hafen 21", "50667", "Köln", "DE"),
 ]
 
-SHIRT_NAMES = ["DE VRIES", "JANSSENS", "MARTENS", "PEETERS", "CLAES", "KOPBAL", "VAN DIJK", "MERTENS"]
+SHIRT_NAMES = ["DE VRIES", "JANSSENS", "MARTENS", "PEETERS", "CLAES", "INVIXTA", "VAN DIJK", "MERTENS"]
 
 # How many days ago the 20 orders were placed. Their status follows from their age (see _status_for_age),
 # like in a real shop: recent orders are still open, older ones are delivered (or cancelled).

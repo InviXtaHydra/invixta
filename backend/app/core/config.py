@@ -11,7 +11,7 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    app_name: str = "Kopbal"
+    app_name: str = "Invixta"
     environment: str = "development"
 
     database_url: str = Field(..., description="SQLAlchemy URL, e.g. postgresql+psycopg://user:pw@host/db")
@@ -57,7 +57,7 @@ class Settings(BaseSettings):
 
     log_level: str = "INFO"
 
-    # --- Shop (everything is fictional: no real payments, no real parcels) ---------------------
+    # --- Shop ---------------------------------------------------------------------------------
     personalization_price: Decimal = Decimal("15.00")  # name + number printed on a shirt
     free_shipping_from: Decimal = Decimal("50.00")  # standard shipping is free from this subtotal
     shipping_benelux: Decimal = Decimal("4.95")

@@ -1,13 +1,14 @@
-"""Checkout, (simulated) payments and cancelling.
+"""Checkout, payments and cancelling.
 
     cart ──checkout──▶ order "pending" + payment "pending"   (stock is reserved right away)
                          │
-          TestPay page ──┼── approve ──▶ payment "paid", order "processing"
+     payment page ──┼── approve ──▶ payment "paid", order "processing"
                          └── decline ──▶ payment "failed", order stays "pending": the customer can pay again
     unpaid for too long ──▶ order "cancelled", stock back            (scripts/fulfillment_simulator.py)
     cancel (pending/processing) ──▶ order "cancelled", stock back, a paid payment is "refunded"
 
-No real money moves anywhere: TestPay plays the role of a payment provider such as iDEAL.
+No payment provider is connected yet: the payment page runs in test mode and reports approve/decline
+the way a provider such as Mollie or Stripe would (via its webhook) once one is connected.
 """
 
 from dataclasses import dataclass

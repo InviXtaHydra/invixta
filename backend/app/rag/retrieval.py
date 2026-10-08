@@ -16,7 +16,7 @@ from app.core.config import get_settings
 from app.models import Document, DocumentChunk
 from app.rag.embeddings import Embedder
 
-logger = logging.getLogger("supportai.rag")
+logger = logging.getLogger("invixta.rag")
 
 
 @dataclass(frozen=True)

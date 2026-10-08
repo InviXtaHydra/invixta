@@ -1,8 +1,9 @@
 # The whole application:  docker compose up --build
-#   http://localhost:4000       the Kopbal web shop (nginx, forwards /api to the backend)
+#   http://localhost:4000       the Invixta web shop (nginx, forwards /api to the backend)
 #   http://localhost:8100/docs  the API's Swagger UI
 # (Other ports than the SupportAI project, so both can run at the same time.)
 # The language model runs in Ollama on your machine (not in a container), see README.
+name: invixta
 services:
   postgres:
     image: pgvector/pgvector:pg16  # PostgreSQL 16 with the pgvector extension available
@@ -44,8 +45,8 @@ services:
       timeout: 5s
       retries: 30
 
-  # The fictional warehouse and carrier: ships paid orders and delivers them after a few minutes
-  # (SIMULATION_*_MINUTES in .env), and cancels orders that were never paid.
+  # Fulfillment: stands in for the warehouse and carrier integration. Ships paid orders and marks them
+  # delivered after a few minutes (SIMULATION_*_MINUTES in .env), and cancels orders that were never paid.
   simulator:
     build:
       context: ./backend

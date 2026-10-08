@@ -44,7 +44,7 @@ def test_stock_limits(client: TestClient, db: Session, alice: User) -> None:
     assert client.post("/cart/items", json={"variant_id": large.id}, headers=headers).status_code == 409  # sold out
     assert client.post("/cart/items", json={"variant_id": medium.id, "quantity": 2}, headers=headers).status_code == 200
     # Another 2 with a name: 4 in total, but only 3 in stock.
-    response = client.post("/cart/items", json={"variant_id": medium.id, "quantity": 2, "personalization_name": "KOPBAL"}, headers=headers)
+    response = client.post("/cart/items", json={"variant_id": medium.id, "quantity": 2, "personalization_name": "INVIXTA"}, headers=headers)
     assert response.status_code == 409 and "Only 1 left" in response.json()["detail"]
 
     line_id = client.get("/cart", headers=headers).json()["items"][0]["id"]
