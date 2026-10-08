@@ -39,9 +39,9 @@ test('customer asks about an order: the agent calls the order tool and answers f
   await ask(page, `Where is my order ${orderLabel}?`)
 
   const answer = page.getByRole('article').last()
-  await expect(answer.getByText('Order database')).toBeVisible() // the tool ran…
+  await expect(answer.getByText('Checked your order')).toBeVisible() // the tool ran…
   await expect(answer.getByText(`Order #${orderNumber}: shipped`)).toBeVisible() // …and found the order
-  await expect(answer.getByText(/Answered in/)).toBeVisible()
+  await expect(answer).toHaveAttribute('aria-busy', 'false')
   await expect(answer).toContainText(/shipped/i)
   await expect(answer).toContainText(tracking)
 
@@ -58,10 +58,10 @@ test('policy question: the agent searches the knowledge base and shows its sourc
   await ask(page, 'How many days do I have to return a product?')
 
   const answer = page.getByRole('article').last()
-  await expect(answer.getByText('Knowledge base')).toBeVisible()
-  await expect(answer.getByText(/Answered in/)).toBeVisible()
-  await expect(answer.getByText('Sources')).toBeVisible()
-  await expect(answer.getByText('Returns and Exchanges.pdf').first()).toBeVisible()
+  await expect(answer.getByText('Searched our help articles')).toBeVisible()
+  await expect(answer).toHaveAttribute('aria-busy', 'false')
+  await expect(answer.getByText('Based on')).toBeVisible()
+  await expect(answer.getByText('Returns and Exchanges').first()).toBeVisible()
   await expect(answer).toContainText('30 days')
 })
 
@@ -79,12 +79,12 @@ test("a customer can't see another customer's order through the assistant", asyn
   await page.getByRole('link', { name: 'New conversation' }).first().click()
   await ask(page, `What is the status of order ${someoneElses}?`)
   const answer = page.getByRole('article').last()
-  await expect(answer.getByText(/Answered in/)).toBeVisible()
+  await expect(answer).toHaveAttribute('aria-busy', 'false')
   await expect(answer).toContainText(/not found|couldn't find|can't find|could not find/i) // …and so does the agent's tool
 })
 
 test('admin sees the knowledge base and the metrics', async ({ page }) => {
-  await signIn(page, 'admin@kopbal.shop')
+  await signIn(page, 'admin@invixta.shop')
   await nav(page, 'Knowledge base').click()
   await expect(page.getByText('Returns and Exchanges.pdf')).toBeVisible()
   await expect(page.getByText(/\d+ documents, \d+ chunks/)).toBeVisible()
@@ -95,7 +95,7 @@ test('admin sees the knowledge base and the metrics', async ({ page }) => {
 })
 
 test('support agent changes the status of a ticket', async ({ page }) => {
-  await signIn(page, 'agent@kopbal.shop')
+  await signIn(page, 'agent@invixta.shop')
   await page.goto('/tickets?status=open')
   await expect(page.locator('[aria-busy="false"]')).toBeVisible()
   await page.getByRole('main').getByRole('listitem').getByRole('link').first().click()

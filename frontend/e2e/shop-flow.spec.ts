@@ -1,7 +1,7 @@
-// The shop end to end: browse → print a shirt → cart → sign in → checkout → TestPay → order → ask the bot.
+// The shop end to end: browse → print a shirt → cart → sign in → checkout → pay → order → ask the bot.
 import { expect, test } from '@playwright/test'
 
-test('a guest buys a printed shirt, pays with TestPay and asks the assistant about the order', async ({ page }) => {
+test('a guest buys a printed shirt, pays and asks the assistant about the order', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('navigation', { name: 'Shop' }).getByRole('link', { name: 'Home shirts' }).click()
   await expect(page.getByRole('heading', { name: 'Home shirts' })).toBeVisible()
@@ -10,13 +10,13 @@ test('a guest buys a printed shirt, pays with TestPay and asks the assistant abo
   // Choose a size that is in stock and print a name and number.
   const size = page.locator('input[name="size"]:not([disabled])').first()
   await size.check({ force: true })
-  await page.getByLabel('Name').fill('kopbal')
+  await page.getByLabel('Name').fill('invixta')
   await page.getByLabel('Number').fill('9')
-  await expect(page.getByRole('img', { name: /back/ })).toContainText('KOPBAL')
+  await expect(page.getByRole('img', { name: /back/ })).toContainText('INVIXTA')
   await page.getByRole('button', { name: /Add to cart, €84\.95/ }).click()
 
   const drawer = page.getByRole('dialog', { name: /Your cart/ })
-  await expect(drawer).toContainText('printed: KOPBAL 9')
+  await expect(drawer).toContainText('printed: INVIXTA 9')
   await drawer.getByRole('link', { name: 'Checkout' }).click()
 
   // Checkout needs an account: sign in, and the guest cart comes along.
@@ -24,7 +24,7 @@ test('a guest buys a printed shirt, pays with TestPay and asks the assistant abo
   await page.getByLabel('Password').fill('Password123!')
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page).toHaveURL(/\/checkout$/)
-  await expect(page.getByText('KOPBAL 9')).toBeVisible()
+  await expect(page.getByText('INVIXTA 9')).toBeVisible()
 
   await page.getByLabel('Street and house number').fill('Lindelaan 12')
   await page.getByLabel('Postcode').fill('3511 AB')
@@ -32,12 +32,12 @@ test('a guest buys a printed shirt, pays with TestPay and asks the assistant abo
   await page.getByRole('radio', { name: /iDEAL/ }).check()
   await page.getByRole('button', { name: /Place order/ }).click()
 
-  // The simulated payment provider.
-  await expect(page.getByText('TestPay')).toBeVisible()
-  await page.getByRole('button', { name: 'Approve payment' }).click()
+  // The payment page (test mode: no payment provider connected).
+  await expect(page.getByText('Invixta Pay')).toBeVisible()
+  await page.getByRole('button', { name: /^Pay €/ }).click()
   await expect(page.getByText('Thanks for your order!')).toBeVisible()
   await expect(page.getByText('Processing', { exact: true })).toBeVisible()
-  await expect(page.getByText('printed: KOPBAL 9')).toBeVisible()
+  await expect(page.getByText('printed: INVIXTA 9')).toBeVisible()
   const orderNumber = page.url().match(/orders\/(\d+)/)![1]
 
   // Ask the support assistant in the shop's chat widget.
@@ -46,9 +46,9 @@ test('a guest buys a printed shirt, pays with TestPay and asks the assistant abo
   await page.getByRole('textbox', { name: 'Message' }).fill(`What is the status of order ${orderNumber}?`)
   await page.keyboard.press('Enter')
   const answer = page.getByRole('region', { name: 'Support chat' }).getByRole('article').last()
-  await expect(answer.getByText('Order database')).toBeVisible()
+  await expect(answer.getByText('Checked your order')).toBeVisible()
   await expect(answer.getByText(`Order #${orderNumber}: processing`)).toBeVisible()
-  await expect(answer.getByText(/Answered in/)).toBeVisible()
+  await expect(answer).toHaveAttribute('aria-busy', 'false')
 })
 
 test('the catalogue filters by club and size', async ({ page }) => {
@@ -76,7 +76,7 @@ test('the assistant offers a cancellation, and only the customer can confirm it'
   await page.getByLabel('Postcode').fill('3511 AB')
   await page.getByLabel('City').fill('Utrecht')
   await page.getByRole('button', { name: /Place order/ }).click()
-  await page.getByRole('button', { name: 'Approve payment' }).click()
+  await page.getByRole('button', { name: /^Pay €/ }).click()
   await expect(page.getByText('Processing', { exact: true })).toBeVisible()
   const orderNumber = page.url().match(/orders\/(\d+)/)![1]
 
@@ -85,7 +85,7 @@ test('the assistant offers a cancellation, and only the customer can confirm it'
   await page.keyboard.press('Enter')
   const answer = page.getByRole('article').last()
   await expect(answer.getByText(`Order #${orderNumber} can be cancelled: waiting for your confirmation`)).toBeVisible()
-  await expect(answer.getByText(/Answered in/)).toBeVisible()
+  await expect(answer).toHaveAttribute('aria-busy', 'false')
   await expect(page).toHaveURL(/\/chat\/\d+$/)
   const conversationUrl = page.url()
 
@@ -104,7 +104,7 @@ test('the assistant offers a cancellation, and only the customer can confirm it'
 
 test('an admin changes the stock of a size and the shop shows it', async ({ page }) => {
   await page.goto('/login')
-  await page.getByLabel('Email').fill('admin@kopbal.shop')
+  await page.getByLabel('Email').fill('admin@invixta.shop')
   await page.getByLabel('Password').fill('Password123!')
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page).not.toHaveURL(/\/login/)
