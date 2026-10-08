@@ -5,6 +5,8 @@ GPU or 5 GB model to run Ollama with. With LLM_PROVIDER=scripted the backend use
 stays real: the agent loop, the tools, the database queries, the vector search and the streaming.
 Only the "thinking" is replaced by simple rules:
 
+    "cancel" + an order number     → request_order_cancellation
+    "in stock" / "available"       → search_products
     message with an order number   → get_order_status
     "ticket"                       → get_support_tickets
     "order" / "parcel" (no number) → get_customer_orders
@@ -72,6 +74,10 @@ class ScriptedSupportLLM:
             return ToolCall(id="scripted_1", name="create_support_ticket", arguments=args)
         if damaged:
             return None  # ask for the order number first
+        if number and any(w in lower for w in ("cancel", "annuleer", "annuleren")):
+            return ToolCall(id="scripted_1", name="request_order_cancellation", arguments={"order_id": number.group(1)})
+        if any(w in lower for w in ("in stock", "available", "op voorraad", "do you have")):
+            return ToolCall(id="scripted_1", name="search_products", arguments={"query": _product_words(text)})
         if number:
             return ToolCall(id="scripted_1", name="get_order_status", arguments={"order_id": number.group(1)})
         if "ticket" in lower:
@@ -108,6 +114,14 @@ class ScriptedSupportLLM:
             open_ones = [t for t in data["tickets"] if t["status"] in ("open", "in_progress")]
             latest_id = data["tickets"][0]["ticket_id"]
             return f"You have {data['total']} tickets, {len(open_ones)} of them still open. The latest is #{latest_id}."
+        if name == "request_order_cancellation":
+            return f"Order #{data['order_id']} can still be cancelled. Confirm it with the button below; until then nothing changes."
+        if name == "search_products":
+            if not data["results"]:
+                return "I couldn't find that product in the shop."
+            first = data["results"][0]
+            sizes = ", ".join(first["sizes_in_stock"]) or "no sizes"
+            return f"The {first['product']} costs EUR {first['price_eur']} and is in stock in: {sizes}."
         if name == "create_support_ticket":
             return f"I've opened ticket #{data['ticket_id']} with {data['priority']} priority. A colleague will get back to you."
         if name == "search_knowledge_base":
@@ -126,3 +140,10 @@ class ScriptedSupportLLM:
                 on_text(word if i == 0 else f" {word}")
                 time.sleep(self.delay)
         return LLMTurn(text=text, tool_calls=[], stop_reason="end_turn", assistant_content=[{"type": "text", "text": text}])
+
+
+def _product_words(text: str) -> str:
+    """'Is the Polder United home shirt in stock?' → 'Polder United home' (the words that name the product)."""
+    stop = {"is", "the", "in", "stock", "available", "do", "you", "have", "a", "an", "shirt", "?", "still"}
+    words = [w.strip("?.,!") for w in text.split()]
+    return " ".join(w for w in words if w and w.lower() not in stop)[:100] or text[:100]

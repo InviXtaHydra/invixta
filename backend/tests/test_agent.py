@@ -219,3 +219,51 @@ def test_order_numbers_are_recognised() -> None:
 
     assert order_numbers("Where is #10482? And 10482 again, and 10501") == ["10482", "10501"]
     assert order_numbers("I ordered 2 shirts in 2026 for 69.95, call 0612345678") == []
+
+
+def test_search_products_tool_lists_sizes_in_stock(db: Session, embedder: Embedder, alice: User) -> None:
+    from app.models import ProductCategory
+    from tests.conftest import make_product, make_team
+
+    team = make_team(db, "polder-united", "Polder United")
+    make_product(
+        db, "Polder United Home Shirt", "49.95", {"M": 0, "L": 3}, category=ProductCategory.HOME, team=team, compare_at_price="69.95"
+    )
+    tools = SupportTools(db, alice, embedder)
+
+    found = json.loads(tools.execute("search_products", {"query": "Polder United home shirt"}).content)["results"]
+    assert found[0]["product"] == "Polder United Home Shirt" and found[0]["sizes_in_stock"] == ["L"] and found[0]["was_eur"] == "69.95"
+    in_m = tools.execute("search_products", {"query": "Polder United", "size": "m"})
+    assert json.loads(in_m.content)["results"] == [] and in_m.summary == "No products found in size M"
+
+
+def test_cancellation_is_only_offered_never_done_by_the_agent(db: Session, embedder: Embedder, alice: User, bob: User) -> None:
+    from app.models import Order, OrderStatus
+
+    open_order = make_order(db, alice.customer, status=OrderStatus.PROCESSING)  # type: ignore[arg-type]
+    shipped = make_order(db, alice.customer, status=OrderStatus.SHIPPED)  # type: ignore[arg-type]
+    bobs = make_order(db, bob.customer, status=OrderStatus.PROCESSING)  # type: ignore[arg-type]
+    tools = SupportTools(db, alice, embedder)
+
+    offered = tools.execute("request_order_cancellation", {"order_id": str(open_order.id)})
+    assert not offered.is_error and json.loads(offered.content)["can_cancel"] is True
+    assert db.get(Order, open_order.id).status == OrderStatus.PROCESSING  # type: ignore[union-attr]  # not cancelled
+    assert tools.execute("request_order_cancellation", {"order_id": str(shipped.id)}).is_error
+    assert "not found" in tools.execute("request_order_cancellation", {"order_id": str(bobs.id)}).content.lower()
+
+
+def test_search_first_looks_up_a_mentioned_club_and_size(db: Session, embedder: Embedder, alice: User) -> None:
+    from app.agents.support_agent import mentioned_size
+    from app.models import ProductCategory
+    from tests.conftest import make_product, make_team
+
+    team = make_team(db, "polder-united", "Polder United")
+    make_product(db, "Polder United Home Shirt", "69.95", {"M": 4}, category=ProductCategory.HOME, team=team)
+    llm = ScriptedLLM(text_turn("polder united shirt"), text_turn("Yes, it's in stock in M."))
+    result = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True).run(
+        [], "Hebben jullie het Polder shirt in maat m?"
+    )
+
+    assert ("search_products", {"query": "Polder United", "size": "M"}) in [(c.name, c.arguments) for c in result.tool_calls]
+    assert "Polder United Home Shirt" in llm.calls[1]["system"]
+    assert mentioned_size("I'm usually an XL") == "XL" and mentioned_size("I'm fine, thanks") is None

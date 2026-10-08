@@ -2,9 +2,9 @@
 
     user message → (search the knowledge base) → LLM → tool calls? → run tools → results back → … → answer
 
-With search_first (the default in the app), the agent itself looks up any order number in the message
-and searches the knowledge base (with a rewritten English query) before the model's first turn, and
-gives the results to the model. Small local models often skip tools and then invent a status or a
+With search_first (the default in the app), the agent itself looks up any order number in the message,
+the products of a club the message mentions, and searches the knowledge base (with a rewritten English
+query) before the model's first turn, and gives the results to the model. Small local models often skip tools and then invent a status or a
 policy; this way they always see the real data (or are told explicitly that nothing was found). The
 model can still call every tool itself.
 
@@ -42,20 +42,22 @@ FALLBACK_REPLY = "Sorry, I couldn't finish that request. Please try again, or op
 def system_prompt(user: User) -> str:
     name = user.customer.name if user.customer else user.email
     today = datetime.now(UTC).date().isoformat()
-    return f"""You are the customer support assistant of SupportAI Store, an online shop in the Netherlands and Belgium.
-You are talking to {name}, a signed-in customer. Today is {today}.
+    return f"""You are the customer support assistant of Kopbal, an online shop for football shirts of the (fictional) clubs of the
+Lage Landen League and the Noordzee Divisie. It sells home, away, retro, training and kids shirts with name and number
+printing, and accessories. You are talking to {name}, a signed-in customer. Today is {today}.
 
 How to work:
-- Orders, tickets and account data: ALWAYS look them up with the tools. Never guess a status, date or tracking number.
-  If the customer gives no order number, use get_customer_orders and ask which order they mean when it's unclear.
-- Company policies and product questions (returns, shipping, warranty, payments, products): ALWAYS call
-  search_knowledge_base and answer only from its results. Cite the sources you use like [S1] or [S2].
-  If the results don't contain the answer, say exactly: "{NOT_FOUND_MESSAGE}"
+- Orders, tickets and account data: ALWAYS look them up with the tools. Never guess a status, date, size, printed name
+  or tracking number. If the customer gives no order number, use get_customer_orders and ask which order they mean.
+- Products, prices and stock: use search_products. Never guess whether a size is in stock.
+- Company policies (returns, exchanges, printing, sizes, shipping, payments, product care): answer only from the
+  knowledge-base results and cite them like [S1]. If they don't contain the answer, say exactly: "{NOT_FOUND_MESSAGE}"
   Never invent policies, prices, deadlines or promises.
-- Problems such as a damaged, wrong or missing item, a lost parcel or a refund issue: get the order number and a short
-  description of what happened, check the order with get_order_status, then open a ticket with create_support_ticket
-  (priority high for damaged/wrong/lost items, urgent only for payment or refund problems) and give the ticket number.
-  Don't create duplicate tickets for the same problem in one conversation.
+- Cancelling: you can't cancel an order yourself. Call request_order_cancellation; if it can be cancelled, tell the customer
+  to confirm with the "Cancel order" button below your message. Never say an order is cancelled.
+- Problems such as a damaged item, the wrong club or size, a misprinted name or a lost parcel: get the order number and
+  what happened, check the order, then open a ticket with create_support_ticket (priority high for damaged/wrong/misprinted
+  or lost items, urgent only for payment or refund problems) and give the ticket number. Don't create duplicate tickets.
 - You can only see this customer's own data. If a tool says an order or ticket wasn't found, tell the customer you
   couldn't find it on their account; don't speculate about other customers.
 - Only promise what a tool did or a document says. Don't invent website features, buttons, account settings,
@@ -93,6 +95,23 @@ class AgentResult:
 
 # Order numbers start at 10001: five or more digits, optionally written as "#10482".
 ORDER_NUMBER = re.compile(r"(?<!\d)#?(1\d{4,8})(?!\d)")
+
+
+SIZE = re.compile(r"\b(XXL|XL|S|M|L|116|128|140|152|164)\b")
+SIZE_AFTER_WORD = re.compile(r"(?i)\b(?:size|maat|taille|größe)\s+(xxl|xl|s|m|l)\b")
+
+
+def mentioned_size(message: str) -> str | None:
+    """A shirt size in the message: "in M", "maat l", "size XL", "140"."""
+    match = SIZE_AFTER_WORD.search(message) or SIZE.search(message)
+    return match.group(1).upper() if match else None
+
+
+def product_context(club: str, outcome: ToolResult) -> str:
+    return (
+        f"\n\nProducts of {club} in the shop (from the catalogue, JSON):\n{outcome.content}\n"
+        "Use these for availability, sizes and prices. Never guess stock or prices that aren't listed here."
+    )
 
 
 def order_numbers(message: str, limit: int = 3) -> list[str]:
@@ -173,6 +192,11 @@ class SupportAgent:
             lookups = [(n, self._run_tool("get_order_status", {"order_id": n}, result, emit)) for n in order_numbers(user_message)]
             if lookups:
                 system += order_context(lookups)
+            clubs = self.tools.mentioned_teams(user_message)
+            if clubs:
+                size = mentioned_size(user_message)
+                search = {"query": clubs[0], **({"size": size} if size else {})}
+                system += product_context(clubs[0], self._run_tool("search_products", search, result, emit))
             query = rewrite_search_query(self.llm, user_message, history)
             outcome = self._run_tool("search_knowledge_base", {"query": query}, result, emit)
             all_sources.extend(outcome.sources)

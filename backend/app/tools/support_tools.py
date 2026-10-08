@@ -20,13 +20,17 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError
-from app.models import Order, OrderStatus, TicketPriority, TicketStatus, User
+from app.models import Order, OrderStatus, ProductCategory, TicketPriority, TicketStatus, User
 from app.rag.embeddings import Embedder
 from app.rag.retrieval import KnowledgeBaseSearch, RetrievedChunk
+from app.repositories.catalog_repository import CatalogRepository, ProductFilters
 from app.services.order_service import OrderService
 from app.services.ticket_service import TicketService
 
 logger = logging.getLogger("supportai.tools")
+
+# Generic words in club names, ignored when looking for a club in a message ("FC", "United", …).
+CLUB_WORDS = {"fc", "sv", "sc", "real", "sporting", "atlético", "atletico", "united", "city", "rovers", "athletic", "1908"}
 
 # --- Tool definitions sent to the model (JSON Schema) -----------------------------------------
 
@@ -91,6 +95,38 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
         },
     },
     {
+        "name": "search_products",
+        "description": (
+            "Search the shop's products: shirts (home, away, retro, training, kids) and accessories of the clubs we sell. "
+            "Returns names, prices, sale prices and the sizes in stock. Use it when the customer asks whether something "
+            "is available, in stock in a size, or what it costs."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Club, product or kind of item, e.g. 'Polder United home shirt'"},
+                "size": {"type": "string", "description": "Only products with this size in stock, e.g. 'M' or '140'"},
+                "category": {"type": "string", "enum": [c.value for c in ProductCategory]},
+            },
+            "required": ["query"],
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "request_order_cancellation",
+        "description": (
+            "Check whether one of the customer's orders can still be cancelled (only before it ships) and offer the "
+            "customer a confirmation button in the chat. This does NOT cancel the order: the customer confirms it "
+            "themselves. Use it when the customer asks to cancel an order."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"order_id": {"type": "string", "description": "The order number"}},
+            "required": ["order_id"],
+            "additionalProperties": False,
+        },
+    },
+    {
         "name": "get_support_tickets",
         "description": "List the customer's support tickets with their status.",
         "input_schema": {
@@ -121,6 +157,16 @@ class CustomerOrdersArgs(ToolArgs):
 
 class SearchArgs(ToolArgs):
     query: str = Field(min_length=3, max_length=500)
+
+
+class ProductSearchArgs(ToolArgs):
+    query: str = Field(min_length=2, max_length=100)
+    size: str | None = Field(default=None, max_length=12)
+    category: ProductCategory | None = None
+
+
+class CancellationArgs(ToolArgs):
+    order_id: str = Field(min_length=1, max_length=20)
 
 
 class CreateTicketArgs(ToolArgs):
@@ -190,6 +236,16 @@ class SupportTools:
         )
         return result
 
+    def mentioned_teams(self, message: str) -> list[str]:
+        """Names of the clubs a message mentions, also by their core name ("Polder" for Polder United)."""
+        text = message.lower()
+        found = []
+        for team in CatalogRepository(self.db).teams():
+            core = [w for w in team.name.lower().split() if w not in CLUB_WORDS]
+            if team.name.lower() in text or any(len(w) > 3 and w in text for w in [*core, team.city.lower()]):
+                found.append(team.name)
+        return found
+
     # --- Tools ----------------------------------------------------------------------------------
 
     def _tool_get_order_status(self, arguments: dict[str, Any]) -> ToolResult:
@@ -218,6 +274,50 @@ class SupportTools:
             )
         names = ", ".join(sorted({c.filename for c in chunks}))
         return ToolResult(content=json.dumps({"results": results}), is_error=False, summary=f"Found in {names}", sources=chunks)
+
+    def _tool_search_products(self, arguments: dict[str, Any]) -> ToolResult:
+        args = ProductSearchArgs.model_validate(arguments)
+        catalog = CatalogRepository(self.db)
+        filters = ProductFilters(category=args.category, size=args.size.upper() if args.size else None, q=args.query)
+        products = catalog.list(filters, "popular", limit=6, offset=0)
+        if not products and len(args.query.split()) > 1:
+            # "Polder United home shirt" → try the club or product name on its own words
+            filters.q = " ".join(w for w in args.query.split() if w.lower() not in {"shirt", "shirts", "kit", "the", "a"})
+            products = catalog.list(filters, "popular", limit=6, offset=0) if filters.q else []
+        results = [
+            {
+                "product": p.name,
+                "club": p.team.name if p.team else None,
+                "price_eur": str(p.price),
+                **({"was_eur": str(p.compare_at_price)} if p.compare_at_price else {}),
+                "sizes_in_stock": [v.size for v in p.variants if v.stock > 0],
+                "name_and_number_printing": p.personalizable,
+                "link": f"/product/{p.slug}",
+            }
+            for p in products
+        ]
+        data: dict[str, Any] = {"results": results} if results else {"results": [], "note": "No products match."}
+        size_note = f" in size {args.size.upper()}" if args.size else ""
+        summary = f"{len(results)} product(s) found{size_note}" if results else f"No products found{size_note}"
+        return ToolResult(content=json.dumps(data), is_error=False, summary=summary)
+
+    def _tool_request_order_cancellation(self, arguments: dict[str, Any]) -> ToolResult:
+        """Human in the loop: the agent can only *offer* a cancellation; the customer confirms it in the chat."""
+        args = CancellationArgs.model_validate(arguments)
+        order = self.orders.get_order(self.user, parse_order_number(args.order_id))
+        if order.status not in (OrderStatus.PENDING, OrderStatus.PROCESSING):
+            raise ToolError(f"Order #{order.id} is {order.status.value} and can't be cancelled anymore")
+        data = {
+            "order_id": order.id,
+            "can_cancel": True,
+            "total_amount_eur": str(order.total_amount),
+            "refund": "a paid order is refunded straight away" if order.payment_status.value == "paid" else "nothing was paid yet",
+            "next_step": "A 'Cancel order' button appears below your reply in this chat. The order is NOT cancelled until "
+            "the customer presses it.",
+        }
+        return ToolResult(
+            content=json.dumps(data), is_error=False, summary=f"Order #{order.id} can be cancelled: waiting for your confirmation"
+        )
 
     def _tool_create_support_ticket(self, arguments: dict[str, Any]) -> ToolResult:
         args = CreateTicketArgs.model_validate(arguments)

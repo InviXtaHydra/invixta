@@ -62,3 +62,18 @@ def test_placeholder_jwt_secret_is_refused_in_production() -> None:
     Settings(environment="development", database_url="postgresql://x", jwt_secret_key=placeholder)  # fine locally
     with pytest.raises(ValidationError):
         Settings(database_url="postgresql://x", jwt_secret_key="too-short")
+
+
+def test_scripted_cancel_and_stock_rules(db: Session, embedder: Embedder, alice: User) -> None:
+    from app.models import OrderStatus, ProductCategory
+    from tests.conftest import make_product, make_team
+
+    order = make_order(db, alice.customer, status=OrderStatus.PROCESSING)  # type: ignore[arg-type]
+    text, tools = ask(db, alice, embedder, f"Please cancel order {order.id}")
+    assert tools == ["request_order_cancellation"] and "button" in text
+
+    make_product(
+        db, "Polder United Home Shirt", "69.95", {"M": 2}, category=ProductCategory.HOME, team=make_team(db, "pu", "Polder United")
+    )
+    text, tools = ask(db, alice, embedder, "Is the Polder United home shirt in stock?")
+    assert tools == ["search_products"] and "in stock in: M" in text
