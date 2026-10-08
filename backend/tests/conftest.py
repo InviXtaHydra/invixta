@@ -2,6 +2,7 @@
 transaction per test so tests never see each other's data."""
 
 import os
+import secrets
 from collections.abc import Iterator
 from decimal import Decimal
 
@@ -27,7 +28,19 @@ from app.core.database import get_db  # noqa: E402
 from app.core.rate_limit import chat_limiter, login_limiter  # noqa: E402
 from app.core.security import create_access_token, hash_password  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import Customer, Order, OrderItem, OrderStatus, Product, SupportTicket, User, UserRole  # noqa: E402
+from app.models import (  # noqa: E402
+    Customer,
+    Order,
+    OrderItem,
+    OrderStatus,
+    Product,
+    ProductCategory,
+    ProductVariant,
+    SupportTicket,
+    Team,
+    User,
+    UserRole,
+)
 from app.rag.embeddings import Embedder, get_embedder  # noqa: E402
 from app.rag.ingestion import IngestionService  # noqa: E402
 from tests.fakes import UnavailableLLM  # noqa: E402
@@ -122,18 +135,63 @@ def make_staff(db: Session, email: str, role: UserRole) -> User:
     return user
 
 
-def make_order(db: Session, customer: Customer, status: OrderStatus = OrderStatus.SHIPPED, quantity: int = 2) -> Order:
-    product = Product(name="Test Mug", description="Ceramic", price=Decimal("12.50"), stock=10)
+def make_team(db: Session, slug: str = "fc-test", name: str = "FC Test") -> Team:
+    team = Team(
+        slug=slug, name=name, short_name="TST", league="Test League", city="Teststad", founded=1900,
+        primary_color="#C8102E", secondary_color="#FFFFFF", pattern="stripes",
+    )  # fmt: skip
+    db.add(team)
+    db.flush()
+    return team
+
+
+def make_product(
+    db: Session,
+    name: str = "Test Mug",
+    price: str = "12.50",
+    sizes: dict[str, int] | None = None,
+    *,
+    category: ProductCategory = ProductCategory.ACCESSORY,
+    personalizable: bool = False,
+    team: Team | None = None,
+    compare_at_price: str | None = None,
+) -> Product:
+    """A product with one variant per size: sizes={"M": 5, "L": 0} means 5 in M and L sold out."""
+    slug = "-".join(name.lower().split()) + f"-{secrets.token_hex(3)}"
+    product = Product(
+        slug=slug, name=name, description="Test product", category=category, price=Decimal(price),
+        compare_at_price=Decimal(compare_at_price) if compare_at_price else None, personalizable=personalizable, team=team,
+    )  # fmt: skip
+    for position, (size, stock) in enumerate((sizes or {"One size": 10}).items()):
+        product.variants.append(ProductVariant(size=size, sku=f"{slug}-{size}", stock=stock, position=position))
     db.add(product)
     db.flush()
+    return product
+
+
+def make_order(db: Session, customer: Customer, status: OrderStatus = OrderStatus.SHIPPED, quantity: int = 2) -> Order:
+    product = make_product(db)
     order = Order(
         customer_id=customer.id,
         status=status,
+        subtotal=Decimal("12.50") * quantity,
         total_amount=Decimal("12.50") * quantity,
         carrier="PostNL",
         tracking_number="PO123456789",
+        shipping_city="Utrecht",
+        shipping_country="NL",
     )
-    order.items.append(OrderItem(product_id=product.id, quantity=quantity, price=product.price))
+    variant = product.variants[0]
+    order.items.append(
+        OrderItem(
+            product_id=product.id,
+            variant_id=variant.id,
+            quantity=quantity,
+            price=product.price,
+            product_name=product.name,
+            size=variant.size,
+        )
+    )
     db.add(order)
     db.flush()
     return order

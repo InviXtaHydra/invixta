@@ -252,13 +252,28 @@ def _order_json(order: Order, *, with_items: bool) -> dict[str, Any]:
     data: dict[str, Any] = {
         "order_id": order.id,
         "status": order.status.value,
+        "payment_status": order.payment_status.value,
         "ordered_on": order.created_at.date().isoformat(),
         "last_update": order.updated_at.date().isoformat(),
         "total_amount_eur": str(order.total_amount),
+        "shipping_cost_eur": str(order.shipping_cost),
+        "shipping_method": order.shipping_method.value,
+        "ships_to": f"{order.shipping_city}, {order.shipping_country}" if order.shipping_city else None,
         "carrier": order.carrier,
         "tracking_number": order.tracking_number,
         "estimated_delivery": order.estimated_delivery.isoformat() if order.estimated_delivery else None,
+        "can_still_be_cancelled": order.status in (OrderStatus.PENDING, OrderStatus.PROCESSING),
     }
     if with_items:
-        data["items"] = [{"product": i.product.name, "quantity": i.quantity, "unit_price_eur": str(i.price)} for i in order.items]
+        data["items"] = [
+            {
+                "product": i.product_name or i.product.name,
+                "size": i.size,
+                "quantity": i.quantity,
+                "unit_price_eur": str(i.price),
+                **({"printed_name": i.personalization_name} if i.personalization_name else {}),
+                **({"printed_number": i.personalization_number} if i.personalization_number is not None else {}),
+            }
+            for i in order.items
+        ]
     return data

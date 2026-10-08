@@ -1,5 +1,6 @@
 """Application settings, read from environment variables (and a local .env file)."""
 
+from decimal import Decimal
 from functools import lru_cache
 from typing import Annotated, Literal
 
@@ -10,7 +11,7 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    app_name: str = "SupportAI"
+    app_name: str = "Kopbal"
     environment: str = "development"
 
     database_url: str = Field(..., description="SQLAlchemy URL, e.g. postgresql+psycopg://user:pw@host/db")
@@ -55,6 +56,18 @@ class Settings(BaseSettings):
     max_pdf_pages: int = 200
 
     log_level: str = "INFO"
+
+    # --- Shop (everything is fictional: no real payments, no real parcels) ---------------------
+    personalization_price: Decimal = Decimal("15.00")  # name + number printed on a shirt
+    free_shipping_from: Decimal = Decimal("50.00")  # standard shipping is free from this subtotal
+    shipping_benelux: Decimal = Decimal("4.95")
+    shipping_eu: Decimal = Decimal("9.95")
+    express_surcharge: Decimal = Decimal("7.50")  # express: next working day, NL and BE only
+    # The fulfillment simulator (scripts/fulfillment_simulator.py) plays the warehouse and the carrier,
+    # in minutes instead of days so you can watch an order move through its statuses.
+    simulation_ship_after_minutes: float = 3
+    simulation_deliver_after_minutes: float = 10
+    simulation_payment_timeout_minutes: float = 30  # unpaid orders are cancelled after this
 
     # Simple per-process rate limits (see app/core/rate_limit.py)
     login_attempts_per_minute: int = 10

@@ -35,3 +35,31 @@ class MessageRole(enum.StrEnum):
     USER = "user"
     ASSISTANT = "assistant"
     TOOL = "tool"
+
+
+class ProductCategory(enum.StrEnum):
+    HOME = "home"  # home shirt of the current season
+    AWAY = "away"
+    RETRO = "retro"  # remake of a classic shirt
+    TRAINING = "training"
+    KIDS = "kids"
+    ACCESSORY = "accessory"  # scarves, socks, balls
+
+
+class ShippingMethod(enum.StrEnum):
+    STANDARD = "standard"
+    EXPRESS = "express"
+
+
+class PaymentMethod(enum.StrEnum):
+    IDEAL = "ideal"
+    BANCONTACT = "bancontact"
+    CARD = "card"
+    PAYPAL = "paypal"
+
+
+class PaymentStatus(enum.StrEnum):
+    PENDING = "pending"  # waiting for the customer on the (simulated) payment page
+    PAID = "paid"
+    FAILED = "failed"
+    REFUNDED = "refunded"

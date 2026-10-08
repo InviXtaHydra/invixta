@@ -29,7 +29,16 @@ def test_order_detail_includes_items_and_shipping(client: TestClient, db: Sessio
     assert body["tracking_number"] == "PO123456789"
     assert Decimal(body["total_amount"]) == Decimal("25.00")
     assert body["items"] == [
-        {"product_id": order.items[0].product_id, "product_name": "Test Mug", "quantity": 2, "unit_price": "12.50", "line_total": "25.00"}
+        {
+            "product_id": order.items[0].product_id,
+            "product_name": "Test Mug",
+            "size": "One size",
+            "quantity": 2,
+            "unit_price": "12.50",
+            "line_total": "25.00",
+            "personalization_name": None,
+            "personalization_number": None,
+        }
     ]
 
 
