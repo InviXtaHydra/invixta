@@ -1,11 +1,11 @@
 {
-  "description": "Questions phrased the way customers ask them. 'expected_documents' lists every document that contains the answer. 'facts' are short strings a correct answer must contain (case-insensitive). Unanswerable questions have an empty expected_documents list: the right behaviour is to say the knowledge base doesn't cover it. Dutch questions ('language': 'nl') test that customers can ask in their own language; their facts are language-neutral (numbers, names) because the answer may be in Dutch.",
+  "description": "Questions about the Kopbal shop, phrased the way customers ask them. 'expected_documents' lists every document that contains the answer. 'facts' are short strings a correct answer must contain (case-insensitive). Unanswerable questions have an empty expected_documents list: the right behaviour is to say the knowledge base doesn't cover it. Dutch questions ('language': 'nl') test that customers can ask in their own language; their facts are language-neutral (numbers, names) because the answer may be in Dutch.",
   "questions": [
     {
       "id": "ret-1",
-      "question": "How many days do I have to send something back?",
+      "question": "How many days do I have to return a shirt?",
       "expected_documents": [
-        "Return Policy.pdf"
+        "Returns and Exchanges.pdf"
       ],
       "facts": [
         "30 days"
@@ -14,43 +14,32 @@
     },
     {
       "id": "ret-2",
-      "question": "Do I have to pay for the return shipping if I live in the Netherlands?",
+      "question": "Can I return a shirt with my name printed on it?",
       "expected_documents": [
-        "Return Policy.pdf"
+        "Returns and Exchanges.pdf",
+        "Shirt Printing.pdf"
       ],
       "facts": [
-        "free"
+        "damaged"
       ],
       "language": "en"
     },
     {
       "id": "ret-3",
-      "question": "Can I return bed sheets I already opened?",
+      "question": "The shirt is too small, can I swap it for a bigger size?",
       "expected_documents": [
-        "Return Policy.pdf"
+        "Returns and Exchanges.pdf"
       ],
       "facts": [
-        "seal"
+        "ticket"
       ],
       "language": "en"
     },
     {
       "id": "ret-4",
-      "question": "My mug arrived broken, what should I do?",
+      "question": "How long until I get my money back after returning something?",
       "expected_documents": [
-        "Return Policy.pdf"
-      ],
-      "facts": [
-        "48 hours",
-        "photos"
-      ],
-      "language": "en"
-    },
-    {
-      "id": "ret-5",
-      "question": "How long until I get my money back after returning an item?",
-      "expected_documents": [
-        "Return Policy.pdf",
+        "Returns and Exchanges.pdf",
         "Payment FAQ.pdf"
       ],
       "facts": [
@@ -59,10 +48,22 @@
       "language": "en"
     },
     {
+      "id": "ret-5",
+      "question": "My shirt arrived with the wrong name printed on it, what now?",
+      "expected_documents": [
+        "Returns and Exchanges.pdf",
+        "Shirt Printing.pdf"
+      ],
+      "facts": [
+        "reprint"
+      ],
+      "language": "en"
+    },
+    {
       "id": "shp-1",
       "question": "How long does delivery to Belgium take?",
       "expected_documents": [
-        "Shipping Policy.pdf"
+        "Shipping and Delivery.pdf"
       ],
       "facts": [
         "1 to 3 working days"
@@ -71,54 +72,53 @@
     },
     {
       "id": "shp-2",
-      "question": "Is shipping free?",
+      "question": "How much does shipping to Germany cost?",
       "expected_documents": [
-        "Shipping Policy.pdf"
+        "Shipping and Delivery.pdf"
       ],
       "facts": [
-        "50"
+        "9.95"
       ],
       "language": "en"
     },
     {
       "id": "shp-3",
-      "question": "Which delivery companies do you work with?",
+      "question": "Is express delivery available in Germany?",
       "expected_documents": [
-        "Shipping Policy.pdf"
+        "Shipping and Delivery.pdf"
       ],
       "facts": [
-        "PostNL",
-        "DHL"
+        "Netherlands and Belgium"
       ],
       "language": "en"
     },
     {
       "id": "shp-4",
-      "question": "My tracking hasn't moved in a week, what happens now?",
+      "question": "Which carrier delivers my parcel in Belgium?",
       "expected_documents": [
-        "Shipping Policy.pdf"
+        "Shipping and Delivery.pdf"
       ],
       "facts": [
-        "5 working days"
+        "bpost"
       ],
       "language": "en"
     },
     {
       "id": "shp-5",
-      "question": "Can I still change my delivery address?",
+      "question": "Can I still cancel my order after it has shipped?",
       "expected_documents": [
-        "Shipping Policy.pdf"
+        "Shipping and Delivery.pdf"
       ],
       "facts": [
-        "processing"
+        "return"
       ],
       "language": "en"
     },
     {
       "id": "shp-6",
-      "question": "Do you deliver to the United States?",
+      "question": "Do you ship to Switzerland?",
       "expected_documents": [
-        "Shipping Policy.pdf"
+        "Shipping and Delivery.pdf"
       ],
       "facts": [
         "European Union"
@@ -126,36 +126,68 @@
       "language": "en"
     },
     {
-      "id": "war-1",
-      "question": "How long is the warranty on your products?",
+      "id": "siz-1",
+      "question": "My chest is 98 cm, which shirt size should I take?",
       "expected_documents": [
-        "Warranty.pdf"
+        "Size Guide.pdf"
       ],
       "facts": [
-        "2-year"
+        "94"
       ],
       "language": "en"
     },
     {
-      "id": "war-2",
-      "question": "Is the LED in the desk lamp covered for longer?",
+      "id": "siz-2",
+      "question": "Do the retro shirts fit the same as the new shirts?",
       "expected_documents": [
-        "Warranty.pdf",
-        "Product Information.pdf"
+        "Size Guide.pdf"
       ],
       "facts": [
-        "3-year"
+        "wider"
       ],
       "language": "en"
     },
     {
-      "id": "war-3",
-      "question": "I dropped my headphones in water, is that covered by warranty?",
+      "id": "siz-3",
+      "question": "Which kids kit size fits an 8 year old?",
       "expected_documents": [
-        "Warranty.pdf"
+        "Size Guide.pdf"
       ],
       "facts": [
-        "water"
+        "128"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "prt-1",
+      "question": "How much does it cost to print a name and number on a shirt?",
+      "expected_documents": [
+        "Shirt Printing.pdf"
+      ],
+      "facts": [
+        "15"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "prt-2",
+      "question": "Can I have my name printed on a training top?",
+      "expected_documents": [
+        "Shirt Printing.pdf"
+      ],
+      "facts": [
+        "printed"
+      ],
+      "language": "en"
+    },
+    {
+      "id": "prt-3",
+      "question": "How many characters can the name on the back have?",
+      "expected_documents": [
+        "Shirt Printing.pdf"
+      ],
+      "facts": [
+        "12"
       ],
       "language": "en"
     },
@@ -172,35 +204,24 @@
     },
     {
       "id": "pay-2",
-      "question": "Is it possible to pay after delivery?",
+      "question": "My payment was declined, what should I do?",
       "expected_documents": [
         "Payment FAQ.pdf"
       ],
       "facts": [
-        "Klarna",
-        "30 days"
+        "Pay now"
       ],
       "language": "en"
     },
     {
-      "id": "pay-3",
-      "question": "I need an invoice with my company VAT number",
+      "id": "car-1",
+      "question": "How should I wash a printed shirt?",
       "expected_documents": [
-        "Payment FAQ.pdf"
+        "Shirt Printing.pdf",
+        "Product Care.pdf"
       ],
       "facts": [
-        "support ticket"
-      ],
-      "language": "en"
-    },
-    {
-      "id": "prd-1",
-      "question": "How do I pair the Aurora headphones with my phone?",
-      "expected_documents": [
-        "Product Information.pdf"
-      ],
-      "facts": [
-        "5 seconds"
+        "30 degrees"
       ],
       "language": "en"
     },
@@ -213,7 +234,7 @@
     },
     {
       "id": "na-2",
-      "question": "What are the opening hours of your physical store?",
+      "question": "What are the opening hours of your store in Utrecht?",
       "expected_documents": [],
       "facts": [],
       "language": "en"
@@ -227,41 +248,30 @@
     },
     {
       "id": "na-4",
-      "question": "Who is the CEO of the company?",
+      "question": "Who is the CEO of Kopbal?",
       "expected_documents": [],
       "facts": [],
       "language": "en"
     },
     {
       "id": "na-5",
-      "question": "Do you sell gaming laptops?",
+      "question": "Do you sell football boots?",
       "expected_documents": [],
       "facts": [],
       "language": "en"
     },
     {
       "id": "na-6",
-      "question": "Can I collect my order at a pickup point instead of home delivery?",
+      "question": "Can I pick up my order at a store instead of having it delivered?",
       "expected_documents": [],
       "facts": [],
       "language": "en"
     },
     {
-      "id": "nl-ret-0",
-      "question": "Wat is jullie retourbeleid?",
-      "expected_documents": [
-        "Return Policy.pdf"
-      ],
-      "facts": [
-        "30"
-      ],
-      "language": "nl"
-    },
-    {
       "id": "nl-ret-1",
-      "question": "Hoeveel dagen heb ik om iets terug te sturen?",
+      "question": "Hoeveel dagen heb ik om een shirt terug te sturen?",
       "expected_documents": [
-        "Return Policy.pdf"
+        "Returns and Exchanges.pdf"
       ],
       "facts": [
         "30"
@@ -269,21 +279,20 @@
       "language": "nl"
     },
     {
-      "id": "nl-ret-4",
-      "question": "Mijn mok kwam kapot aan, wat moet ik doen?",
+      "id": "nl-ret-2",
+      "question": "Kan ik een bedrukt shirt retourneren?",
       "expected_documents": [
-        "Return Policy.pdf"
+        "Returns and Exchanges.pdf",
+        "Shirt Printing.pdf"
       ],
-      "facts": [
-        "48"
-      ],
+      "facts": [],
       "language": "nl"
     },
     {
       "id": "nl-shp-1",
       "question": "Hoe lang duurt de levering naar België?",
       "expected_documents": [
-        "Shipping Policy.pdf"
+        "Shipping and Delivery.pdf"
       ],
       "facts": [
         "3"
@@ -292,57 +301,68 @@
     },
     {
       "id": "nl-shp-2",
-      "question": "Is verzending gratis?",
+      "question": "Wat kost verzending naar Duitsland?",
       "expected_documents": [
-        "Shipping Policy.pdf"
+        "Shipping and Delivery.pdf"
       ],
       "facts": [
-        "50"
+        "9"
       ],
       "language": "nl"
     },
     {
       "id": "nl-shp-3",
-      "question": "Met welke vervoerders werken jullie?",
+      "question": "Welke vervoerder bezorgt in België?",
       "expected_documents": [
-        "Shipping Policy.pdf"
+        "Shipping and Delivery.pdf"
       ],
       "facts": [
-        "PostNL",
-        "DHL"
+        "bpost"
       ],
       "language": "nl"
     },
     {
-      "id": "nl-war-1",
-      "question": "Hoe lang is de garantie op jullie producten?",
+      "id": "nl-siz-1",
+      "question": "Welke maat kindertenue past bij een kind van 10 jaar?",
       "expected_documents": [
-        "Warranty.pdf"
+        "Size Guide.pdf"
       ],
       "facts": [
-        "2"
+        "140"
+      ],
+      "language": "nl"
+    },
+    {
+      "id": "nl-prt-1",
+      "question": "Wat kost het om een naam en nummer te laten drukken?",
+      "expected_documents": [
+        "Shirt Printing.pdf"
+      ],
+      "facts": [
+        "15"
       ],
       "language": "nl"
     },
     {
       "id": "nl-pay-1",
-      "question": "Kan ik betalen met Bancontact?",
+      "question": "Kan ik betalen met PayPal?",
       "expected_documents": [
         "Payment FAQ.pdf"
       ],
       "facts": [
-        "Bancontact"
+        "PayPal"
       ],
       "language": "nl"
     },
     {
-      "id": "nl-pay-2",
-      "question": "Kan ik achteraf betalen?",
+      "id": "nl-car-1",
+      "question": "Op hoeveel graden moet ik mijn shirt wassen?",
       "expected_documents": [
-        "Payment FAQ.pdf"
+        "Product Care.pdf",
+        "Shirt Printing.pdf"
       ],
       "facts": [
-        "Klarna"
+        "30"
       ],
       "language": "nl"
     },
@@ -355,7 +375,7 @@
     },
     {
       "id": "nl-na-2",
-      "question": "Wie is de CEO van het bedrijf?",
+      "question": "Verkopen jullie voetbalschoenen?",
       "expected_documents": [],
       "facts": [],
       "language": "nl"
