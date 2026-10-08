@@ -186,7 +186,8 @@ def test_search_first_only_lists_sources_the_answer_cites(db: Session, embedder:
         text_turn(f"Order #{order.id} has shipped."),
     )
     result = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True).run([], f"Can I return order {order.id}?")
-    assert [c.name for c in result.tool_calls] == ["search_knowledge_base", "get_order_status"]
+    # the agent's own lookups (order number in the message, knowledge base), then the model's own call
+    assert [c.name for c in result.tool_calls] == ["get_order_status", "search_knowledge_base", "get_order_status"]
     assert result.sources == []  # no [S#] in the answer → no sources listed
 
 
@@ -195,3 +196,26 @@ def test_tools_reject_a_customer_id_from_the_model(db: Session, embedder: Embedd
     run(db, alice, embedder, llm)
     [sent] = results_of_round(llm, 1)
     assert sent["is_error"] is True and "customer_id" in sent["content"]
+
+
+def test_search_first_looks_up_order_numbers_in_the_message(db: Session, embedder: Embedder, alice: User, bob: User) -> None:
+    own = make_order(db, alice.customer)  # type: ignore[arg-type]
+    other = make_order(db, bob.customer)  # type: ignore[arg-type]
+    llm = ScriptedLLM(text_turn("order delivery time"), text_turn("Your order has shipped."))
+    agent = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True)
+    result = agent.run([], f"Where are #{own.id} and {other.id}? Ordered on 2026-10-01.")
+
+    assert [(c.name, c.arguments, c.status) for c in result.tool_calls[:2]] == [
+        ("get_order_status", {"order_id": str(own.id)}, "ok"),
+        ("get_order_status", {"order_id": str(other.id)}, "error"),  # Bob's order: not found for Alice
+    ]
+    system = llm.calls[1]["system"]
+    assert "PO123456789" in system  # Alice's real order data reached the model
+    assert system.count("PO123456789") == 1  # and nothing of Bob's
+
+
+def test_order_numbers_are_recognised() -> None:
+    from app.agents.support_agent import order_numbers
+
+    assert order_numbers("Where is #10482? And 10482 again, and 10501") == ["10482", "10501"]
+    assert order_numbers("I ordered 2 shirts in 2026 for 69.95, call 0612345678") == []

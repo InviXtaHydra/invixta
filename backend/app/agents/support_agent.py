@@ -2,10 +2,11 @@
 
     user message → (search the knowledge base) → LLM → tool calls? → run tools → results back → … → answer
 
-With search_first (the default in the app), the agent itself searches the knowledge base before the
-model's first turn, using a rewritten English query, and gives the results to the model. Small local
-models often skip the search tool and then invent a policy; this way they always see the documents
-(or are told explicitly that nothing relevant was found). The model can still search again itself.
+With search_first (the default in the app), the agent itself looks up any order number in the message
+and searches the knowledge base (with a rewritten English query) before the model's first turn, and
+gives the results to the model. Small local models often skip tools and then invent a status or a
+policy; this way they always see the real data (or are told explicitly that nothing was found). The
+model can still call every tool itself.
 
 The model never touches the database itself. It can only *ask* for a tool; SupportTools runs it
 with the signed-in user's permissions and sends back the result. That's what keeps answers about
@@ -90,6 +91,29 @@ class AgentResult:
     usage: dict[str, int] = field(default_factory=dict)
 
 
+# Order numbers start at 10001: five or more digits, optionally written as "#10482".
+ORDER_NUMBER = re.compile(r"(?<!\d)#?(1\d{4,8})(?!\d)")
+
+
+def order_numbers(message: str, limit: int = 3) -> list[str]:
+    seen: list[str] = []
+    for number in ORDER_NUMBER.findall(message):
+        if number not in seen:
+            seen.append(number)
+    return seen[:limit]
+
+
+def order_context(lookups: list[tuple[str, ToolResult]]) -> str:
+    """Added to the system prompt after the agent looked up the order numbers in the message."""
+    lines = [f"Order {number}: {outcome.content}" for number, outcome in lookups]
+    return (
+        "\n\nOrder data from the database for the order number(s) in the customer's last message (JSON):\n"
+        + "\n".join(lines)
+        + "\nUse exactly these facts (status, dates, carrier, tracking number, sizes, printed names). Never invent dates or "
+        "delivery times that aren't in this data. If an order wasn't found, say you couldn't find it on their account."
+    )
+
+
 def knowledge_context(query: str, results_json: str, found: bool) -> str:
     """Added to the system prompt after the agent's own knowledge-base search."""
     if not found:
@@ -144,6 +168,11 @@ class SupportAgent:
         round_text: list[str] = []  # text streamed in the current round
 
         if self.search_first:
+            # Context first: small local models often skip tools and then guess. So the agent itself looks up
+            # the orders the customer mentions and searches the knowledge base, and gives the model the results.
+            lookups = [(n, self._run_tool("get_order_status", {"order_id": n}, result, emit)) for n in order_numbers(user_message)]
+            if lookups:
+                system += order_context(lookups)
             query = rewrite_search_query(self.llm, user_message, history)
             outcome = self._run_tool("search_knowledge_base", {"query": query}, result, emit)
             all_sources.extend(outcome.sources)
