@@ -208,7 +208,7 @@ def seed_catalog(db: Session, rng: random.Random, now: datetime) -> list[Product
         product = Product(**spec, created_at=now - timedelta(days=120 - n))
         for position, size in enumerate(sizes):
             # Mostly in stock, a few sizes low or sold out, like a real shop.
-            stock = rng.choice([0, 2, 3, 8, 15, 25, 40, 40])
+            stock = rng.choice([0, 2, 8, 15, 25, 30, 40, 60])
             product.variants.append(
                 ProductVariant(size=size, sku=f"KB-{n + 1:03d}-{size.replace(' ', '')}", stock=stock, position=position)
             )
