@@ -11,7 +11,9 @@ import { NotFoundPage } from './pages/NotFoundPage'
 import { OrderDetailPage, OrdersPage } from './pages/OrdersPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { CartPage } from './pages/shop/CartPage'
+import { CheckoutPage } from './pages/shop/CheckoutPage'
 import { HomePage } from './pages/shop/HomePage'
+import { PayPage } from './pages/shop/PayPage'
 import { ProductPage } from './pages/shop/ProductPage'
 import { ShopPage } from './pages/shop/ShopPage'
 import { TicketDetailPage, TicketsPage } from './pages/TicketsPage'
@@ -19,15 +21,32 @@ import { TicketDetailPage, TicketsPage } from './pages/TicketsPage'
 export function App() {
   return (
     <Routes>
-      {/* The shop: open to everyone. */}
+      {/* The shop: open to everyone, checkout needs an account. */}
       <Route element={<ShopLayout />}>
         <Route index element={<HomePage />} />
         <Route path="/shop" element={<ShopPage />} />
         <Route path="/product/:slug" element={<ProductPage />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route
+          path="/checkout"
+          element={
+            <RequireAuth>
+              <CheckoutPage />
+            </RequireAuth>
+          }
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
+      {/* The simulated payment provider has its own, bank-like page. */}
+      <Route
+        path="/pay/:paymentId"
+        element={
+          <RequireAuth>
+            <PayPage />
+          </RequireAuth>
+        }
+      />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
