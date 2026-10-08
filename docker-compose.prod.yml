@@ -1,0 +1,25 @@
+# Production overrides:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# - Only the web shop (nginx) is published; the API and the database are reachable only inside Docker.
+# - The backend image is built without the dev tools (pytest/ruff/mypy).
+# - ENVIRONMENT=production: the app refuses the placeholder JWT secret and the scripted LLM, and the
+#   Swagger docs are off. Put a TLS-terminating proxy (or a load balancer) in front of port 4000.
+services:
+  postgres:
+    ports: !reset []
+    restart: unless-stopped
+
+  backend:
+    build:
+      args:
+        INSTALL_DEV: "false"
+    ports: !reset []
+    environment:
+      ENVIRONMENT: production
+    restart: unless-stopped
+
+  simulator:
+    environment:
+      ENVIRONMENT: production
+
+  frontend:
+    restart: unless-stopped

@@ -16,7 +16,11 @@ configure_logging(settings.log_level)
 
 app = FastAPI(
     title=settings.app_name,
-    description="Kopbal: a fictional football-shirt web shop (catalogue, cart, checkout with simulated payments) with an AI support agent.",
+    description="Invixta: football-shirt web shop (catalogue, cart, checkout, payments) with an AI support agent.",
+    # The interactive API docs are for development; they're switched off in production.
+    docs_url=None if settings.environment == "production" else "/docs",
+    redoc_url=None if settings.environment == "production" else "/redoc",
+    openapi_url=None if settings.environment == "production" else "/openapi.json",
     version="1.0.0",
 )
 
@@ -39,7 +43,7 @@ def handle_app_error(_request: Request, exc: AppError) -> JSONResponse:
     if isinstance(exc, TooManyRequestsError):
         headers["Retry-After"] = str(exc.retry_after)
     if exc.status_code >= 500:
-        logging.getLogger("supportai.errors").error("service error", extra={"status": exc.status_code, "error": type(exc).__name__})
+        logging.getLogger("invixta.errors").error("service error", extra={"status": exc.status_code, "error": type(exc).__name__})
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=headers or None)
 
 
