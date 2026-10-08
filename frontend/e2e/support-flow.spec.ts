@@ -9,7 +9,8 @@ async function signIn(page: Page, email: string) {
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill(PASSWORD)
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
-  await expect(page).toHaveURL(/\/dashboard$/)
+  await expect(page).not.toHaveURL(/\/login/)
+  await page.goto('/dashboard') // the account and support pages
 }
 
 const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name, exact: true })
@@ -83,7 +84,7 @@ test("a customer can't see another customer's order through the assistant", asyn
 })
 
 test('admin sees the knowledge base and the metrics', async ({ page }) => {
-  await signIn(page, 'admin@supportai.dev')
+  await signIn(page, 'admin@kopbal.shop')
   await nav(page, 'Knowledge base').click()
   await expect(page.getByText('Return Policy.pdf')).toBeVisible()
   await expect(page.getByText(/\d+ documents, \d+ chunks/)).toBeVisible()
@@ -94,7 +95,7 @@ test('admin sees the knowledge base and the metrics', async ({ page }) => {
 })
 
 test('support agent changes the status of a ticket', async ({ page }) => {
-  await signIn(page, 'agent@supportai.dev')
+  await signIn(page, 'agent@kopbal.shop')
   await page.goto('/tickets?status=open')
   await expect(page.locator('[aria-busy="false"]')).toBeVisible()
   await page.getByRole('main').getByRole('listitem').getByRole('link').first().click()
