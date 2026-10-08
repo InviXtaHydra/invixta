@@ -1,17 +1,14 @@
-import { Bot, History, MessageSquare, Plus, RotateCcw, Send } from 'lucide-react'
+import { Bot, History, MessageSquare, Plus, Send } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
-import { streamChat } from '../api/chatStream'
 import { api } from '../api/endpoints'
 import type { ConversationSummary, Page } from '../api/types'
 import { useUser } from '../auth/useAuth'
-import { AgentTrace } from '../components/chat/AgentTrace'
-import { applyEvent, fromMessage, type ChatItem } from '../components/chat/chatState'
-import { MessageText } from '../components/chat/MessageText'
-import { Sources } from '../components/chat/Sources'
+import { MessageList } from '../components/chat/Messages'
+import { useChatSession } from '../components/chat/useChatSession'
 import { ErrorState, Spinner } from '../components/feedback'
 import { Button, Dialog } from '../components/ui'
-import { formatMs, formatRelative } from '../lib/format'
+import { formatRelative } from '../lib/format'
 import { useApi, type ApiState } from '../lib/useApi'
 
 const SUGGESTIONS = [
@@ -20,9 +17,6 @@ const SUGGESTIONS = [
   'My order arrived damaged. What should I do?',
   'Do you ship outside the EU?',
 ]
-
-let keyCounter = 0
-const newKey = () => `local-${++keyCounter}`
 
 /**
  * /chat and /chat/:conversationId.
@@ -79,81 +73,27 @@ function ChatSession({
   const navigate = useNavigate()
   const location = useLocation()
   const [initialId] = useState(conversationId) // the conversation this session was opened for
-  const [items, setItems] = useState<ChatItem[]>([])
-  const [loadingHistory, setLoadingHistory] = useState(initialId !== null)
-  const [historyError, setHistoryError] = useState<Error>()
-  const [busy, setBusy] = useState(false)
+  const session = useChatSession(initialId, {
+    onCreated: (id) => {
+      onCreated(id)
+      navigate(`/chat/${id}`, { replace: true })
+    },
+    onAnswered,
+  })
+  const { items, loadingHistory, historyError, busy, announcement } = session
   const [draft, setDraft] = useState('')
-  const [announcement, setAnnouncement] = useState('')
-  const active = useRef(true) // false once the user moved to another conversation
   const sentInitialPrompt = useRef(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-
-  useEffect(() => {
-    active.current = true
-    return () => {
-      active.current = false
-    }
-  }, [])
-
-  // Load the existing messages of this conversation.
-  useEffect(() => {
-    if (initialId === null) return
-    let current = true
-    api
-      .conversation(initialId)
-      .then((conversation) => current && setItems(conversation.messages.filter((m) => m.role !== 'system').map(fromMessage)))
-      .catch((error: Error) => current && setHistoryError(error))
-      .finally(() => current && setLoadingHistory(false))
-    return () => {
-      current = false
-    }
-  }, [initialId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' })
   }, [items])
 
   async function send(text: string) {
-    const message = text.trim()
-    if (!message || busy) return
-    const assistantKey = newKey()
     setDraft('')
-    setBusy(true)
-    setAnnouncement('The assistant is answering…')
-    setItems((all) => [
-      ...all,
-      { key: newKey(), role: 'user', content: message, steps: [], sources: [] },
-      { key: assistantKey, role: 'assistant', content: '', steps: [], sources: [], pending: true },
-    ])
-    const update = (change: (item: ChatItem) => ChatItem) =>
-      setItems((all) => all.map((item) => (item.key === assistantKey ? change(item) : item)))
-
-    try {
-      await streamChat({ conversation_id: conversationId, message }, (event) => {
-        if (!active.current) return
-        if (event.type === 'start') {
-          if (conversationId === null) {
-            onCreated(event.conversation_id)
-            navigate(`/chat/${event.conversation_id}`, { replace: true })
-          }
-          return
-        }
-        update((item) => applyEvent(item, event))
-        if (event.type === 'done') {
-          setAnnouncement('Answer received.')
-          onAnswered()
-        }
-        if (event.type === 'error') setAnnouncement(`The assistant ran into a problem: ${event.detail}`)
-      })
-    } catch (error) {
-      update((item) => ({ ...item, pending: false, error: error instanceof Error ? error.message : 'Something went wrong' }))
-      setAnnouncement('The message could not be sent.')
-    } finally {
-      setBusy(false)
-      inputRef.current?.focus()
-    }
+    await session.send(text)
+    inputRef.current?.focus()
   }
 
   // A question typed on the dashboard (or an order page) arrives as navigation state: send it once.
@@ -167,15 +107,6 @@ function ChatSession({
     sentInitialPrompt.current = true
     sendInitialPrompt(initialPrompt)
   }, [initialPrompt])
-
-  function retry(failedKey: string) {
-    // A failed answer wasn't saved: remove it and its question, then send the question again.
-    const index = items.findIndex((item) => item.key === failedKey)
-    const question = items[index - 1]
-    if (!question || question.role !== 'user') return
-    setItems((all) => all.filter((_, i) => i !== index && i !== index - 1))
-    void send(question.content)
-  }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -242,11 +173,7 @@ function ChatSession({
               </div>
             </div>
           ) : (
-            <ol className="space-y-6">
-              {items.map((item) => (
-                <li key={item.key}>{item.role === 'user' ? <UserBubble item={item} /> : <AssistantMessage item={item} onRetry={retry} />}</li>
-              ))}
-            </ol>
+            <MessageList items={items} onRetry={session.retry} />
           )}
           <div ref={bottomRef} />
         </div>
@@ -278,45 +205,6 @@ function ChatSession({
         {announcement}
       </p>
     </section>
-  )
-}
-
-function UserBubble({ item }: { item: ChatItem }) {
-  return (
-    <div className="flex justify-end">
-      <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-brand px-4 py-2.5 text-sm text-brand-ink">{item.content}</p>
-    </div>
-  )
-}
-
-function AssistantMessage({ item, onRetry }: { item: ChatItem; onRetry: (key: string) => void }) {
-  const thinking = item.pending && !item.content && item.steps.every((s) => s.status !== 'running')
-  return (
-    <article className="flex gap-3" aria-busy={item.pending}>
-      <span className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-brand-soft text-brand">
-        <Bot aria-hidden className="size-3.5" />
-      </span>
-      <div className="min-w-0 flex-1 rounded-2xl rounded-tl-md border border-line bg-surface px-4 py-3 text-sm">
-        <h3 className="sr-only">Assistant</h3>
-        <AgentTrace steps={item.steps} />
-        {thinking && (
-          <p className="flex items-center gap-2 text-muted">
-            <Spinner /> Thinking…
-          </p>
-        )}
-        {item.content && <MessageText text={item.content} />}
-        {item.error && (
-          <div role="alert" className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-bad-soft px-3 py-2 text-bad">
-            <span>{item.error}</span>
-            <Button variant="secondary" className="!py-1" onClick={() => onRetry(item.key)}>
-              <RotateCcw aria-hidden className="size-3.5" /> Try again
-            </Button>
-          </div>
-        )}
-        <Sources sources={item.sources} />
-        {item.latencyMs !== undefined && !item.pending && <p className="mt-2 text-right text-xs text-muted">Answered in {formatMs(item.latencyMs)}</p>}
-      </div>
-    </article>
   )
 }
 
