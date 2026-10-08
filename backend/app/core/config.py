@@ -31,7 +31,7 @@ class Settings(BaseSettings):
 
     # Retrieval: how many chunks to fetch, and the minimum cosine similarity to count as relevant.
     rag_top_k: int = 5
-    rag_min_score: float = 0.6
+    rag_min_score: float = 0.64
 
     # LLM: a local model served by Ollama (free, runs on your own machine).
     # "scripted" = a deterministic rule-based stand-in for the end-to-end tests in CI
