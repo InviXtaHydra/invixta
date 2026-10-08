@@ -13,7 +13,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.agents.llm import LLMClient, get_llm
-from app.core.database import get_db
+from app.core.database import SessionFactory, get_db, get_session_factory
 from app.core.deps import get_current_user
 from app.core.exceptions import AppError
 from app.core.rate_limit import chat_limiter
@@ -75,6 +75,7 @@ def chat_stream(
     db: Session = Depends(get_db),
     llm: LLMClient = Depends(get_llm),
     embedder: Embedder = Depends(get_embedder),
+    session_factory: SessionFactory = Depends(get_session_factory),
 ) -> StreamingResponse:
     """Like POST /chat, but streams progress as Server-Sent Events, one JSON object per event:
 
@@ -88,38 +89,38 @@ def chat_stream(
     If the model fails while answering (e.g. Ollama isn't running), the stream ends with an error event.
     """
     chat_limiter().hit(f"user:{user.id}")
-    service = ChatService(db, llm, embedder)
-    turn = service.start(user, body.conversation_id)
+    ChatService(db, llm, embedder).check_access(user, body.conversation_id)
+    user_id = user.id
     events: queue.Queue[dict[str, Any] | None] = queue.Queue()
 
     def work() -> None:
-        # Runs in a worker thread: the agent pushes events into the queue, the response reads them.
-        try:
-            result = service.respond(user, turn, body.message, on_event=events.put)
-            events.put({"type": "done", **to_response(result).model_dump(mode="json")})
-        except AppError as exc:
-            db.rollback()
-            logger.warning("chat stream failed", extra={"status": exc.status_code, "error": type(exc).__name__})
-            events.put({"type": "error", "detail": exc.detail})
-        except Exception:
-            db.rollback()
-            logger.exception("chat stream failed")
-            events.put({"type": "error", "detail": "Something went wrong while answering. Please try again."})
-        finally:
-            events.put(None)  # end of stream
+        # Runs in a worker thread with its own database session: if the customer closes the page
+        # mid-answer, the request's session is closed, but the agent still finishes and saves the answer.
+        with session_factory() as worker_db:
+            try:
+                worker_user = worker_db.get(User, user_id)
+                assert worker_user is not None
+                service = ChatService(worker_db, llm, embedder)
+                turn = service.start(worker_user, body.conversation_id)
+                events.put({"type": "start", "conversation_id": turn.conversation.id})
+                result = service.respond(worker_user, turn, body.message, on_event=events.put)
+                events.put({"type": "done", **to_response(result).model_dump(mode="json")})
+            except AppError as exc:
+                worker_db.rollback()
+                logger.warning("chat stream failed", extra={"status": exc.status_code, "error": type(exc).__name__})
+                events.put({"type": "error", "detail": exc.detail})
+            except Exception:
+                worker_db.rollback()
+                logger.exception("chat stream failed")
+                events.put({"type": "error", "detail": "Something went wrong while answering. Please try again."})
+            finally:
+                events.put(None)  # end of stream
 
     def stream() -> Iterator[str]:
         # copy_context(): the worker keeps this request's id in its log lines.
-        worker = threading.Thread(target=contextvars.copy_context().run, args=(work,), daemon=True)
-        worker.start()
-        try:
-            yield sse({"type": "start", "conversation_id": turn.conversation.id})
-            while (event := events.get()) is not None:
-                yield sse(event)
-        finally:
-            # Also when the client disconnects: let the agent finish (its answer is still saved)
-            # before the request's database session is closed.
-            worker.join()
+        threading.Thread(target=contextvars.copy_context().run, args=(work,), daemon=True).start()
+        while (event := events.get()) is not None:
+            yield sse(event)
 
     # X-Accel-Buffering: tell nginx not to buffer, so events reach the browser immediately.
     headers = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}

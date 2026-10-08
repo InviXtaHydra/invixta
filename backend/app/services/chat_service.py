@@ -49,6 +49,13 @@ class ChatService:
         self.embedder = embedder
         self.conversations = ConversationRepository(db)
 
+    def check_access(self, user: User, conversation_id: int | None) -> None:
+        """The checks of start(), without creating anything (403 for staff, 404 for someone else's conversation)."""
+        if user.customer is None:
+            raise PermissionDeniedError("The chat assistant is available to customer accounts")
+        if conversation_id is not None and self.conversations.get(conversation_id, customer_id=user.customer.id) is None:
+            raise NotFoundError(f"Conversation {conversation_id} not found")
+
     def start(self, user: User, conversation_id: int | None) -> ChatTurn:
         if user.customer is None:
             raise PermissionDeniedError("The chat assistant is available to customer accounts")

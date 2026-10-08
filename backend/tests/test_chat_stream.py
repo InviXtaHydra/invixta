@@ -101,3 +101,24 @@ def test_chat_messages_are_rate_limited(client: TestClient, alice: User) -> None
         assert int(third.headers["Retry-After"]) >= 1
     finally:
         limiter.limit = original
+
+
+def test_the_answer_is_saved_by_the_worker_in_its_own_session(client: TestClient, db: Session, alice: User) -> None:
+    """The worker gets a session from get_session_factory, not the request's session: a customer who
+    leaves the page mid-answer (which closes the request) doesn't lose the conversation."""
+    from contextlib import contextmanager
+
+    from app.core.database import get_session_factory
+
+    opened: list[Session] = []
+
+    @contextmanager
+    def worker_session():  # type: ignore[no-untyped-def]
+        opened.append(db)
+        yield db
+
+    app.dependency_overrides[get_session_factory] = lambda: worker_session
+    use(ScriptedLLM(text_turn("Hello!")))
+    events = read_events(client.post("/chat/stream", json={"message": "Hi"}, headers=auth_header(alice)))
+    assert [e["type"] for e in events] == ["start", "text", "done"] and len(opened) == 1
+    assert db.scalars(select(Message).where(Message.conversation_id == events[0]["conversation_id"])).all()

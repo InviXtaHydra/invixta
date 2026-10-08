@@ -1,6 +1,7 @@
 """Database engine, session factory and the declarative base for all models."""
 
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
+from contextlib import AbstractContextManager
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
@@ -22,3 +23,12 @@ def get_db() -> Iterator[Session]:
         yield db
     finally:
         db.close()
+
+
+SessionFactory = Callable[[], AbstractContextManager[Session]]
+
+
+def get_session_factory() -> SessionFactory:
+    """FastAPI dependency for work that outlives the request (the chat stream's worker thread): it opens
+    its own session, so a client that disconnects mid-answer doesn't roll back what the agent saves."""
+    return SessionLocal

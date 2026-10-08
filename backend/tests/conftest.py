@@ -4,6 +4,7 @@ transaction per test so tests never see each other's data."""
 import os
 import secrets
 from collections.abc import Iterator
+from contextlib import nullcontext
 from decimal import Decimal
 
 # Point the app at the test database *before* any app module creates its engine.
@@ -24,7 +25,7 @@ from sqlalchemy.orm import Session  # noqa: E402
 
 from alembic import command  # noqa: E402
 from app.agents.llm import get_llm  # noqa: E402
-from app.core.database import get_db  # noqa: E402
+from app.core.database import get_db, get_session_factory  # noqa: E402
 from app.core.rate_limit import chat_limiter, login_limiter  # noqa: E402
 from app.core.security import create_access_token, hash_password  # noqa: E402
 from app.main import app  # noqa: E402
@@ -98,6 +99,8 @@ def reset_rate_limits() -> None:
 @pytest.fixture
 def client(db: Session) -> Iterator[TestClient]:
     app.dependency_overrides[get_db] = lambda: db
+    # Work outside the request (the chat stream's worker) uses the same rolled-back test session.
+    app.dependency_overrides[get_session_factory] = lambda: lambda: nullcontext(db)
     app.dependency_overrides[get_llm] = UnavailableLLM  # tests never call a real model; tests that need one set it
     with TestClient(app) as c:
         yield c

@@ -25,7 +25,9 @@ request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 
 # Attributes every LogRecord has; anything else came from `extra={...}`.
 _STANDARD_ATTRS = set(vars(logging.LogRecord("", 0, "", 0, "", (), None))) | {"message", "asctime", "taskName"}
-_SENSITIVE_KEY = re.compile(r"pass(word)?|secret|token|api[_-]?key|authorization", re.IGNORECASE)
+# Keys that hold secrets: password, password_hash, client_secret, api_key, authorization, token, access_token, …
+# (but not counters such as input_tokens).
+_SENSITIVE_KEY = re.compile(r"pass(word)?|secret|api[_-]?key|authorization|(^|_)token$", re.IGNORECASE)
 
 
 class JsonFormatter(logging.Formatter):
