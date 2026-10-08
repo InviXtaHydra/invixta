@@ -167,7 +167,7 @@ function ChunksDialog({ document, onClose }: { document: DocumentInfo | null; on
           <p className="mb-3 text-xs text-muted">
             Document ID {state.data.id}, uploaded {formatDateTime(state.data.uploaded_at)}, {state.data.chunks.length} chunks
           </p>
-          <ol className="max-h-[55vh] space-y-2 overflow-y-auto pr-1">
+          <ol className="max-h-[55vh] space-y-2 overflow-y-auto overscroll-contain pr-1">
             {state.data.chunks.map((chunk) => (
               <li key={chunk.id} className="rounded-lg border border-line bg-surface-2 p-3 text-xs">
                 <p className="mb-1 font-mono text-muted">

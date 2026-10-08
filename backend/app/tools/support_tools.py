@@ -14,6 +14,7 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
+from decimal import Decimal
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -28,6 +29,9 @@ from app.services.order_service import OrderService
 from app.services.ticket_service import TicketService
 
 logger = logging.getLogger("supportai.tools")
+
+# Words that don't narrow a product search ("Polder United home shirt" → "Polder United home").
+GENERIC_PRODUCT_WORDS = {"shirt", "shirts", "kit", "jersey", "the", "a", "an", "de", "het", "een"}
 
 # Generic words in club names, ignored when looking for a club in a message ("FC", "United", …).
 CLUB_WORDS = {"fc", "sv", "sc", "real", "sporting", "atlético", "atletico", "united", "city", "rovers", "athletic", "1908"}
@@ -98,17 +102,21 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
         "name": "search_products",
         "description": (
             "Search the shop's products: shirts (home, away, retro, training, kids) and accessories of the clubs we sell. "
-            "Returns names, prices, sale prices and the sizes in stock. Use it when the customer asks whether something "
-            "is available, in stock in a size, or what it costs."
+            "Filter by club or name, category, price range, sale and size in stock. Returns names, prices, sale prices and "
+            "the sizes in stock. Use it whenever the customer asks what we sell, whether something is available or in "
+            "stock, or what it costs."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Club, product or kind of item, e.g. 'Polder United home shirt'"},
+                "query": {"type": "string", "description": "Club or product name, e.g. 'Polder United'. Leave out to browse."},
                 "size": {"type": "string", "description": "Only products with this size in stock, e.g. 'M' or '140'"},
                 "category": {"type": "string", "enum": [c.value for c in ProductCategory]},
+                "min_price": {"type": "number", "description": "Lowest price in EUR"},
+                "max_price": {"type": "number", "description": "Highest price in EUR"},
+                "on_sale": {"type": "boolean", "description": "Only products on sale"},
             },
-            "required": ["query"],
+            "required": [],
             "additionalProperties": False,
         },
     },
@@ -160,9 +168,12 @@ class SearchArgs(ToolArgs):
 
 
 class ProductSearchArgs(ToolArgs):
-    query: str = Field(min_length=2, max_length=100)
+    query: str | None = Field(default=None, max_length=100)
     size: str | None = Field(default=None, max_length=12)
     category: ProductCategory | None = None
+    min_price: Decimal | None = Field(default=None, ge=0)
+    max_price: Decimal | None = Field(default=None, ge=0)
+    on_sale: bool = False
 
 
 class CancellationArgs(ToolArgs):
@@ -278,12 +289,21 @@ class SupportTools:
     def _tool_search_products(self, arguments: dict[str, Any]) -> ToolResult:
         args = ProductSearchArgs.model_validate(arguments)
         catalog = CatalogRepository(self.db)
-        filters = ProductFilters(category=args.category, size=args.size.upper() if args.size else None, q=args.query)
-        products = catalog.list(filters, "popular", limit=6, offset=0)
-        if not products and len(args.query.split()) > 1:
-            # "Polder United home shirt" → try the club or product name on its own words
-            filters.q = " ".join(w for w in args.query.split() if w.lower() not in {"shirt", "shirts", "kit", "the", "a"})
-            products = catalog.list(filters, "popular", limit=6, offset=0) if filters.q else []
+        query = (args.query or "").strip() or None
+        filters = ProductFilters(
+            category=args.category,
+            size=args.size.upper() if args.size else None,
+            q=query,
+            min_price=args.min_price,
+            max_price=args.max_price,
+            on_sale=args.on_sale,
+        )
+        products = catalog.list(filters, "popular", limit=8, offset=0)
+        if not products and query and len(query.split()) > 1:
+            # "Polder United home shirt" → try again without generic words
+            filters.q = " ".join(w for w in query.split() if w.lower() not in GENERIC_PRODUCT_WORDS) or None
+            products = catalog.list(filters, "popular", limit=8, offset=0)
+        total = catalog.count(filters)
         results = [
             {
                 "product": p.name,
@@ -296,9 +316,10 @@ class SupportTools:
             }
             for p in products
         ]
-        data: dict[str, Any] = {"results": results} if results else {"results": [], "note": "No products match."}
-        size_note = f" in size {args.size.upper()}" if args.size else ""
-        summary = f"{len(results)} product(s) found{size_note}" if results else f"No products found{size_note}"
+        data: dict[str, Any] = {"total_matching": total, "results": results}
+        if not results:
+            data["note"] = "No products match these filters."
+        summary = f"{total} product(s) found" if results else "No matching products"
         return ToolResult(content=json.dumps(data), is_error=False, summary=summary)
 
     def _tool_request_order_cancellation(self, arguments: dict[str, Any]) -> ToolResult:

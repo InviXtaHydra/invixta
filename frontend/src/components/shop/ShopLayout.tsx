@@ -156,7 +156,7 @@ export function ShopLayout() {
       {menuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <button type="button" className="absolute inset-0 bg-black/40" onClick={() => setMenuOpen(false)} aria-label="Close menu" />
-          <div className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col gap-4 overflow-y-auto bg-surface p-5 shadow-xl">
+          <div className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col gap-4 overflow-y-auto overscroll-contain bg-surface p-5 shadow-xl">
             <div className="flex items-center justify-between">
               <Wordmark />
               <button type="button" onClick={() => setMenuOpen(false)} className="rounded-md p-2 hover:bg-surface-2">

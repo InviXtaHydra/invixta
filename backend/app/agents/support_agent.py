@@ -13,6 +13,7 @@ with the signed-in user's permissions and sends back the result. That's what kee
 orders and tickets factual, and other customers' data out of reach.
 """
 
+import json
 import logging
 import re
 import time
@@ -22,6 +23,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from app.agents.llm import LLMClient, LLMRefusalError
+from app.agents.product_intent import product_search_from_message
 from app.models import User
 from app.rag.query_rewrite import rewrite_search_query
 from app.rag.rag_service import NOT_FOUND_MESSAGE
@@ -107,10 +109,15 @@ def mentioned_size(message: str) -> str | None:
     return match.group(1).upper() if match else None
 
 
-def product_context(club: str, outcome: ToolResult) -> str:
+def product_context(search: dict[str, Any], outcome: ToolResult) -> str:
+    filters = ", ".join(f"{k}={v}" for k, v in search.items())
     return (
-        f"\n\nProducts of {club} in the shop (from the catalogue, JSON):\n{outcome.content}\n"
-        "Use these for availability, sizes and prices. Never guess stock or prices that aren't listed here."
+        f"\n\nProducts in the shop matching the customer's message ({filters}), from the live catalogue (JSON):\n"
+        f"{outcome.content}\n"
+        "These products exist and can be ordered: mention a few with their prices. A product with was_eur is on sale "
+        "(its old price was was_eur). "
+        "total_matching is how many products match in total. If results is empty, say nothing matches and suggest "
+        "widening the search. Never guess stock or prices that aren't listed here."
     )
 
 
@@ -138,7 +145,9 @@ def knowledge_context(query: str, results_json: str, found: bool) -> str:
     if not found:
         return (
             f'\n\nA knowledge-base search for the customer\'s last message (query: "{query}") found nothing relevant.'
-            f' If the message is about company policies or products, reply exactly: "{NOT_FOUND_MESSAGE}"'
+            " If the message asks about a company policy (returns, exchanges, shipping, printing, sizes, payments, care) "
+            f'reply exactly: "{NOT_FOUND_MESSAGE}" Questions about products, prices, stock or orders are answered '
+            "from the shop data and the tools instead, not from the knowledge base."
         )
     return (
         f'\n\nKnowledge-base results for the customer\'s last message (query: "{query}"), as JSON:\n{results_json}\n'
@@ -192,15 +201,19 @@ class SupportAgent:
             lookups = [(n, self._run_tool("get_order_status", {"order_id": n}, result, emit)) for n in order_numbers(user_message)]
             if lookups:
                 system += order_context(lookups)
-            clubs = self.tools.mentioned_teams(user_message)
-            if clubs:
-                size = mentioned_size(user_message)
-                search = {"query": clubs[0], **({"size": size} if size else {})}
-                system += product_context(clubs[0], self._run_tool("search_products", search, result, emit))
+            search = product_search_from_message(user_message, self.tools.mentioned_teams(user_message), mentioned_size(user_message))
+            products = None
+            if search is not None and not order_numbers(user_message):
+                products = self._run_tool("search_products", search, result, emit)
             query = rewrite_search_query(self.llm, user_message, history)
             outcome = self._run_tool("search_knowledge_base", {"query": query}, result, emit)
             all_sources.extend(outcome.sources)
-            system += knowledge_context(query, outcome.content, found=bool(outcome.sources))
+            found_products = products is not None and bool(json.loads(products.content).get("results"))
+            if outcome.sources or not found_products:
+                # When products were found, a "no policy found" note would only confuse the model.
+                system += knowledge_context(query, outcome.content, found=bool(outcome.sources))
+            if search is not None and products is not None:
+                system += product_context(search, products)  # last, closest to the answer
 
         def on_text(piece: str) -> None:
             # Separate the text of a new round from the previous round's text.

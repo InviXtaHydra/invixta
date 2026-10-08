@@ -234,7 +234,7 @@ def test_search_products_tool_lists_sizes_in_stock(db: Session, embedder: Embedd
     found = json.loads(tools.execute("search_products", {"query": "Polder United home shirt"}).content)["results"]
     assert found[0]["product"] == "Polder United Home Shirt" and found[0]["sizes_in_stock"] == ["L"] and found[0]["was_eur"] == "69.95"
     in_m = tools.execute("search_products", {"query": "Polder United", "size": "m"})
-    assert json.loads(in_m.content)["results"] == [] and in_m.summary == "No products found in size M"
+    assert json.loads(in_m.content)["results"] == [] and in_m.summary == "No matching products"
 
 
 def test_cancellation_is_only_offered_never_done_by_the_agent(db: Session, embedder: Embedder, alice: User, bob: User) -> None:
@@ -267,3 +267,41 @@ def test_search_first_looks_up_a_mentioned_club_and_size(db: Session, embedder: 
     assert ("search_products", {"query": "Polder United", "size": "M"}) in [(c.name, c.arguments) for c in result.tool_calls]
     assert "Polder United Home Shirt" in llm.calls[1]["system"]
     assert mentioned_size("I'm usually an XL") == "XL" and mentioned_size("I'm fine, thanks") is None
+
+
+def test_search_products_filters_by_price_and_sale(db: Session, embedder: Embedder, alice: User) -> None:
+    from app.models import ProductCategory
+    from tests.conftest import make_product
+
+    make_product(db, "Cheap Socks", "12.95")
+    make_product(db, "Sale Shirt", "44.95", category=ProductCategory.HOME, compare_at_price="69.95")
+    make_product(db, "Training Top", "39.95", category=ProductCategory.TRAINING)
+    make_product(db, "Home Shirt", "69.95", category=ProductCategory.HOME)
+    tools = SupportTools(db, alice, embedder)
+
+    def names(**args: object) -> list[str]:
+        return [r["product"] for r in json.loads(tools.execute("search_products", args).content)["results"]]
+
+    assert sorted(names(min_price=40, max_price=50)) == ["Sale Shirt"]
+    assert sorted(names(max_price=40)) == ["Cheap Socks", "Training Top"]
+    assert names(on_sale=True) == ["Sale Shirt"]
+    assert sorted(names(category="home")) == ["Home Shirt", "Sale Shirt"]
+    assert json.loads(tools.execute("search_products", {}).content)["total_matching"] == 4  # no filters: browse
+
+
+def test_a_price_question_gets_products_even_when_the_knowledge_base_has_nothing(db: Session, embedder: Embedder, alice: User) -> None:
+    """Regression: "shirts tussen 40-50 euro" was answered with "not found" although such shirts exist."""
+    from app.models import ProductCategory
+    from tests.conftest import make_product
+
+    make_product(db, "Polder United Home Shirt", "49.95", category=ProductCategory.HOME, compare_at_price="69.95")
+    llm = ScriptedLLM(text_turn("shirts between 40 and 50 euro"), text_turn("Yes: the Polder United Home Shirt costs EUR 49.95."))
+    agent = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True)
+    result = agent.run([], "Hebben jullie shirts tussen 40-50 euro?")
+
+    search = next(c for c in result.tool_calls if c.name == "search_products")
+    assert search.arguments == {"min_price": 40, "max_price": 50} and search.status == "ok"
+    system = llm.calls[1]["system"]
+    assert "Polder United Home Shirt" in system and "These products exist" in system
+    assert "found nothing relevant" not in system  # no "not found" instruction when products were found
+    assert system.rindex("These products exist") > system.rindex("Knowledge-base") if "Knowledge-base" in system else True

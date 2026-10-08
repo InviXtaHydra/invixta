@@ -148,7 +148,7 @@ function WidgetSession({ draft, onDraftChange: setDraft }: { draft: string; onDr
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
         {session.loadingHistory ? (
           <div className="py-10 text-center">
             <Spinner label="Loading conversation" />

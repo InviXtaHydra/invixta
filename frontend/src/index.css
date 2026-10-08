@@ -96,9 +96,14 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* No rubber-band scrolling past the top and bottom of the page (Safari, iOS, trackpads): it showed an
+       empty area as if the page went on forever. The dark colour is what you'd see if a browser still bounces. */
+    overscroll-behavior: none;
+    background: var(--ink);
   }
   body {
     @apply bg-canvas font-sans text-ink antialiased;
+    overscroll-behavior: none;
     font-size: 16px;
     line-height: 1.55;
   }

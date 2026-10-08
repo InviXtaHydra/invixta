@@ -208,7 +208,7 @@ export function ShopPage() {
       {filtersOpen && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Filters">
           <button type="button" aria-label="Close filters" className="absolute inset-0 bg-black/40" onClick={() => setFiltersOpen(false)} />
-          <div className="absolute inset-y-0 right-0 w-80 max-w-[90vw] overflow-y-auto bg-surface p-5 shadow-xl">
+          <div className="absolute inset-y-0 right-0 w-80 max-w-[90vw] overflow-y-auto overscroll-contain bg-surface p-5 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-2xl font-bold uppercase">Filters</h2>
               <button type="button" onClick={() => setFiltersOpen(false)} className="rounded-md p-2 hover:bg-surface-2">

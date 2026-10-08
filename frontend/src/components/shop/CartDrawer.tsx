@@ -50,7 +50,7 @@ export function CartDrawer() {
             <div className="px-5 pt-4">
               <FreeShippingBar remaining={cart!.free_shipping_remaining} />
             </div>
-            <div className="flex-1 overflow-y-auto px-5">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-5">
               <CartLines lines={lines} onNavigate={closeDrawer} />
             </div>
             <footer className="space-y-3 border-t border-line px-5 py-4">

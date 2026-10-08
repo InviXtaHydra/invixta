@@ -45,7 +45,7 @@ export function ChatPage() {
     <div className="flex h-[calc(100dvh-3.8rem)] lg:h-dvh">
       <aside className="hidden w-72 shrink-0 flex-col border-r border-line bg-surface xl:flex">{list}</aside>
       <Dialog open={historyOpen} onClose={() => setHistoryOpen(false)} title="Conversations">
-        <div className="-mx-5 -mb-5 max-h-[60vh] overflow-y-auto">{list}</div>
+        <div className="-mx-5 -mb-5 max-h-[60vh] overflow-y-auto overscroll-contain">{list}</div>
       </Dialog>
       <ChatSession
         key={session.key}
@@ -144,7 +144,7 @@ function ChatSession({
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overscroll-contain">
         <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
           {loadingHistory ? (
             <div className="py-16 text-center">
@@ -220,7 +220,7 @@ function ConversationList({ state, activeId, onSelect }: { state: ApiState<Page<
           <Plus aria-hidden className="size-4" /> New conversation
         </Link>
       </div>
-      <nav aria-label="Conversations" className="flex-1 overflow-y-auto px-3 pb-3">
+      <nav aria-label="Conversations" className="flex-1 overflow-y-auto overscroll-contain px-3 pb-3">
         {state.loading && !state.data ? (
           <div className="p-3">
             <Spinner label="Loading conversations" />
