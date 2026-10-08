@@ -61,7 +61,7 @@ test('policy question: the agent searches the knowledge base and shows its sourc
   await expect(answer.getByText('Knowledge base')).toBeVisible()
   await expect(answer.getByText(/Answered in/)).toBeVisible()
   await expect(answer.getByText('Sources')).toBeVisible()
-  await expect(answer.getByText('Return Policy.pdf').first()).toBeVisible()
+  await expect(answer.getByText('Returns and Exchanges.pdf').first()).toBeVisible()
   await expect(answer).toContainText('30 days')
 })
 
@@ -86,7 +86,7 @@ test("a customer can't see another customer's order through the assistant", asyn
 test('admin sees the knowledge base and the metrics', async ({ page }) => {
   await signIn(page, 'admin@kopbal.shop')
   await nav(page, 'Knowledge base').click()
-  await expect(page.getByText('Return Policy.pdf')).toBeVisible()
+  await expect(page.getByText('Returns and Exchanges.pdf')).toBeVisible()
   await expect(page.getByText(/\d+ documents, \d+ chunks/)).toBeVisible()
 
   await nav(page, 'Metrics').click()
