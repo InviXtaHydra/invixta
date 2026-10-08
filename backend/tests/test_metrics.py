@@ -40,7 +40,7 @@ def test_metrics_reflect_real_chat_activity(client: TestClient, db: Session, ali
     assert m["unresolved_questions"] == 1
     assert m["recent_unresolved"][0]["question"] == "Do you sell gift cards to companies?"
     assert len(m["chat_turns_per_day"]) == 14
-    assert m["chat_turns_per_day"][-1]["chat_turns"] == 2  # today
+    assert m["chat_turns_per_day"][-1]["count"] == 2  # today
 
 
 def test_metrics_are_admin_only(client: TestClient, db: Session, alice: User) -> None:
@@ -48,3 +48,25 @@ def test_metrics_are_admin_only(client: TestClient, db: Session, alice: User) ->
     assert client.get("/admin/metrics", headers=auth_header(alice)).status_code == 403
     assert client.get("/admin/metrics", headers=auth_header(agent)).status_code == 403
     assert client.get("/admin/metrics").status_code == 401
+
+
+def test_sales_metrics(client: TestClient, db: Session, alice: User) -> None:
+    from decimal import Decimal
+
+    from app.models import OrderStatus, PaymentStatus
+
+    admin = make_staff(db, "admin@example.com", UserRole.ADMIN)
+    paid = make_order(db, alice.customer, status=OrderStatus.SHIPPED, quantity=2)  # type: ignore[arg-type]
+    paid.payment_status = PaymentStatus.PAID
+    make_order(db, alice.customer, status=OrderStatus.CANCELLED)  # type: ignore[arg-type]
+    low = make_order(db, alice.customer, status=OrderStatus.PENDING, quantity=1)  # type: ignore[arg-type]
+    low.items[0].variant.stock = 2  # type: ignore[union-attr]
+    db.flush()
+
+    sales = client.get("/admin/metrics", headers=auth_header(admin)).json()["sales"]
+    assert sales["orders"] == 2 and sales["cancelled_orders"] == 1
+    assert Decimal(sales["revenue_eur"]) == Decimal("25.00") and sales["average_order_value_eur"] == "25.00"
+    assert sales["items_sold"] == 3  # the cancelled order doesn't count
+    assert sales["top_products"][0] == {"name": "Test Mug", "units": 3}
+    assert sales["low_stock_sizes"] >= 1
+    assert sales["orders_per_day"][-1]["count"] == 2

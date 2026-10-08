@@ -4,7 +4,7 @@ import type { Metrics, TicketStatus } from '../api/types'
 import { PageContainer } from '../components/AppShell'
 import { EmptyState, ErrorState, Skeleton } from '../components/feedback'
 import { PageHeader, Panel, TicketStatusBadge } from '../components/ui'
-import { formatDate, formatDateTime, formatMs } from '../lib/format'
+import { formatDate, formatDateTime, formatMoney, formatMs } from '../lib/format'
 import { useApi } from '../lib/useApi'
 import { toolInfo } from '../components/chat/tools'
 
@@ -12,7 +12,7 @@ export function AdminMetricsPage() {
   const state = useApi(() => api.metrics(14), [])
   return (
     <PageContainer>
-      <PageHeader title="Metrics" description="How the AI assistant is used, computed from the stored conversations, tool calls and tickets." />
+      <PageHeader title="Metrics" description="Sales of the shop and usage of the AI assistant, computed with SQL from the stored orders, conversations, tool calls and tickets." />
       {state.loading && !state.data ? (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {Array.from({ length: 8 }, (_, i) => (
@@ -43,8 +43,36 @@ function Tile({ label, value, note }: { label: string; value: string | number; n
 function MetricsView({ m }: { m: Metrics }) {
   const unresolvedShare = m.chat_turns ? Math.round((m.unresolved_questions / m.chat_turns) * 100) : 0
   const openTickets = m.tickets_by_status.open + m.tickets_by_status.in_progress
+  const sales = m.sales
   return (
     <div className="space-y-6">
+      <h2 className="font-display text-2xl font-bold uppercase tracking-wide">Shop</h2>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Tile label="Revenue (paid orders)" value={formatMoney(sales.revenue_eur)} note="Fictional money: payments are simulated" />
+        <Tile label="Orders" value={sales.orders} note={`${sales.cancelled_orders} cancelled`} />
+        <Tile label="Average order value" value={sales.average_order_value_eur ? formatMoney(sales.average_order_value_eur) : '—'} />
+        <Tile label="Sizes with low stock" value={sales.low_stock_sizes} note="3 or fewer left" />
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <Panel title="Orders per day (last 14 days, UTC)">
+          <DailyChart days={sales.orders_per_day} caption="Orders per day" />
+        </Panel>
+        <Panel title="Best sellers" flush>
+          <ol className="divide-y divide-line">
+            {sales.top_products.map((p, i) => (
+              <li key={p.name} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                <span className="min-w-0 truncate">
+                  <span className="mr-2 font-display font-bold text-muted">{i + 1}</span>
+                  {p.name}
+                </span>
+                <span className="shrink-0 tabular-nums">{p.units} sold</span>
+              </li>
+            ))}
+          </ol>
+        </Panel>
+      </div>
+
+      <h2 className="pt-4 font-display text-2xl font-bold uppercase tracking-wide">AI assistant</h2>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Tile label="Conversations" value={m.total_conversations} />
         <Tile label="Questions answered" value={m.chat_turns} />
@@ -57,7 +85,7 @@ function MetricsView({ m }: { m: Metrics }) {
       </div>
 
       <Panel title="Questions answered per day (last 14 days, UTC)">
-        <DailyChart days={m.chat_turns_per_day} />
+        <DailyChart days={m.chat_turns_per_day} caption="Questions answered per day" />
       </Panel>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -103,8 +131,8 @@ function MetricsView({ m }: { m: Metrics }) {
 }
 
 /** One series of bars. Hover or focus a day to see its value; the same data is in a table for screen readers. */
-function DailyChart({ days }: { days: Metrics['chat_turns_per_day'] }) {
-  const max = Math.max(1, ...days.map((d) => d.chat_turns))
+function DailyChart({ days, caption }: { days: Metrics['chat_turns_per_day']; caption: string }) {
+  const max = Math.max(1, ...days.map((d) => d.count))
   return (
     <figure>
       <div aria-hidden className="flex h-40 items-end gap-1 border-b border-line">
@@ -112,10 +140,10 @@ function DailyChart({ days }: { days: Metrics['chat_turns_per_day'] }) {
           <div key={d.day} className="group relative flex h-full flex-1 items-end justify-center">
             <div
               className="w-full max-w-6 rounded-t bg-brand"
-              style={{ height: `${(d.chat_turns / max) * 100}%`, minHeight: d.chat_turns ? 2 : 0 }}
+              style={{ height: `${(d.count / max) * 100}%`, minHeight: d.count ? 2 : 0 }}
             />
             <span className="pointer-events-none absolute bottom-full mb-1 hidden whitespace-nowrap rounded bg-ink px-2 py-1 text-xs text-canvas group-hover:block">
-              {formatDate(d.day)}: {d.chat_turns}
+              {formatDate(d.day)}: {d.count}
             </span>
           </div>
         ))}
@@ -126,12 +154,12 @@ function DailyChart({ days }: { days: Metrics['chat_turns_per_day'] }) {
         <span>{formatDate(days[days.length - 1].day)}</span>
       </div>
       <table className="sr-only">
-        <caption>Questions answered per day</caption>
+        <caption>{caption}</caption>
         <tbody>
           {days.map((d) => (
             <tr key={d.day}>
               <th scope="row">{formatDate(d.day)}</th>
-              <td>{d.chat_turns}</td>
+              <td>{d.count}</td>
             </tr>
           ))}
         </tbody>

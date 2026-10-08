@@ -4,6 +4,7 @@ import { AppShell } from './components/AppShell'
 import { ShopLayout } from './components/shop/ShopLayout'
 import { AdminDocumentsPage } from './pages/AdminDocumentsPage'
 import { AdminMetricsPage } from './pages/AdminMetricsPage'
+import { AdminProductsPage } from './pages/AdminProductsPage'
 import { LoginPage, RegisterPage } from './pages/AuthPages'
 import { ChatPage } from './pages/ChatPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -77,6 +78,14 @@ export function App() {
           element={
             <RequireAuth roles={['ADMIN']}>
               <AdminDocumentsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            <RequireAuth roles={['ADMIN']}>
+              <AdminProductsPage />
             </RequireAuth>
           }
         />

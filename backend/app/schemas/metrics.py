@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -23,7 +24,27 @@ class DayCountRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     day: date
-    chat_turns: int
+    count: int
+
+
+class TopProductRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    name: str
+    units: int
+
+
+class SalesRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    orders: int = Field(description="Orders that weren't cancelled")
+    cancelled_orders: int
+    revenue_eur: Decimal = Field(description="Total of paid orders (fictional money); refunded orders don't count")
+    average_order_value_eur: Decimal | None
+    items_sold: int
+    top_products: list[TopProductRead]
+    low_stock_sizes: int = Field(description="Sizes of products in the shop with 3 or fewer left")
+    orders_per_day: list[DayCountRead]
 
 
 class MetricsRead(BaseModel):
@@ -41,3 +62,4 @@ class MetricsRead(BaseModel):
     unresolved_questions: int = Field(description="Answers that said the knowledge base didn't have the answer, or that failed")
     recent_unresolved: list[UnresolvedQuestionRead]
     chat_turns_per_day: list[DayCountRead]
+    sales: SalesRead

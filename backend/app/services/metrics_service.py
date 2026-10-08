@@ -3,13 +3,26 @@ every assistant message has its latency, tool calls and sources (see ChatService
 
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
 
 from sqlalchemy import ColumnElement, column, func, or_, select, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, aliased
 
 from app.agents.support_agent import FALLBACK_REPLY
-from app.models import Conversation, Message, MessageRole, SupportTicket, TicketStatus
+from app.models import (
+    Conversation,
+    Message,
+    MessageRole,
+    Order,
+    OrderItem,
+    OrderStatus,
+    PaymentStatus,
+    Product,
+    ProductVariant,
+    SupportTicket,
+    TicketStatus,
+)
 from app.rag.rag_service import NOT_FOUND_MESSAGE
 
 
@@ -30,7 +43,25 @@ class UnresolvedQuestion:
 @dataclass
 class DayCount:
     day: date
-    chat_turns: int
+    count: int
+
+
+@dataclass
+class TopProduct:
+    name: str
+    units: int
+
+
+@dataclass
+class Sales:
+    orders: int  # not cancelled
+    cancelled_orders: int
+    revenue_eur: Decimal  # paid orders (refunded ones not counted)
+    average_order_value_eur: Decimal | None
+    items_sold: int
+    top_products: list[TopProduct]
+    low_stock_sizes: int  # sizes of products in the shop with 3 or fewer left
+    orders_per_day: list[DayCount]
 
 
 @dataclass
@@ -47,6 +78,7 @@ class Metrics:
     unresolved_questions: int
     recent_unresolved: list[UnresolvedQuestion]
     chat_turns_per_day: list[DayCount]
+    sales: Sales
 
 
 def is_unresolved() -> ColumnElement[bool]:
@@ -75,6 +107,7 @@ class MetricsService:
             unresolved_questions=self._count_answers(is_unresolved()),
             recent_unresolved=self._recent_unresolved(),
             chat_turns_per_day=self._per_day(days),
+            sales=self._sales(days),
         )
 
     def _count_answers(self, *conditions: ColumnElement[bool]) -> int:
@@ -127,6 +160,52 @@ class MetricsService:
         ).all()
         return [UnresolvedQuestion(conversation_id=c, question=q, answered_at=t) for c, q, t in rows]
 
+    def _sales(self, days: int) -> Sales:
+        db = self.db
+        not_cancelled = Order.status != OrderStatus.CANCELLED
+        orders = db.scalar(select(func.count()).select_from(Order).where(not_cancelled)) or 0
+        cancelled = db.scalar(select(func.count()).select_from(Order).where(Order.status == OrderStatus.CANCELLED)) or 0
+        paid = Order.payment_status == PaymentStatus.PAID
+        revenue = db.scalar(select(func.coalesce(func.sum(Order.total_amount), 0)).where(paid)) or Decimal("0")
+        paid_count = db.scalar(select(func.count()).select_from(Order).where(paid)) or 0
+        units = func.sum(OrderItem.quantity)
+        top = db.execute(
+            select(OrderItem.product_name, units)
+            .join(Order, Order.id == OrderItem.order_id)
+            .where(not_cancelled)
+            .group_by(OrderItem.product_name)
+            .order_by(units.desc(), OrderItem.product_name)
+            .limit(5)
+        ).all()
+        items_sold = db.scalar(select(func.coalesce(units, 0)).join(Order, Order.id == OrderItem.order_id).where(not_cancelled)) or 0
+        low_stock = (
+            db.scalar(
+                select(func.count())
+                .select_from(ProductVariant)
+                .join(Product, Product.id == ProductVariant.product_id)
+                .where(Product.is_active.is_(True), ProductVariant.stock <= 3)
+            )
+            or 0
+        )
+        first_day = datetime.now(UTC).date() - timedelta(days=days - 1)
+        day = func.date(func.timezone("UTC", Order.created_at))
+        rows = db.execute(
+            select(day, func.count())
+            .where(not_cancelled, Order.created_at >= datetime.combine(first_day, datetime.min.time(), UTC))
+            .group_by(day)
+        ).all()
+        counts: dict[date, int] = {d: n for d, n in rows}
+        return Sales(
+            orders=orders,
+            cancelled_orders=cancelled,
+            revenue_eur=Decimal(revenue),
+            average_order_value_eur=(Decimal(revenue) / paid_count).quantize(Decimal("0.01")) if paid_count else None,
+            items_sold=int(items_sold),
+            top_products=[TopProduct(name=n, units=int(u)) for n, u in top],
+            low_stock_sizes=low_stock,
+            orders_per_day=[DayCount(day=d, count=counts.get(d, 0)) for d in (first_day + timedelta(days=i) for i in range(days))],
+        )
+
     def _per_day(self, days: int) -> list[DayCount]:
         """Chat answers per day for the last `days` days (UTC), including days without any."""
         first_day = datetime.now(UTC).date() - timedelta(days=days - 1)
@@ -137,4 +216,4 @@ class MetricsService:
             .group_by(day)
         ).all()
         counts: dict[date, int] = {d: n for d, n in rows}
-        return [DayCount(day=d, chat_turns=counts.get(d, 0)) for d in (first_day + timedelta(days=i) for i in range(days))]
+        return [DayCount(day=d, count=counts.get(d, 0)) for d in (first_day + timedelta(days=i) for i in range(days))]

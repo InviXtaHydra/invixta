@@ -174,7 +174,17 @@ export interface Metrics {
   tickets_by_status: Record<TicketStatus, number>
   unresolved_questions: number
   recent_unresolved: { conversation_id: number; question: string | null; answered_at: string }[]
-  chat_turns_per_day: { day: string; chat_turns: number }[]
+  chat_turns_per_day: { day: string; count: number }[]
+  sales: {
+    orders: number
+    cancelled_orders: number
+    revenue_eur: string
+    average_order_value_eur: string | null
+    items_sold: number
+    top_products: { name: string; units: number }[]
+    low_stock_sizes: number
+    orders_per_day: { day: string; count: number }[]
+  }
 }
 
 // --- Shop ---------------------------------------------------------------------------------------
@@ -271,4 +281,18 @@ export interface Payment {
   status: PaymentStatus
   created_at: string
   decided_at: string | null
+}
+
+export interface AdminProduct {
+  id: number
+  slug: string
+  name: string
+  category: ProductCategory
+  team: string | null
+  price: string
+  compare_at_price: string | null
+  is_active: boolean
+  personalizable: boolean
+  units_sold: number
+  variants: { id: number; size: string; sku: string; stock: number }[]
 }

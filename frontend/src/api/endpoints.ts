@@ -1,6 +1,7 @@
 // One function per backend endpoint used by the app.
 import { getCartToken, query, request } from './client'
 import type {
+  AdminProduct,
   Cart,
   Conversation,
   ConversationSummary,
@@ -159,6 +160,16 @@ export const api = {
   },
   cancelOrder(orderId: number) {
     return request<Order>(`/orders/${orderId}/cancel`, { method: 'POST' })
+  },
+
+  adminProducts(params: { q?: string; limit?: number; offset?: number } = {}) {
+    return request<Page<AdminProduct>>(`/admin/products${query(params)}`)
+  },
+  updateProduct(id: number, body: { price?: string; compare_at_price?: string | null; is_active?: boolean }) {
+    return request<AdminProduct>(`/admin/products/${id}`, { method: 'PATCH', json: body })
+  },
+  updateStock(variantId: number, stock: number) {
+    return request<{ id: number; size: string; sku: string; stock: number }>(`/admin/variants/${variantId}`, { method: 'PATCH', json: { stock } })
   },
 
   metrics(days = 14) {
