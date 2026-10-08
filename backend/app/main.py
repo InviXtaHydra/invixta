@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import admin, auth, cart, catalog, chat, conversations, documents, health, knowledge_base, orders, tickets, users
+from app.api import admin, auth, cart, catalog, chat, checkout, conversations, documents, health, knowledge_base, orders, tickets, users
 from app.core.config import get_settings
 from app.core.exceptions import AppError, TooManyRequestsError
 from app.core.logging import RequestLoggingMiddleware, configure_logging
@@ -55,3 +55,4 @@ app.include_router(chat.router)
 app.include_router(admin.router)
 app.include_router(catalog.router)
 app.include_router(cart.router)
+app.include_router(checkout.router)

@@ -1,6 +1,7 @@
 # The whole application:  docker compose up --build
-#   http://localhost:3000       the React app (nginx, forwards /api to the backend)
-#   http://localhost:8000/docs  the API's Swagger UI
+#   http://localhost:4000       the Kopbal web shop (nginx, forwards /api to the backend)
+#   http://localhost:8100/docs  the API's Swagger UI
+# (Other ports than the SupportAI project, so both can run at the same time.)
 # The language model runs in Ollama on your machine (not in a container), see README.
 services:
   postgres:
@@ -10,7 +11,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "127.0.0.1:5432:5432"  # only reachable from this machine
+      - "127.0.0.1:5433:5432"  # only reachable from this machine
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +27,7 @@ services:
         INSTALL_DEV: "true"  # includes pytest/ruff/mypy so tests can run in the container
     env_file: .env
     ports:
-      - "8000:8000"
+      - "8100:8000"
     # Ollama runs on the host machine (it can use the Mac's GPU there). This name points to the host,
     # also on Linux where Docker doesn't define it by itself.
     extra_hosts:
@@ -43,10 +44,24 @@ services:
       timeout: 5s
       retries: 30
 
+  # The fictional warehouse and carrier: ships paid orders and delivers them after a few minutes
+  # (SIMULATION_*_MINUTES in .env), and cancels orders that were never paid.
+  simulator:
+    build:
+      context: ./backend
+    env_file: .env
+    command: ["python", "scripts/fulfillment_simulator.py"]
+    depends_on:
+      backend:
+        condition: service_healthy  # the backend has run the migrations
+    volumes:
+      - ./scripts:/app/scripts:ro
+    restart: unless-stopped
+
   frontend:
     build: ./frontend
     ports:
-      - "3000:80"
+      - "4000:80"
     depends_on:
       backend:
         condition: service_healthy
