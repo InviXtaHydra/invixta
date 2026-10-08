@@ -1,4 +1,4 @@
-import { BookOpen, Database, LifeBuoy, Package, Ticket, Wrench, type LucideIcon } from 'lucide-react'
+import { BookOpen, CircleSlash, Database, LifeBuoy, Package, Shirt, Ticket, Wrench, type LucideIcon } from 'lucide-react'
 
 interface ToolInfo {
   running: string // shown while the tool runs
@@ -13,6 +13,8 @@ export const TOOL_INFO: Record<string, ToolInfo> = {
   search_knowledge_base: { running: 'Searching the knowledge base…', done: 'Knowledge base', icon: BookOpen },
   create_support_ticket: { running: 'Creating a support ticket…', done: 'Support ticket', icon: LifeBuoy },
   get_support_tickets: { running: 'Checking your tickets…', done: 'Your tickets', icon: Ticket },
+  search_products: { running: 'Checking the shop…', done: 'Shop catalogue', icon: Shirt },
+  request_order_cancellation: { running: 'Checking if your order can be cancelled…', done: 'Cancellation', icon: CircleSlash },
 }
 
 export function toolInfo(name: string): ToolInfo {

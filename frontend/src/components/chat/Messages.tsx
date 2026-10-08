@@ -3,6 +3,7 @@ import { formatMs } from '../../lib/format'
 import { Spinner } from '../feedback'
 import { Button } from '../ui'
 import { AgentTrace } from './AgentTrace'
+import { CancelOrderActions } from './CancelOrderAction'
 import type { ChatItem } from './chatState'
 import { MessageText } from './MessageText'
 import { Sources } from './Sources'
@@ -49,6 +50,7 @@ function AssistantMessage({ item, onRetry }: { item: ChatItem; onRetry: (key: st
             </Button>
           </div>
         )}
+        {!item.pending && <CancelOrderActions steps={item.steps} />}
         <Sources sources={item.sources} />
         {item.latencyMs !== undefined && !item.pending && <p className="mt-2 text-right text-xs text-muted">Answered in {formatMs(item.latencyMs)}</p>}
       </div>
