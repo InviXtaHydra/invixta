@@ -12,7 +12,7 @@ function renderLogin() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<p>Dashboard page</p>} />
+          <Route path="/" element={<p>Shop home</p>} />
         </Routes>
       </AuthProvider>
     </MemoryRouter>,
@@ -35,7 +35,7 @@ describe('LoginPage', () => {
     await userEvent.type(screen.getByLabelText('Password'), 'Password123!')
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
 
-    expect(await screen.findByText('Dashboard page')).toBeInTheDocument()
+    expect(await screen.findByText('Shop home')).toBeInTheDocument() // customers go back to the shop
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('/api/auth/login')
     expect(String(init.body)).toBe('username=emma%40example.com&password=Password123%21')

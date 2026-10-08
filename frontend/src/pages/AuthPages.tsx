@@ -1,52 +1,34 @@
-import { Check, Database, FileText } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/useAuth'
 import { Logo } from '../components/AppShell'
+import { Jersey } from '../components/shop/Jersey'
 import { Button, Field, Input } from '../components/ui'
 
 const DEMO_PASSWORD = 'Password123!'
 const DEMO_ACCOUNTS = [
   { label: 'Customer', email: 'emma.devries@example.com' },
-  { label: 'Support agent', email: 'agent@supportai.dev' },
-  { label: 'Admin', email: 'admin@supportai.dev' },
+  { label: 'Support agent', email: 'agent@kopbal.shop' },
+  { label: 'Admin', email: 'admin@kopbal.shop' },
 ]
 
-/** The left half of the auth pages: what the product does, shown as the agent's own trace. */
+/** The left half of the auth pages: a shirt with your name, and what an account is for. */
 function Showcase() {
-  const steps = [
-    { icon: Database, label: 'Checked your order', detail: 'Order #10012: shipped' },
-    { icon: FileText, label: 'Searched the knowledge base', detail: 'Shipping Policy.pdf, page 1' },
-  ]
   return (
     <div className="relative hidden flex-col justify-between overflow-hidden bg-brand p-10 text-brand-ink lg:flex">
-      <Logo inverted />
-      <div className="max-w-md">
-        <p className="text-3xl font-semibold leading-tight tracking-tight">Support answers that come from your data, not from guesses.</p>
+      <div aria-hidden className="absolute inset-0 opacity-[0.08] [background:repeating-linear-gradient(90deg,#fff_0_60px,transparent_60px_120px)]" />
+      <Link to="/" className="relative">
+        <Logo inverted />
+      </Link>
+      <div className="relative max-w-md">
+        <Jersey primary="#C8102E" secondary="#FFFFFF" pattern="stripes" view="back" name="KOPBAL" number={10} label="" className="mb-8 w-56 drop-shadow-2xl" />
+        <p className="font-display text-5xl font-extrabold uppercase leading-[0.95]">Your shirts, your orders, one account.</p>
         <p className="mt-4 text-brand-ink/80">
-          The assistant looks up real orders, searches your policy documents and opens tickets, and shows every step it takes.
+          Keep your cart, follow your orders from payment to your door, and ask our assistant anything about sizes, delivery or
+          returns.
         </p>
-        <div className="mt-8 rounded-xl bg-white/10 p-5 text-sm ring-1 ring-white/15">
-          <p className="mb-4 rounded-lg bg-white/10 px-3 py-2">Where is my order #10012?</p>
-          <ol className="space-y-3">
-            {steps.map(({ icon: Icon, label, detail }) => (
-              <li key={label} className="flex items-start gap-3">
-                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-white/15">
-                  <Icon aria-hidden className="size-3.5" />
-                </span>
-                <span>
-                  <span className="flex items-center gap-1.5">
-                    {label} <Check aria-hidden className="size-3.5" />
-                  </span>
-                  <span className="font-mono text-xs text-brand-ink/75">{detail}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-4 leading-relaxed">Your order is on its way with PostNL and should arrive on Friday.</p>
-        </div>
       </div>
-      <p className="text-xs text-brand-ink/70">A portfolio project: FastAPI, PostgreSQL + pgvector, a local LLM (Ollama) and React.</p>
+      <p className="relative text-xs text-brand-ink/70">Kopbal is a fictional shop: every club is made up and payments are simulated.</p>
     </div>
   )
 }
@@ -86,16 +68,17 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const from = (location.state as { from?: string } | null)?.from ?? '/dashboard'
+  const from = (location.state as { from?: string } | null)?.from
 
-  if (user) return <Navigate to={from} replace />
+  if (user) return <Navigate to={from ?? '/'} replace />
 
   async function signIn(emailAddress: string, pw: string) {
     setBusy(true)
     setError(null)
     try {
-      await login(emailAddress, pw)
-      navigate(from, { replace: true })
+      const me = await login(emailAddress, pw)
+      // Back to where you were (e.g. the checkout); staff go to their dashboard.
+      navigate(from ?? (me.role === 'CUSTOMER' ? '/' : '/dashboard'), { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sign in failed')
     } finally {
@@ -173,7 +156,7 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  if (user) return <Navigate to="/dashboard" replace />
+  if (user) return <Navigate to="/" replace />
 
   const passwordError = form.password && form.password.length < 8 ? 'Use at least 8 characters' : undefined
   const confirmError = form.confirm && form.confirm !== form.password ? "The passwords don't match" : undefined
@@ -186,7 +169,7 @@ export function RegisterPage() {
     setError(null)
     try {
       await register(form.name.trim(), form.email.trim(), form.password)
-      navigate('/dashboard', { replace: true })
+      navigate('/', { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {

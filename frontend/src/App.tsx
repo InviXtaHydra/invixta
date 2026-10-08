@@ -1,21 +1,37 @@
-import { Navigate, Route, Routes } from 'react-router'
+import { Route, Routes } from 'react-router'
 import { RequireAuth } from './auth/RequireAuth'
 import { AppShell } from './components/AppShell'
+import { ShopLayout } from './components/shop/ShopLayout'
 import { AdminDocumentsPage } from './pages/AdminDocumentsPage'
 import { AdminMetricsPage } from './pages/AdminMetricsPage'
+import { LoginPage, RegisterPage } from './pages/AuthPages'
 import { ChatPage } from './pages/ChatPage'
 import { DashboardPage } from './pages/DashboardPage'
-import { LoginPage, RegisterPage } from './pages/AuthPages'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { OrderDetailPage, OrdersPage } from './pages/OrdersPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { CartPage } from './pages/shop/CartPage'
+import { HomePage } from './pages/shop/HomePage'
+import { ProductPage } from './pages/shop/ProductPage'
+import { ShopPage } from './pages/shop/ShopPage'
 import { TicketDetailPage, TicketsPage } from './pages/TicketsPage'
 
 export function App() {
   return (
     <Routes>
+      {/* The shop: open to everyone. */}
+      <Route element={<ShopLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="/shop" element={<ShopPage />} />
+        <Route path="/product/:slug" element={<ProductPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+
+      {/* Your account and support (and the admin pages for staff). */}
       <Route
         element={
           <RequireAuth>
@@ -23,7 +39,6 @@ export function App() {
           </RequireAuth>
         }
       >
-        <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route
           path="/chat/:conversationId?"
@@ -54,7 +69,6 @@ export function App() {
             </RequireAuth>
           }
         />
-        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   )
