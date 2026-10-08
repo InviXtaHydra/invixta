@@ -4,31 +4,30 @@ import { useAuth } from '../auth/useAuth'
 import { Logo } from '../components/AppShell'
 import { Jersey } from '../components/shop/Jersey'
 import { Button, Field, Input } from '../components/ui'
+import { CURRENT_YEAR } from '../lib/format'
 
-const DEMO_PASSWORD = 'Password123!'
-const DEMO_ACCOUNTS = [
-  { label: 'Customer', email: 'emma.devries@example.com' },
-  { label: 'Support agent', email: 'agent@kopbal.shop' },
-  { label: 'Admin', email: 'admin@kopbal.shop' },
-]
 
 /** The left half of the auth pages: a shirt with your name, and what an account is for. */
 function Showcase() {
   return (
-    <div className="relative hidden flex-col justify-between overflow-hidden bg-brand p-10 text-brand-ink lg:flex">
-      <div aria-hidden className="absolute inset-0 opacity-[0.08] [background:repeating-linear-gradient(90deg,#fff_0_60px,transparent_60px_120px)]" />
+    <div className="relative hidden flex-col justify-between overflow-hidden bg-night p-10 text-night-ink lg:flex">
+      <div aria-hidden className="absolute inset-0 opacity-[0.05] [background:repeating-linear-gradient(90deg,#fff_0_60px,transparent_60px_120px)]" />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 flex h-1.5">
+        <span className="flex-1 bg-accent" />
+        <span className="flex-1 bg-brand" />
+      </div>
       <Link to="/" className="relative">
         <Logo inverted />
       </Link>
       <div className="relative max-w-md">
-        <Jersey primary="#C8102E" secondary="#FFFFFF" pattern="stripes" view="back" name="KOPBAL" number={10} label="" className="mb-8 w-56 drop-shadow-2xl" />
+        <Jersey primary="#1D4ED8" secondary="#E11D2E" pattern="stripes" view="back" name="INVIXTA" number={10} label="" className="mb-8 w-56 drop-shadow-2xl" />
         <p className="font-display text-5xl font-extrabold uppercase leading-[0.95]">Your shirts, your orders, one account.</p>
-        <p className="mt-4 text-brand-ink/80">
+        <p className="mt-4 text-white/75">
           Keep your cart, follow your orders from payment to your door, and ask our assistant anything about sizes, delivery or
           returns.
         </p>
       </div>
-      <p className="relative text-xs text-brand-ink/70">Kopbal is a fictional shop: every club is made up and payments are simulated.</p>
+      <p className="relative text-xs text-white/50">© {CURRENT_YEAR} Invixta</p>
     </div>
   )
 }
@@ -127,24 +126,6 @@ export function LoginPage() {
         </Button>
       </form>
 
-      <div className="mt-8 border-t border-line pt-6">
-        <p className="text-sm font-medium text-ink-2">Try a demo account</p>
-        <p className="mt-0.5 text-xs text-muted">Created by the seed script, password {DEMO_PASSWORD}</p>
-        <div className="mt-3 grid gap-2">
-          {DEMO_ACCOUNTS.map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              disabled={busy}
-              onClick={() => void signIn(account.email, DEMO_PASSWORD)}
-              className="flex items-center justify-between rounded-lg border border-line px-3 py-2 text-left text-sm hover:border-line-strong hover:bg-surface-2 disabled:opacity-55"
-            >
-              <span className="font-medium">{account.label}</span>
-              <span className="truncate pl-3 font-mono text-xs text-muted">{account.email}</span>
-            </button>
-          ))}
-        </div>
-      </div>
     </AuthLayout>
   )
 }

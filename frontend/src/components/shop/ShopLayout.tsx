@@ -8,6 +8,7 @@ import { useApi } from '../../lib/useApi'
 import { CartDrawer } from './CartDrawer'
 import { ChatWidgetProvider } from './ChatWidget'
 import { Crest } from './Crest'
+import { CURRENT_YEAR } from '../../lib/format'
 
 const CATEGORIES = [
   { to: '/shop?category=home', label: 'Home shirts' },
@@ -20,9 +21,9 @@ const CATEGORIES = [
 
 export function Wordmark({ inverted = false }: { inverted?: boolean }) {
   return (
-    <Link to="/" className={`flex items-center gap-2 ${inverted ? 'text-white' : 'text-ink'}`}>
+    <Link to="/" className={`flex items-center gap-2 ${inverted ? 'text-night-ink' : 'text-ink'}`}>
       <img src="/favicon.svg" alt="" className="size-8" />
-      <span className="font-display text-2xl font-extrabold uppercase tracking-wide">Kopbal</span>
+      <span className="font-display text-2xl font-extrabold uppercase tracking-wide">Invixta</span>
     </Link>
   )
 }
@@ -46,7 +47,7 @@ function SearchBox({ onDone }: { onDone?: () => void }) {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search shirts or clubs"
-        className="w-full rounded-full border border-line-strong bg-surface py-2 pl-9 pr-4 text-sm placeholder:text-muted/80 focus:border-brand focus:outline-none"
+        className="w-full rounded-full border border-white/15 bg-night-2 py-2 pl-9 pr-4 text-sm text-night-ink placeholder:text-white/50 focus:border-brand focus:outline-none"
       />
     </form>
   )
@@ -62,7 +63,7 @@ function ClubsMenu() {
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         onMouseEnter={() => setOpen(true)}
-        className="flex items-center gap-1 rounded-md px-3 py-2 text-sm font-semibold uppercase tracking-wide text-ink-2 hover:text-ink"
+        className="flex items-center gap-1 rounded-md px-3 py-2 text-sm font-semibold uppercase tracking-wide text-white/75 hover:text-white"
       >
         Clubs <ChevronDown aria-hidden className="size-3.5" />
       </button>
@@ -107,23 +108,25 @@ export function ShopLayout() {
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2">
         Skip to content
       </a>
-      <div className="bg-brand px-4 py-1.5 text-center text-xs font-medium text-brand-ink">
+      <div className="bg-accent px-4 py-1.5 text-center text-xs font-medium text-accent-ink">
         Free shipping from €50 in the EU, 30 days to return, name &amp; number printing on every shirt
       </div>
-      <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-night text-night-ink">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
-          <button type="button" className="rounded-md p-2 text-ink-2 hover:bg-surface-2 lg:hidden" onClick={() => setMenuOpen(true)}>
+          <button type="button" className="rounded-md p-2 text-white/80 hover:bg-white/10 lg:hidden" onClick={() => setMenuOpen(true)}>
             <Menu aria-hidden className="size-5" />
             <span className="sr-only">Open menu</span>
           </button>
-          <Wordmark />
+          <Wordmark inverted />
           <nav aria-label="Shop" className="ml-4 hidden items-center lg:flex">
             <ClubsMenu />
             {CATEGORIES.map((c) => (
               <NavLink
                 key={c.to}
                 to={c.to}
-                className="rounded-md px-3 py-2 text-sm font-semibold uppercase tracking-wide text-ink-2 hover:text-ink"
+                className={({ isActive }) =>
+                  `rounded-md px-3 py-2 text-sm font-semibold uppercase tracking-wide hover:text-white ${isActive ? 'text-white' : 'text-white/75'}`
+                }
               >
                 {c.label}
               </NavLink>
@@ -135,12 +138,12 @@ export function ShopLayout() {
           <div className="ml-auto flex items-center gap-1 md:ml-2">
             <Link
               to={user ? '/dashboard' : '/login'}
-              className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
+              className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white"
             >
               <UserRound aria-hidden className="size-5" />
               <span className="hidden sm:inline">{user ? (user.name?.split(' ')[0] ?? 'Account') : 'Sign in'}</span>
             </Link>
-            <button type="button" onClick={openDrawer} className="relative rounded-md p-2 text-ink-2 hover:bg-surface-2 hover:text-ink">
+            <button type="button" onClick={openDrawer} className="relative rounded-md p-2 text-white/80 hover:bg-white/10 hover:text-white">
               <ShoppingBag aria-hidden className="size-5" />
               <span className="sr-only">Cart, {count} items</span>
               {count > 0 && (
@@ -183,17 +186,17 @@ export function ShopLayout() {
         <Outlet />
       </main>
 
-      <footer className="mt-16 bg-ink text-canvas">
+      <footer className="mt-16 border-t-4 border-accent bg-night text-night-ink">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-3 sm:px-6">
           <div>
             <Wordmark inverted />
-            <p className="mt-3 max-w-xs text-sm text-canvas/70">
+            <p className="mt-3 max-w-xs text-sm text-white/70">
               Football shirts of the Lage Landen League and the Noordzee Divisie, printed with your name.
             </p>
           </div>
           <div className="text-sm">
             <p className="mb-2 font-display text-base font-bold uppercase tracking-wide">Help</p>
-            <ul className="space-y-1.5 text-canvas/80">
+            <ul className="space-y-1.5 text-white/80">
               <li>
                 <Link to="/dashboard" className="hover:underline">
                   Your orders
@@ -211,10 +214,11 @@ export function ShopLayout() {
               </li>
             </ul>
           </div>
-          <p className="text-xs text-canvas/60 sm:text-right">
-            Kopbal is a fictional shop, made as a portfolio project. Every club, league and crest is made up, payments are
-            simulated and nothing is shipped.
-          </p>
+          <div className="text-sm text-white/70 sm:text-right">
+            <p>Secure payment with iDEAL, Bancontact, card or PayPal</p>
+            <p className="mt-1">Prices include VAT</p>
+            <p className="mt-4 text-xs text-white/50">© {CURRENT_YEAR} Invixta</p>
+          </div>
         </div>
       </footer>
       <CartDrawer />

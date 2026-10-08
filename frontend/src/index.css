@@ -11,20 +11,24 @@
 /* Design tokens. Components only use these names (bg-surface, text-muted, border-line, …),
    so dark mode is just a second set of values. */
 :root {
-  --canvas: #f4f5f2;
+  --canvas: #f5f6f8;
   --surface: #ffffff;
-  --surface-2: #f0f2ee;
-  --ink: #0f1712;
-  --ink-2: #33403a;
-  --muted: #5d6a63;
-  --line: #dde2dc;
-  --line-strong: #c3cbc4;
-  --brand: #0f5132; /* pitch green */
-  --brand-hover: #0b3f27;
+  --surface-2: #eef0f4;
+  --ink: #0b0d12;
+  --ink-2: #2e3440;
+  --muted: #5b6472;
+  --line: #dfe2e8;
+  --line-strong: #c3c8d2;
+  --brand: #1d4ed8; /* blue: buttons, links, the customer's chat messages */
+  --brand-hover: #1e40af;
   --brand-ink: #ffffff;
-  --brand-soft: #e1efe7;
-  --accent: #f5c518; /* corner-flag yellow: sale badges and highlights only */
-  --accent-ink: #1d1a05;
+  --brand-soft: #e3eafc;
+  --accent: #e11d2e; /* red: sale badges, the main call to action, highlights */
+  --accent-hover: #c01323;
+  --accent-ink: #ffffff;
+  --night: #0a0c10; /* black: header bar, hero, footer, chat header (the same in dark mode) */
+  --night-2: #161a22;
+  --night-ink: #ffffff;
   --ok: #0b7a75;
   --ok-soft: #dff2f1;
   --warn: #8f5400;
@@ -38,20 +42,24 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --canvas: #0c120e;
-    --surface: #131b16;
-    --surface-2: #18221c;
-    --ink: #e8eee9;
-    --ink-2: #c3cec6;
-    --muted: #93a29a;
-    --line: #243029;
-    --line-strong: #334238;
-    --brand: #4cc38a;
-    --brand-hover: #6fd3a2;
-    --brand-ink: #062113;
-    --brand-soft: #143425;
-    --accent: #f5c518;
-    --accent-ink: #1d1a05;
+    --canvas: #090b10;
+    --surface: #11141b;
+    --surface-2: #171b24;
+    --ink: #e9ecf2;
+    --ink-2: #c4cad6;
+    --muted: #8e97a8;
+    --line: #232835;
+    --line-strong: #343b4b;
+    --brand: #5b8cff;
+    --brand-hover: #7ea4ff;
+    --brand-ink: #050a19;
+    --brand-soft: #16213f;
+    --accent: #ff4d5e;
+    --accent-hover: #ff6b79;
+    --accent-ink: #ffffff;
+    --night: #05070a;
+    --night-2: #10141b;
+    --night-ink: #ffffff;
     --ok: #45c4bd;
     --ok-soft: #10302e;
     --warn: #e5a93b;
@@ -82,7 +90,11 @@
   --color-brand-ink: var(--brand-ink);
   --color-brand-soft: var(--brand-soft);
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-accent-ink: var(--accent-ink);
+  --color-night: var(--night);
+  --color-night-2: var(--night-2);
+  --color-night-ink: var(--night-ink);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
@@ -99,7 +111,7 @@
     /* No rubber-band scrolling past the top and bottom of the page (Safari, iOS, trackpads): it showed an
        empty area as if the page went on forever. The dark colour is what you'd see if a browser still bounces. */
     overscroll-behavior: none;
-    background: var(--ink);
+    background: var(--night);
   }
   body {
     @apply bg-canvas font-sans text-ink antialiased;

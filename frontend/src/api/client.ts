@@ -1,8 +1,8 @@
 // A small fetch wrapper: adds the JWT, turns error responses into ApiError, and logs out on 401.
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
-const TOKEN_KEY = 'kopbal.token'
-const CART_KEY = 'kopbal.cart'
+const TOKEN_KEY = 'invixta.token'
+const CART_KEY = 'invixta.cart'
 
 export class ApiError extends Error {
   readonly status: number

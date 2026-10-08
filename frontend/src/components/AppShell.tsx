@@ -42,9 +42,9 @@ const ROLE_LABEL: Record<Role, string> = { CUSTOMER: 'Customer', AGENT: 'Support
 
 export function Logo({ inverted = false }: { inverted?: boolean }) {
   return (
-    <span className={`flex items-center gap-2 ${inverted ? 'text-brand-ink' : 'text-ink'}`}>
-      <img src="/favicon.svg" alt="" className={`size-8 ${inverted ? 'rounded-lg ring-2 ring-white/40' : ''}`} />
-      <span className="font-display text-2xl font-extrabold uppercase tracking-wide">Kopbal</span>
+    <span className={`flex items-center gap-2 ${inverted ? 'text-night-ink' : 'text-ink'}`}>
+      <img src="/favicon.svg" alt="" className={`size-8 ${inverted ? 'rounded-lg ring-1 ring-white/30' : ''}`} />
+      <span className="font-display text-2xl font-extrabold uppercase tracking-wide">Invixta</span>
     </span>
   )
 }

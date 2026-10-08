@@ -126,7 +126,7 @@ function ChatSession({
     <section className="flex min-w-0 flex-1 flex-col" aria-label="Chat with the AI assistant">
       <header className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-brand-ink">
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-night text-night-ink">
             <Bot aria-hidden className="size-4" />
           </span>
           <div className="min-w-0">

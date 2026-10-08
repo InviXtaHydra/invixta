@@ -53,7 +53,7 @@ function renderCheckout(cart: Cart, refresh: () => Promise<void>) {
         <CartContext.Provider value={value}>
           <Routes>
             <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/pay/:id" element={<p>TestPay page</p>} />
+            <Route path="/pay/:id" element={<p>Payment page</p>} />
             <Route path="/cart" element={<p>Cart page</p>} />
           </Routes>
         </CartContext.Provider>
@@ -76,7 +76,7 @@ describe('CheckoutPage', () => {
     await userEvent.click(screen.getByRole('radio', { name: /Bancontact/ }))
     await userEvent.click(screen.getByRole('button', { name: /Place order/ }))
 
-    expect(await screen.findByText('TestPay page')).toBeInTheDocument()
+    expect(await screen.findByText('Payment page')).toBeInTheDocument()
     expect(checkout).toHaveBeenCalledWith({
       name: 'Emma de Vries', street: 'Lindelaan 12', postcode: '3511 AB', city: 'Utrecht', country: 'NL',
       shipping_method: 'standard', payment_method: 'bancontact',

@@ -123,7 +123,7 @@ export function CheckoutPage() {
               ))}
             </div>
             <p className="mt-3 text-xs text-muted">
-              Kopbal is a fictional shop: you'll pay on a simulated payment page and no money moves.
+              After placing your order you're taken to the secure payment page.
             </p>
           </fieldset>
         </div>

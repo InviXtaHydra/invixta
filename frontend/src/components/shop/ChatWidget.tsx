@@ -8,7 +8,7 @@ import { Spinner } from '../feedback'
 import { ButtonLink } from '../ui'
 import { ChatWidgetContext } from './useChatWidget'
 
-const STORAGE_KEY = 'kopbal.chat'
+const STORAGE_KEY = 'invixta.chat'
 const SUGGESTIONS = ['Where is my order?', 'Which size should I take?', 'Can I return a printed shirt?']
 
 function storedConversation(): number | null {
@@ -69,9 +69,9 @@ function ChatWidget({
         <button
           type="button"
           onClick={() => onOpenChange(true)}
-          className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-brand px-4 py-3 font-medium text-brand-ink shadow-lg hover:bg-brand-hover"
+          className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full border border-white/10 bg-night px-4 py-3 font-medium text-night-ink shadow-lg hover:bg-night-2"
         >
-          <MessageCircle aria-hidden className="size-5" />
+          <MessageCircle aria-hidden className="size-5 text-accent" />
           <span className="hidden sm:inline">Questions? Ask us</span>
           <span className="sr-only sm:hidden">Open the support chat</span>
         </button>
@@ -81,11 +81,11 @@ function ChatWidget({
           aria-label="Support chat"
           className="fixed inset-x-0 bottom-0 z-50 flex h-[min(38rem,85dvh)] flex-col overflow-hidden rounded-t-2xl border border-line bg-canvas shadow-2xl sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-[24rem] sm:rounded-2xl"
         >
-          <header className="flex items-center gap-3 bg-brand px-4 py-3 text-brand-ink">
+          <header className="flex items-center gap-3 border-b-2 border-accent bg-night px-4 py-3 text-night-ink">
             <Bot aria-hidden className="size-5" />
             <div className="min-w-0 flex-1">
-              <h2 className="font-display text-lg font-bold uppercase leading-none tracking-wide">Kopbal support</h2>
-              <p className="text-xs text-brand-ink/80">Checks your orders and our policies</p>
+              <h2 className="font-display text-lg font-bold uppercase leading-none tracking-wide">Invixta Support</h2>
+              <p className="text-xs text-white/70">Orders, sizes, delivery and returns</p>
             </div>
             {user && (
               <button

@@ -1,4 +1,4 @@
-import { CircleAlert, ShieldCheck } from 'lucide-react'
+import { Lock, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { api } from '../../api/endpoints'
@@ -11,8 +11,9 @@ import { useApi } from '../../lib/useApi'
 const LABEL: Record<PaymentMethod, string> = { ideal: 'iDEAL', bancontact: 'Bancontact', card: 'Credit card', paypal: 'PayPal' }
 
 /**
- * TestPay: a stand-in for a payment provider's page (iDEAL, Bancontact, …). In a real shop the
- * customer would log in to their bank here; in Kopbal you simply choose the outcome.
+ * The payment step. There is no payment provider connected yet: this page runs in test mode, where
+ * "Pay" approves the payment (POST /payments/{id}/complete) the way a provider such as Mollie or
+ * Stripe would report back. Connecting a real provider replaces this page with the provider's own.
  */
 export function PayPage() {
   const { paymentId } = useParams()
@@ -35,13 +36,15 @@ export function PayPage() {
   }
 
   return (
-    <div className="grid min-h-dvh place-items-center bg-[#eef1f5] px-4 py-10 text-[#1b2430]">
-      <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
-        <div className="flex items-center justify-between bg-[#1b2430] px-5 py-3 text-white">
+    <div className="grid min-h-dvh place-items-center bg-surface-2 px-4 py-10">
+      <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-surface shadow-xl ring-1 ring-line">
+        <div className="flex items-center justify-between border-b-2 border-accent bg-night px-5 py-3 text-night-ink">
           <span className="flex items-center gap-2 font-semibold">
-            <ShieldCheck aria-hidden className="size-5 text-[#7dd3fc]" /> TestPay
+            <ShieldCheck aria-hidden className="size-5 text-brand" /> Invixta Pay
           </span>
-          <span className="rounded bg-white/15 px-2 py-0.5 text-xs">Simulation</span>
+          <span className="rounded bg-white/15 px-2 py-0.5 text-xs" title="No payment provider is connected yet">
+            Test mode
+          </span>
         </div>
         <div className="p-6">
           {payment.loading ? (
@@ -53,35 +56,30 @@ export function PayPage() {
           ) : payment.data.status !== 'pending' ? (
             <div className="text-center">
               <p className="font-medium">This payment is already {payment.data.status}.</p>
-              <Link to={`/orders/${payment.data.order_id}`} className="mt-3 inline-block text-sm font-medium text-[#0f5132] underline">
+              <Link to={`/orders/${payment.data.order_id}`} className="mt-3 inline-block text-sm font-medium text-brand underline">
                 Back to your order
               </Link>
             </div>
           ) : (
             <>
-              <p className="text-sm text-[#5b6675]">Pay to</p>
-              <p className="font-semibold">Kopbal (order #{payment.data.order_id})</p>
-              <p className="mt-4 text-sm text-[#5b6675]">Amount</p>
-              <p className="text-4xl font-bold tabular-nums">{formatMoney(payment.data.amount)}</p>
-              <p className="mt-1 text-sm text-[#5b6675]">with {LABEL[payment.data.method]}</p>
-
-              <div className="mt-5 flex gap-2 rounded-lg bg-[#fff8e1] p-3 text-xs text-[#6b5300]">
-                <CircleAlert aria-hidden className="size-4 shrink-0" />
-                This is a simulated payment page. No bank is involved and no money moves: choose what the bank would answer.
-              </div>
+              <p className="text-sm text-muted">Order #{payment.data.order_id}</p>
+              <p className="mt-1 text-4xl font-bold tabular-nums">{formatMoney(payment.data.amount)}</p>
+              <p className="mt-1 text-sm text-muted">with {LABEL[payment.data.method]}</p>
               {error && (
-                <p role="alert" className="mt-3 text-sm text-[#b42318]">
+                <p role="alert" className="mt-4 text-sm text-bad">
                   {error}
                 </p>
               )}
-              <div className="mt-5 grid gap-2">
-                <Button onClick={() => void decide('approve')} disabled={busy !== null} className="!bg-[#0f5132] !py-3 !text-white">
-                  {busy === 'approve' ? 'Approving…' : 'Approve payment'}
+              <div className="mt-6 grid gap-2">
+                <Button onClick={() => void decide('approve')} disabled={busy !== null} className="!py-3">
+                  <Lock aria-hidden className="size-4" />
+                  {busy === 'approve' ? 'Paying…' : `Pay ${formatMoney(payment.data.amount)}`}
                 </Button>
                 <Button variant="secondary" onClick={() => void decide('decline')} disabled={busy !== null} className="!py-3">
-                  {busy === 'decline' ? 'Declining…' : 'Decline payment'}
+                  {busy === 'decline' ? 'Cancelling…' : 'Cancel payment'}
                 </Button>
               </div>
+              <p className="mt-4 text-center text-xs text-muted">You can pay again later from your order page.</p>
             </>
           )}
         </div>

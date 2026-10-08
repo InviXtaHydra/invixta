@@ -16,11 +16,11 @@ interface Props {
 }
 
 const STYLE: Partial<Record<ProductCategory, JerseyStyle>> = { home: 'home', kids: 'home', away: 'away', training: 'training', retro: 'retro' }
-const KOPBAL = { primary: '#0F5132', secondary: '#F5C518' }
+const INVIXTA = { primary: '#0A0C10', secondary: '#E11D2E' }
 
 /** The picture of a product: a drawn shirt, scarf or ball in the club colours, or an icon. */
 export function ProductArt({ name, category, team, season, slug = '', view = 'front', printName, printNumber, className = '' }: Props) {
-  const colors = team ? { primary: team.primary_color, secondary: team.secondary_color } : KOPBAL
+  const colors = team ? { primary: team.primary_color, secondary: team.secondary_color } : INVIXTA
   const style = STYLE[category]
 
   if (style) {

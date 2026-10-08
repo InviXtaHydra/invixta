@@ -48,7 +48,7 @@ function MetricsView({ m }: { m: Metrics }) {
     <div className="space-y-6">
       <h2 className="font-display text-2xl font-bold uppercase tracking-wide">Shop</h2>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Tile label="Revenue (paid orders)" value={formatMoney(sales.revenue_eur)} note="Fictional money: payments are simulated" />
+        <Tile label="Revenue (paid orders)" value={formatMoney(sales.revenue_eur)} note="Refunded orders not included" />
         <Tile label="Orders" value={sales.orders} note={`${sales.cancelled_orders} cancelled`} />
         <Tile label="Average order value" value={sales.average_order_value_eur ? formatMoney(sales.average_order_value_eur) : '—'} />
         <Tile label="Sizes with low stock" value={sales.low_stock_sizes} note="3 or fewer left" />

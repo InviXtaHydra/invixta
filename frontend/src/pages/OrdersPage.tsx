@@ -122,7 +122,7 @@ export function OrderDetailPage() {
   const user = useUser()
   const status = state.data?.status
 
-  // While the order is still moving (the fulfillment simulator ships and delivers it), refresh it.
+  // While the order is still moving (it gets shipped and delivered), refresh it.
   useEffect(() => {
     if (!status || FINAL.includes(status)) return
     const timer = window.setInterval(() => setTick((t) => t + 1), 15000)
@@ -217,10 +217,10 @@ function OrderView({ order, customer, onChanged }: { order: Order; customer: boo
   return (
     <>
       {justPaid === 'paid' && (
-        <div role="status" className="mb-6 flex items-start justify-between gap-4 rounded-xl bg-brand px-5 py-4 text-brand-ink">
+        <div role="status" className="mb-6 flex items-start justify-between gap-4 rounded-xl border-l-4 border-accent bg-night px-5 py-4 text-night-ink">
           <div>
             <p className="font-display text-2xl font-bold uppercase tracking-wide">Thanks for your order!</p>
-            <p className="text-sm text-brand-ink/85">
+            <p className="text-sm text-white/80">
               Payment received. We'll ship order #{order.id} soon; this page updates by itself.
             </p>
           </div>
@@ -232,7 +232,7 @@ function OrderView({ order, customer, onChanged }: { order: Order; customer: boo
       {needsPayment && (
         <div role="alert" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-warn-soft px-5 py-4 text-warn">
           <p className="text-sm">
-            {order.payment_status === 'failed' ? 'The payment was declined.' : 'This order is waiting for payment.'} Unpaid orders are
+            {order.payment_status === 'failed' ? "The payment wasn't completed." : 'This order is waiting for payment.'} Unpaid orders are
             cancelled automatically after a while.
           </p>
           <Button onClick={() => void payAgain()} disabled={busy}>

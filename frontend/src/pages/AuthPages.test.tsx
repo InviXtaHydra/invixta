@@ -39,7 +39,7 @@ describe('LoginPage', () => {
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('/api/auth/login')
     expect(String(init.body)).toBe('username=emma%40example.com&password=Password123%21')
-    expect(localStorage.getItem('kopbal.token')).toBe('jwt-token')
+    expect(localStorage.getItem('invixta.token')).toBe('jwt-token')
   })
 
   it('shows the server error for wrong credentials', async () => {
@@ -49,6 +49,6 @@ describe('LoginPage', () => {
     await userEvent.type(screen.getByLabelText('Password'), 'wrong')
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Incorrect email or password')
-    expect(localStorage.getItem('kopbal.token')).toBeNull()
+    expect(localStorage.getItem('invixta.token')).toBeNull()
   })
 })

@@ -15,7 +15,7 @@ export function Spinner({ label = 'Loading', className = '' }: { label?: string;
 export function FullPageSpinner() {
   return (
     <div className="grid min-h-dvh place-items-center">
-      <Spinner label="Loading SupportAI" />
+      <Spinner label="Loading Invixta" />
     </div>
   )
 }

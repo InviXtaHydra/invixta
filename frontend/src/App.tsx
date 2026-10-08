@@ -39,7 +39,7 @@ export function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
-      {/* The simulated payment provider has its own, bank-like page. */}
+      {/* The payment step has its own page, like a payment provider's. */}
       <Route
         path="/pay/:paymentId"
         element={

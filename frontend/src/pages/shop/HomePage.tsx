@@ -26,8 +26,12 @@ function Hero({ teams }: { teams: Team[] }) {
   // Three clubs side by side, the middle one larger, like shirts on a rail.
   const shown = teams.length >= 3 ? [teams[1], teams[0], teams[9] ?? teams[2]] : teams
   return (
-    <section className="relative overflow-hidden bg-brand text-brand-ink">
-      <div aria-hidden className="absolute inset-0 opacity-[0.08] [background:repeating-linear-gradient(90deg,#fff_0_60px,transparent_60px_120px)]" />
+    <section className="relative overflow-hidden bg-night text-night-ink">
+      <div aria-hidden className="absolute inset-0 opacity-[0.05] [background:repeating-linear-gradient(90deg,#fff_0_60px,transparent_60px_120px)]" />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 flex h-1.5">
+        <span className="flex-1 bg-accent" />
+        <span className="flex-1 bg-brand" />
+      </div>
       <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:py-20">
         <div>
           <p className="font-display text-lg font-bold uppercase tracking-[0.2em] text-accent">Season 26/27</p>
@@ -36,15 +40,15 @@ function Hero({ teams }: { teams: Team[] }) {
             <br />
             Your number.
           </h1>
-          <p className="mt-5 max-w-md text-lg text-brand-ink/85">
+          <p className="mt-5 max-w-md text-lg text-white/80">
             The new shirts of every club in the Lage Landen League and the Noordzee Divisie, printed with the name and number you
             choose.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/shop?category=home" className="rounded-lg bg-accent px-6 py-3 font-display text-lg font-bold uppercase tracking-wide text-accent-ink hover:brightness-95">
+            <Link to="/shop?category=home" className="rounded-lg bg-accent px-6 py-3 font-display text-lg font-bold uppercase tracking-wide text-accent-ink hover:bg-accent-hover">
               Shop home shirts
             </Link>
-            <Link to="/shop?on_sale=true" className="rounded-lg border border-white/40 px-6 py-3 font-display text-lg font-bold uppercase tracking-wide hover:bg-white/10">
+            <Link to="/shop?on_sale=true" className="rounded-lg bg-brand px-6 py-3 font-display text-lg font-bold uppercase tracking-wide text-brand-ink hover:bg-brand-hover">
               On sale
             </Link>
           </div>
@@ -58,7 +62,7 @@ function Hero({ teams }: { teams: Team[] }) {
               pattern={team.pattern}
               crest={team.short_name}
               view={i === 1 ? 'back' : 'front'}
-              name={i === 1 ? 'KOPBAL' : null}
+              name={i === 1 ? 'INVIXTA' : null}
               number={i === 1 ? 10 : null}
               label=""
               className={`drop-shadow-2xl ${i === 1 ? 'w-[42%]' : 'w-[29%] -mb-2 opacity-90'}`}

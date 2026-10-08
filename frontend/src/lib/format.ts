@@ -32,3 +32,6 @@ export function formatBytes(bytes: number) {
 export const formatMs = (ms: number | null) => (ms === null ? '—' : ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`)
 
 export const humanize = (value: string) => (value.charAt(0).toUpperCase() + value.slice(1)).replace(/_/g, ' ')
+
+/** For the copyright line; read once when the app loads. */
+export const CURRENT_YEAR = new Date().getFullYear()
