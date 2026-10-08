@@ -1,9 +1,10 @@
-"""Fill the database with realistic demo data.
+"""Fill the database with the fictional Kopbal shop: clubs, products, stock, customers, orders, tickets.
 
 Run inside the backend container:
     docker compose exec backend python scripts/seed_database.py          # only if the database is empty
     docker compose exec backend python scripts/seed_database.py --reset  # wipe and re-seed
 
+After --reset, index the knowledge base again: python scripts/ingest_documents.py
 All demo accounts use the password printed at the end. Never run --reset against real data.
 """
 
@@ -13,13 +14,17 @@ import sys
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
+from typing import cast
 
 # Make `import app` work when the script is run from /app/scripts.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from catalog_data import ACCESSORIES, ADULT_SIZES, LEAGUES, RETRO, RETRO_SHIRTS, SCARF_PRICE, TEAMS, team_products
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.database import SessionLocal
 from app.core.security import hash_password
 from app.models import (
@@ -30,43 +35,41 @@ from app.models import (
     Order,
     OrderItem,
     OrderStatus,
+    Payment,
+    PaymentMethod,
+    PaymentStatus,
     Product,
+    ProductCategory,
+    ProductVariant,
+    ShippingMethod,
     SupportTicket,
+    Team,
     TicketPriority,
     TicketStatus,
     User,
     UserRole,
 )
+from app.services.checkout_service import estimated_delivery
+from app.services.fulfillment_service import TRACKING_PREFIX, carrier_for
+from app.services.pricing import shipping_cost
 
 DEMO_PASSWORD = "Password123!"
 
 STAFF = [
-    ("admin@supportai.dev", UserRole.ADMIN),
-    ("agent@supportai.dev", UserRole.AGENT),
+    ("admin@kopbal.shop", UserRole.ADMIN),
+    ("agent@kopbal.shop", UserRole.AGENT),
 ]
 
+# (name, email, street, postcode, city, country)
 CUSTOMERS = [
-    ("Emma de Vries", "emma.devries@example.com"),
-    ("Lucas Janssens", "lucas.janssens@example.com"),
-    ("Sofia Martens", "sofia.martens@example.com"),
-    ("Noah Peeters", "noah.peeters@example.com"),
-    ("Mila Claes", "mila.claes@example.com"),
+    ("Emma de Vries", "emma.devries@example.com", "Lindelaan 12", "3511 AB", "Utrecht", "NL"),
+    ("Lucas Janssens", "lucas.janssens@example.com", "Kerkstraat 48", "2000", "Antwerpen", "BE"),
+    ("Sofia Martens", "sofia.martens@example.com", "Rozengracht 7", "1016 LT", "Amsterdam", "NL"),
+    ("Noah Peeters", "noah.peeters@example.com", "Stationsplein 3", "9000", "Gent", "BE"),
+    ("Mila Claes", "mila.claes@example.com", "Am Hafen 21", "50667", "Köln", "DE"),
 ]
 
-PRODUCTS = [
-    ("Aurora Wireless Headphones", "Over-ear Bluetooth headphones with active noise cancelling and 30-hour battery life.", "149.99", 42),
-    ("Nordic Ceramic Mug Set", "Set of four hand-glazed stoneware mugs, 350 ml, dishwasher safe.", "34.95", 120),
-    ("TrailPro Hiking Backpack 28L", "Water-resistant daypack with hip belt, laptop sleeve and rain cover.", "89.00", 35),
-    ("Lumen Smart Desk Lamp", "Dimmable LED desk lamp with USB-C charging port and colour temperature control.", "59.90", 64),
-    ("Barista Pour-Over Kettle", "1 L gooseneck kettle with built-in thermometer, stainless steel.", "44.50", 27),
-    ("FlexFit Yoga Mat", "6 mm non-slip natural rubber mat with carrying strap.", "39.99", 80),
-    ("Pixel Mechanical Keyboard", "Compact 75% wireless mechanical keyboard with hot-swappable switches.", "119.00", 18),
-    ("Terra Linen Bed Sheet Set", "Stonewashed linen double-bed sheet set: fitted sheet, flat sheet and two pillowcases.", "129.00", 22),
-    ("Volt 20,000 mAh Power Bank", "USB-C PD 65 W power bank, charges a laptop and a phone at the same time.", "54.99", 95),
-    ("Cedar Wood Cutting Board", "End-grain cedar cutting board, 40 x 28 cm, with juice groove.", "64.00", 15),
-]
-
-CARRIERS = ["PostNL", "DHL", "bpost", "UPS", "DPD"]
+SHIRT_NAMES = ["DE VRIES", "JANSSENS", "MARTENS", "PEETERS", "CLAES", "KOPBAL", "VAN DIJK", "MERTENS"]
 
 # How many days ago the 20 orders were placed. Their status follows from their age (see _status_for_age),
 # like in a real shop: recent orders are still open, older ones are delivered (or cancelled).
@@ -76,8 +79,8 @@ TICKETS = [
     # (customer index, subject, description, status, priority)
     (
         0,
-        "Parcel arrived damaged",
-        "The box was crushed and one of the Nordic mugs is cracked. I have photos of the packaging.",
+        "Shirt arrived with a misprinted name",
+        "The name on the back of my FC Dijkstad shirt says DE VRIE instead of DE VRIES.",
         TicketStatus.OPEN,
         TicketPriority.HIGH,
     ),
@@ -90,15 +93,15 @@ TICKETS = [
     ),
     (
         1,
-        "Headphones won't pair",
-        "The Aurora headphones don't show up in my phone's Bluetooth list after a reset.",
+        "Size exchange",
+        "The Polder United away shirt in M is too small. Can I swap it for an L?",
         TicketStatus.IN_PROGRESS,
         TicketPriority.MEDIUM,
     ),
     (
         1,
         "Invoice with VAT number",
-        "I need an invoice with my company VAT number for my last order.",
+        "I need an invoice with my company VAT number for the shirts I ordered for our team.",
         TicketStatus.CLOSED,
         TicketPriority.LOW,
     ),
@@ -116,11 +119,17 @@ TICKETS = [
         TicketStatus.IN_PROGRESS,
         TicketPriority.URGENT,
     ),
-    (3, "Wrong colour keyboard", "I ordered the keyboard in white but received the black version.", TicketStatus.OPEN, TicketPriority.HIGH),
+    (
+        3,
+        "Wrong club in my parcel",
+        "I ordered a Haven Rovers home shirt but received a Kanaal City shirt.",
+        TicketStatus.OPEN,
+        TicketPriority.HIGH,
+    ),
     (
         4,
-        "Question about warranty",
-        "How long is the warranty on the smart desk lamp, and does it cover the LED?",
+        "Question about the retro shirts",
+        "Is the 1988 FC Dijkstad retro shirt the same fit as the new home shirt?",
         TicketStatus.RESOLVED,
         TicketPriority.LOW,
     ),
@@ -134,47 +143,125 @@ CONVERSATIONS = [
             (MessageRole.ASSISTANT, "Let me check that for you. Your most recent order has shipped and is on its way."),
         ],
     ),
-    (2, [(MessageRole.USER, "What is your return policy?"), (MessageRole.ASSISTANT, "I'll look that up in our policy documents.")]),
+    (
+        2,
+        [
+            (MessageRole.USER, "Can I return a shirt with my name printed on it?"),
+            (MessageRole.ASSISTANT, "I'll look that up in our policy documents."),
+        ],
+    ),
 ]
 
 
 def reset(db: Session) -> None:
-    tables = "messages, conversations, support_tickets, order_items, orders, products, customers, users, document_chunks, documents"
+    tables = (
+        "messages, conversations, support_tickets, payments, order_items, orders, cart_items, carts, "
+        "product_variants, products, teams, customers, users, document_chunks, documents"
+    )
     db.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
     # RESTART IDENTITY resets order numbers to the column's START value (10001).
     db.commit()
+
+
+def seed_catalog(db: Session, rng: random.Random, now: datetime) -> list[Product]:
+    teams: dict[str, Team] = {}
+    for slug, name, short, league, city, founded, primary, secondary, pattern in TEAMS:
+        teams[slug] = Team(
+            slug=slug, name=name, short_name=short, league=LEAGUES[league], city=city, founded=founded,
+            primary_color=primary, secondary_color=secondary, pattern=pattern,
+        )  # fmt: skip
+    db.add_all(teams.values())
+    db.flush()
+
+    specs: list[dict[str, object]] = []
+    for i, (slug, name, _short, _league, city, founded, *_rest) in enumerate(TEAMS):
+        for spec in team_products(slug, name, city, founded, sale=i % 4 == 1):
+            specs.append({**spec, "team": teams[slug]})
+        specs.append(
+            {
+                "slug": f"{slug}-scarf", "name": f"{name} Scarf", "category": ProductCategory.ACCESSORY, "season": None,
+                "price": SCARF_PRICE, "compare_at_price": None, "personalizable": False, "sizes": ["One size"], "team": teams[slug],
+                "description": f"Knitted {name} scarf in the club colours, 140 x 18 cm.",
+            }
+        )  # fmt: skip
+    for slug, year, story in RETRO_SHIRTS:
+        team = teams[slug]
+        specs.append(
+            {
+                "slug": f"{slug}-retro-{year}", "name": f"{team.name} Retro Shirt {year}", "category": ProductCategory.RETRO,
+                "season": year, "price": RETRO, "compare_at_price": None, "personalizable": True, "sizes": ADULT_SIZES, "team": team,
+                "description": f"A faithful remake of the {year} shirt from {story}. Heavier cotton-blend fabric with a classic, "
+                "slightly wider fit.",
+            }
+        )  # fmt: skip
+    for slug, name, price, compare_at, sizes, description in ACCESSORIES:
+        specs.append(
+            {
+                "slug": slug, "name": name, "category": ProductCategory.ACCESSORY, "season": None, "price": price,
+                "compare_at_price": compare_at, "personalizable": False, "sizes": sizes, "team": None, "description": description,
+            }
+        )  # fmt: skip
+
+    products = []
+    for n, spec in enumerate(specs):
+        sizes = cast(list[str], spec.pop("sizes"))
+        product = Product(**spec, created_at=now - timedelta(days=120 - n))
+        for position, size in enumerate(sizes):
+            # Mostly in stock, a few sizes low or sold out, like a real shop.
+            stock = rng.choice([0, 2, 3, 8, 15, 25, 40, 40])
+            product.variants.append(
+                ProductVariant(size=size, sku=f"KB-{n + 1:03d}-{size.replace(' ', '')}", stock=stock, position=position)
+            )
+        products.append(product)
+    db.add_all(products)
+    db.flush()
+    return products
 
 
 def seed(db: Session) -> dict[str, int]:
     rng = random.Random(42)  # deterministic: the same data on every run
     now = datetime.now(UTC)
     password_hash = hash_password(DEMO_PASSWORD)  # hashed once; bcrypt is deliberately slow
+    personalization_price = get_settings().personalization_price
 
     for email, role in STAFF:
         db.add(User(email=email, password_hash=password_hash, role=role))
 
-    customers: list[Customer] = []
-    for i, (name, email) in enumerate(CUSTOMERS):
+    customers: list[tuple[Customer, tuple[str, str, str, str]]] = []
+    for i, (name, email, street, postcode, city, country) in enumerate(CUSTOMERS):
         user = User(email=email, password_hash=password_hash, role=UserRole.CUSTOMER, created_at=now - timedelta(days=200 - i * 20))
         user.customer = Customer(name=name, email=email, created_at=user.created_at)
         db.add(user)
-        customers.append(user.customer)
+        customers.append((user.customer, (street, postcode, city, country)))
 
-    products = [Product(name=n, description=d, price=Decimal(p), stock=s) for n, d, p, s in PRODUCTS]
-    db.add_all(products)
-    db.flush()
+    products = seed_catalog(db, rng, now)
 
     # Oldest first, so order numbers (10001, 10002, …) increase with the order date.
     orders: list[Order] = []
     for age in sorted(ORDER_AGES_DAYS, reverse=True):
+        customer, (street, postcode, city, country) = rng.choice(customers)
         created_at = now - timedelta(days=age, hours=rng.randint(0, 20))
+        method = ShippingMethod.EXPRESS if country in ("NL", "BE") and rng.random() < 0.2 else ShippingMethod.STANDARD
         order = Order(
-            customer_id=rng.choice(customers).id, status=_status_for_age(age, rng), total_amount=Decimal("0"), created_at=created_at
-        )
+            customer_id=customer.id, status=_status_for_age(age, rng), created_at=created_at, total_amount=Decimal("0"),
+            shipping_name=customer.name, shipping_street=street, shipping_postcode=postcode, shipping_city=city,
+            shipping_country=country, shipping_method=method, payment_method=rng.choice(list(PaymentMethod)),
+        )  # fmt: skip
         for product in rng.sample(products, k=rng.randint(1, 3)):
-            order.items.append(OrderItem(product_id=product.id, quantity=rng.randint(1, 2), price=product.price))
-        order.total_amount = sum((i.price * i.quantity for i in order.items), Decimal("0"))
-        _set_shipping(order, age, rng, now)
+            variant = rng.choice(product.variants)
+            printed = product.personalizable and rng.random() < 0.4
+            order.items.append(
+                OrderItem(
+                    product_id=product.id, variant_id=variant.id, quantity=rng.randint(1, 2), product_name=product.name,
+                    size=variant.size, price=product.price + (personalization_price if printed else Decimal("0")),
+                    personalization_name=rng.choice(SHIRT_NAMES) if printed else None,
+                    personalization_number=rng.randint(1, 23) if printed else None,
+                )
+            )  # fmt: skip
+        order.subtotal = sum((i.price * i.quantity for i in order.items), Decimal("0"))
+        order.shipping_cost = shipping_cost(country, method, order.subtotal)
+        order.total_amount = order.subtotal + order.shipping_cost
+        _set_timeline(order, age, rng, now)
         orders.append(order)
     db.add_all(orders)
 
@@ -182,18 +269,13 @@ def seed(db: Session) -> dict[str, int]:
         created = now - timedelta(days=rng.randint(1, 30))
         db.add(
             SupportTicket(
-                customer_id=customers[idx].id,
-                subject=subject,
-                description=description,
-                status=status,
-                priority=priority,
-                created_at=created,
-                updated_at=created,
+                customer_id=customers[idx][0].id, subject=subject, description=description, status=status,
+                priority=priority, created_at=created, updated_at=created,
             )
-        )
+        )  # fmt: skip
 
     for idx, messages in CONVERSATIONS:
-        conv = Conversation(customer_id=customers[idx].id)
+        conv = Conversation(customer_id=customers[idx][0].id)
         for message_role, content in messages:
             conv.messages.append(Message(role=message_role, content=content))
         db.add(conv)
@@ -202,7 +284,9 @@ def seed(db: Session) -> dict[str, int]:
     return {
         "users": db.scalar(select(func.count()).select_from(User)) or 0,
         "customers": len(customers),
+        "teams": len(TEAMS),
         "products": len(products),
+        "variants": db.scalar(select(func.count()).select_from(ProductVariant)) or 0,
         "orders": len(orders),
         "order_items": sum(len(o.items) for o in orders),
         "tickets": len(TICKETS),
@@ -220,30 +304,42 @@ def _status_for_age(age_days: int, rng: random.Random) -> OrderStatus:
     return OrderStatus.CANCELLED if rng.random() < 0.15 else OrderStatus.DELIVERED
 
 
-def _set_shipping(order: Order, age_days: int, rng: random.Random, now: datetime) -> None:
-    """Fill carrier, tracking number, estimated delivery and updated_at consistently with the status."""
+def _set_timeline(order: Order, age_days: int, rng: random.Random, now: datetime) -> None:
+    """Payment, shipping and delivery dates, carrier and tracking number, consistent with the status."""
     created = order.created_at
-    if order.status in (OrderStatus.SHIPPED, OrderStatus.DELIVERED):
-        order.carrier = rng.choice(CARRIERS)
-        order.tracking_number = f"{order.carrier[:2].upper()}{rng.randint(10**9, 10**10 - 1)}"
+    paid = order.status != OrderStatus.PENDING and not (order.status == OrderStatus.CANCELLED and rng.random() < 0.5)
+    payment = Payment(amount=order.total_amount, method=order.payment_method or PaymentMethod.IDEAL, created_at=created)
+    if paid:
+        order.paid_at = payment.decided_at = created + timedelta(minutes=rng.randint(1, 10))
+        payment.status = order.payment_status = PaymentStatus.PAID
+    else:
+        payment.status = PaymentStatus.PENDING if order.status == OrderStatus.PENDING else PaymentStatus.FAILED
+        order.payment_status = PaymentStatus.PENDING if order.status == OrderStatus.PENDING else PaymentStatus.FAILED
+    order.payments.append(payment)
 
-    if order.status == OrderStatus.PENDING:
-        order.estimated_delivery = (now + timedelta(days=rng.randint(4, 6))).date()
-        order.updated_at = created
-    elif order.status == OrderStatus.PROCESSING:
-        order.estimated_delivery = (now + timedelta(days=rng.randint(2, 4))).date()
-        order.updated_at = created + timedelta(hours=rng.randint(2, 20))
+    if order.status in (OrderStatus.SHIPPED, OrderStatus.DELIVERED):
+        order.carrier = carrier_for(order.shipping_country, rng)
+        order.tracking_number = f"{TRACKING_PREFIX[order.carrier]}{rng.randint(10**9, 10**10 - 1)}"
+        order.shipped_at = created + timedelta(days=min(2, age_days - 1 if age_days > 1 else 1), hours=rng.randint(1, 8))
+
+    if order.status in (OrderStatus.PENDING, OrderStatus.PROCESSING):
+        order.estimated_delivery = estimated_delivery(order, now.date())
+        order.updated_at = order.paid_at or created
     elif order.status == OrderStatus.SHIPPED:
-        shipped_at = created + timedelta(days=min(2, age_days), hours=rng.randint(1, 8))
+        assert order.shipped_at is not None
         # Still in transit: the estimate is today or later.
-        order.estimated_delivery = max(now.date(), (shipped_at + timedelta(days=rng.randint(2, 5))).date())
-        order.updated_at = min(shipped_at, now)
+        order.estimated_delivery = max(now.date(), estimated_delivery(order, order.shipped_at.date()))
+        order.updated_at = min(order.shipped_at, now)
     elif order.status == OrderStatus.DELIVERED:
-        delivered_at = created + timedelta(days=rng.randint(3, 6))
-        order.estimated_delivery = delivered_at.date()
-        order.updated_at = delivered_at
-    else:  # cancelled within a day
-        order.updated_at = created + timedelta(hours=rng.randint(1, 20))
+        assert order.shipped_at is not None
+        order.delivered_at = order.shipped_at + timedelta(days=rng.randint(1, 3))
+        order.estimated_delivery = order.delivered_at.date()
+        order.updated_at = order.delivered_at
+    else:  # cancelled within a day; a paid cancelled order was refunded
+        order.cancelled_at = created + timedelta(hours=rng.randint(1, 20))
+        order.updated_at = order.cancelled_at
+        if paid:
+            payment.status = order.payment_status = PaymentStatus.REFUNDED
 
 
 def main() -> None:
@@ -259,10 +355,10 @@ def main() -> None:
         counts = seed(db)
 
     print("Seeded:", ", ".join(f"{n} {k}" for k, n in counts.items()))
-    print(f"\nDemo accounts (password for all: {DEMO_PASSWORD})")
+    print(f"\nDemo accounts (password: {DEMO_PASSWORD})")
     for email, role in STAFF:
         print(f"  {role.value:<8} {email}")
-    for _name, email in CUSTOMERS:
+    for _name, email, *_ in CUSTOMERS:
         print(f"  CUSTOMER {email}")
 
 
