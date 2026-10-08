@@ -32,6 +32,14 @@ _CATEGORIES = [
 _PRODUCT_WORDS = ("shirt", "tenue", "kit", "jersey", "product", "artikel", "aanbieding", "sale", "korting", "discount", "deal",
                   "voorraad", "in stock", "op voorraad", "kopen", "buy", "prijs", "price", "kost", "cost", "goedkoop", "cheap")  # fmt: skip
 _SALE_WORDS = ("aanbieding", "sale", "korting", "discount", "deal", "afgeprijsd", "reduced")
+# Topics the help articles cover: printing, delivery, returns, payment, size advice, care, cancelling.
+_POLICY = re.compile(
+    r"bedruk|print|naam|nummer|\bname\b|\bnumber\b|verzend|verzonden|lever|bezorg|ship|deliver|track|retour|terugstur|"
+    r"ruil|return|exchange|refund|terugbetal|geld terug|betal|\bpay|ideal|bancontact|paypal|factuur|invoice|btw|vat\b|"
+    r"welke maat|which size|what size|maattabel|size guide|pasvorm|\bfit|valt (groot|klein|ruim|krap)|wassen|\bwash|"
+    r"onderhoud|\bcare\b|annuler|cancel|garantie|warranty|beschadig|damaged|kapot|verkeerd|wrong",
+    re.IGNORECASE,
+)
 
 
 def _price_filters(text: str) -> dict[str, int]:
@@ -45,6 +53,11 @@ def _price_filters(text: str) -> dict[str, int]:
     if match := _MIN.search(text):
         filters["min_price"] = int(match.group(1))
     return filters
+
+
+def asks_about_policy(message: str) -> bool:
+    """True when the message also touches a topic of the help articles (then the agent searches them too)."""
+    return bool(_POLICY.search(message))
 
 
 def product_search_from_message(message: str, clubs: list[str], size: str | None) -> dict[str, Any] | None:

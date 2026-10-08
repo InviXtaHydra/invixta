@@ -23,7 +23,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from app.agents.llm import LLMClient, LLMRefusalError
-from app.agents.product_intent import product_search_from_message
+from app.agents.product_intent import asks_about_policy, product_search_from_message
 from app.models import User
 from app.rag.query_rewrite import rewrite_search_query
 from app.rag.rag_service import NOT_FOUND_MESSAGE
@@ -205,13 +205,17 @@ class SupportAgent:
             products = None
             if search is not None and not order_numbers(user_message):
                 products = self._run_tool("search_products", search, result, emit)
-            query = rewrite_search_query(self.llm, user_message, history)
-            outcome = self._run_tool("search_knowledge_base", {"query": query}, result, emit)
-            all_sources.extend(outcome.sources)
             found_products = products is not None and bool(json.loads(products.content).get("results"))
-            if outcome.sources or not found_products:
-                # When products were found, a "no policy found" note would only confuse the model.
-                system += knowledge_context(query, outcome.content, found=bool(outcome.sources))
+            # A pure product question ("shirts tussen 40-50 euro?") is answered from the catalogue. Searching the
+            # help articles as well matched "Shirt Printing" on the word "shirts", and the model then cited it as
+            # the source of the prices. The model can still call search_knowledge_base itself.
+            if not found_products or asks_about_policy(user_message):
+                query = rewrite_search_query(self.llm, user_message, history)
+                outcome = self._run_tool("search_knowledge_base", {"query": query}, result, emit)
+                all_sources.extend(outcome.sources)
+                if outcome.sources or not found_products:
+                    # When products were found, a "no policy found" note would only confuse the model.
+                    system += knowledge_context(query, outcome.content, found=bool(outcome.sources))
             if search is not None and products is not None:
                 system += product_context(search, products)  # last, closest to the answer
 

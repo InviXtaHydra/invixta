@@ -259,13 +259,13 @@ def test_search_first_looks_up_a_mentioned_club_and_size(db: Session, embedder: 
 
     team = make_team(db, "polder-united", "Polder United")
     make_product(db, "Polder United Home Shirt", "69.95", {"M": 4}, category=ProductCategory.HOME, team=team)
-    llm = ScriptedLLM(text_turn("polder united shirt"), text_turn("Yes, it's in stock in M."))
+    llm = ScriptedLLM(text_turn("Yes, it's in stock in M."))
     result = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True).run(
         [], "Hebben jullie het Polder shirt in maat m?"
     )
 
     assert ("search_products", {"query": "Polder United", "size": "M"}) in [(c.name, c.arguments) for c in result.tool_calls]
-    assert "Polder United Home Shirt" in llm.calls[1]["system"]
+    assert "Polder United Home Shirt" in llm.calls[0]["system"]
     assert mentioned_size("I'm usually an XL") == "XL" and mentioned_size("I'm fine, thanks") is None
 
 
@@ -295,13 +295,53 @@ def test_a_price_question_gets_products_even_when_the_knowledge_base_has_nothing
     from tests.conftest import make_product
 
     make_product(db, "Polder United Home Shirt", "49.95", category=ProductCategory.HOME, compare_at_price="69.95")
-    llm = ScriptedLLM(text_turn("shirts between 40 and 50 euro"), text_turn("Yes: the Polder United Home Shirt costs EUR 49.95."))
+    llm = ScriptedLLM(text_turn("Yes: the Polder United Home Shirt costs EUR 49.95."))
     agent = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True)
     result = agent.run([], "Hebben jullie shirts tussen 40-50 euro?")
 
     search = next(c for c in result.tool_calls if c.name == "search_products")
     assert search.arguments == {"min_price": 40, "max_price": 50} and search.status == "ok"
-    system = llm.calls[1]["system"]
+    system = llm.calls[0]["system"]
     assert "Polder United Home Shirt" in system and "These products exist" in system
     assert "found nothing relevant" not in system  # no "not found" instruction when products were found
-    assert system.rindex("These products exist") > system.rindex("Knowledge-base") if "Knowledge-base" in system else True
+
+
+def test_a_pure_product_question_does_not_cite_help_articles(db: Session, embedder: Embedder, alice: User) -> None:
+    """Regression: the price question matched "Shirt Printing" on the word "shirts", and the chat showed it as the source."""
+    from app.models import ProductCategory
+    from tests.conftest import make_product
+
+    ingest(
+        db,
+        embedder,
+        "Shirt Printing.pdf",
+        make_pdf([("Shirt Printing", "Printing a name on shirts costs EUR 15.")], title="Shirt Printing"),
+    )
+    make_product(db, "Polder United Home Shirt", "49.95", category=ProductCategory.HOME)
+    llm = ScriptedLLM(text_turn("The Polder United Home Shirt costs EUR 49.95 [S1]."))
+    result = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True).run(
+        [], "Hebben jullie shirts tussen 40-50 euro?"
+    )
+
+    assert [c.name for c in result.tool_calls] == ["search_products"]
+    assert result.sources == []
+
+
+def test_a_product_question_about_printing_also_searches_the_help_articles(db: Session, embedder: Embedder, alice: User) -> None:
+    from app.models import ProductCategory
+    from tests.conftest import make_product
+
+    ingest(
+        db,
+        embedder,
+        "Shirt Printing.pdf",
+        make_pdf([("Shirt Printing", "Printing a name on shirts costs EUR 15.")], title="Shirt Printing"),
+    )
+    make_product(db, "Polder United Home Shirt", "49.95", category=ProductCategory.HOME)
+    llm = ScriptedLLM(text_turn("cost of printing a name on a shirt"), text_turn("Printing costs EUR 15 [S1]."))
+    result = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True).run(
+        [], "Wat kost een shirt onder de 50 euro met mijn naam erop?"
+    )
+
+    assert [c.name for c in result.tool_calls] == ["search_products", "search_knowledge_base"]
+    assert [s.filename for s in result.sources] == ["Shirt Printing.pdf"]

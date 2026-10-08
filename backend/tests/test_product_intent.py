@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.agents.product_intent import product_search_from_message
+from app.agents.product_intent import asks_about_policy, product_search_from_message
 from app.agents.support_agent import mentioned_size
 
 
@@ -29,3 +29,19 @@ def test_product_questions(message: str, clubs: list[str], expected: dict[str, o
 def test_size_is_added_to_a_product_question() -> None:
     message = "Hebben jullie het Polder shirt in maat M?"
     assert product_search_from_message(message, ["Polder United"], mentioned_size(message)) == {"query": "Polder United", "size": "M"}
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("Hebben jullie shirts tussen 40-50 euro?", False),
+        ("Welke aanbiedingen hebben jullie?", False),
+        ("Is the Polder United away shirt in stock in M?", False),
+        ("Wat kost een shirt met mijn naam erop?", True),
+        ("Welke shirts kosten minder dan 60 euro en hoe snel worden ze geleverd?", True),
+        ("Can I return a sale shirt?", True),
+        ("Which size should I take for the retro shirt?", True),
+    ],
+)
+def test_policy_topics_are_recognised(message: str, expected: bool) -> None:
+    assert asks_about_policy(message) is expected
