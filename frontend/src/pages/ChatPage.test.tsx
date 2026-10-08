@@ -12,7 +12,7 @@ vi.mock('../api/endpoints', () => ({
 }))
 
 describe('ChatPage', () => {
-  it('shows the tool the agent used, the streamed answer and its latency', async () => {
+  it('shows the steps the agent took, the streamed answer and the articles it used', async () => {
     let emit: (e: ChatEvent) => void = () => {}
     let finish: () => void = () => {}
     streamChat.mockImplementation((_body, onEvent: (e: ChatEvent) => void) => {
@@ -30,7 +30,7 @@ describe('ChatPage', () => {
 
     emit({ type: 'tool_end', name: 'get_order_status', arguments: { order_id: '10012' }, status: 'ok', summary: 'Order #10012: shipped', duration_ms: 5 })
     emit({ type: 'text', delta: 'Your order has shipped.' })
-    expect(await screen.findByText('Order database')).toBeInTheDocument()
+    expect(await screen.findByText('Checked your order')).toBeInTheDocument()
     expect(screen.getByText('Order #10012: shipped')).toBeInTheDocument()
     expect(screen.getByText('Your order has shipped.')).toBeInTheDocument()
 
@@ -44,8 +44,9 @@ describe('ChatPage', () => {
       latency_ms: 1530,
     })
     finish()
-    expect(await screen.findByText('Answered in 1.5 s')).toBeInTheDocument()
-    expect(screen.getByText('Shipping Policy.pdf')).toBeInTheDocument()
+    expect(await screen.findByText('Shipping Policy')).toBeInTheDocument() // article title, without ".pdf" or a score
+    expect(screen.queryByText(/Answered in/)).toBeNull() // internal timing isn't shown to customers
+    expect(screen.queryByText('0.81')).toBeNull()
   })
 
   it('shows an error with a retry button when sending fails', async () => {

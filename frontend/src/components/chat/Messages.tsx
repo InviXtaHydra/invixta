@@ -1,5 +1,4 @@
 import { Bot, RotateCcw } from 'lucide-react'
-import { formatMs } from '../../lib/format'
 import { Spinner } from '../feedback'
 import { Button } from '../ui'
 import { AgentTrace } from './AgentTrace'
@@ -52,7 +51,6 @@ function AssistantMessage({ item, onRetry }: { item: ChatItem; onRetry: (key: st
         )}
         {!item.pending && <CancelOrderActions steps={item.steps} />}
         <Sources sources={item.sources} />
-        {item.latencyMs !== undefined && !item.pending && <p className="mt-2 text-right text-xs text-muted">Answered in {formatMs(item.latencyMs)}</p>}
       </div>
     </article>
   )

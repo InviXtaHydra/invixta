@@ -8,12 +8,12 @@ interface ToolInfo {
 
 /** How each agent tool is described in the chat, so it's clear what the AI actually did. */
 export const TOOL_INFO: Record<string, ToolInfo> = {
-  get_order_status: { running: 'Checking your order…', done: 'Order database', icon: Database },
-  get_customer_orders: { running: 'Looking up your orders…', done: 'Order history', icon: Package },
-  search_knowledge_base: { running: 'Searching the knowledge base…', done: 'Knowledge base', icon: BookOpen },
+  get_order_status: { running: 'Checking your order…', done: 'Checked your order', icon: Database },
+  get_customer_orders: { running: 'Looking up your orders…', done: 'Looked up your orders', icon: Package },
+  search_knowledge_base: { running: 'Searching our help articles…', done: 'Searched our help articles', icon: BookOpen },
   create_support_ticket: { running: 'Creating a support ticket…', done: 'Support ticket', icon: LifeBuoy },
-  get_support_tickets: { running: 'Checking your tickets…', done: 'Your tickets', icon: Ticket },
-  search_products: { running: 'Checking the shop…', done: 'Shop catalogue', icon: Shirt },
+  get_support_tickets: { running: 'Checking your tickets…', done: 'Checked your tickets', icon: Ticket },
+  search_products: { running: 'Checking the shop…', done: 'Checked the shop', icon: Shirt },
   request_order_cancellation: { running: 'Checking if your order can be cancelled…', done: 'Cancellation', icon: CircleSlash },
 }
 
