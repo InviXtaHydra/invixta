@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   LifeBuoy,
   LogOut,
+  Store,
   Menu,
   MessageSquare,
   Package,
@@ -25,6 +26,7 @@ interface NavItem {
 
 const ALL: Role[] = ['CUSTOMER', 'AGENT', 'ADMIN']
 const NAV: NavItem[] = [
+  { to: '/', label: 'Back to the shop', icon: Store, roles: ALL },
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ALL },
   { to: '/chat', label: 'AI assistant', icon: MessageSquare, roles: ['CUSTOMER'] },
   { to: '/orders', label: 'Orders', icon: Package, roles: ALL },
@@ -38,9 +40,9 @@ const ROLE_LABEL: Record<Role, string> = { CUSTOMER: 'Customer', AGENT: 'Support
 
 export function Logo({ inverted = false }: { inverted?: boolean }) {
   return (
-    <span className={`flex items-center gap-2.5 font-semibold tracking-tight ${inverted ? 'text-brand-ink' : 'text-ink'}`}>
-      <img src="/favicon.svg" alt="" className={`size-7 ${inverted ? 'rounded-lg ring-2 ring-white/40' : ''}`} />
-      SupportAI
+    <span className={`flex items-center gap-2 ${inverted ? 'text-brand-ink' : 'text-ink'}`}>
+      <img src="/favicon.svg" alt="" className={`size-8 ${inverted ? 'rounded-lg ring-2 ring-white/40' : ''}`} />
+      <span className="font-display text-2xl font-extrabold uppercase tracking-wide">Kopbal</span>
     </span>
   )
 }
@@ -55,6 +57,7 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
           <NavLink
             key={to}
             to={to}
+            end={to === '/'}
             onClick={onNavigate}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${

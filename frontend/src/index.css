@@ -1,27 +1,32 @@
 @import 'tailwindcss';
-@import '@fontsource/ibm-plex-sans/400.css';
-@import '@fontsource/ibm-plex-sans/500.css';
-@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/barlow/400.css';
+@import '@fontsource/barlow/500.css';
+@import '@fontsource/barlow/600.css';
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/barlow-condensed/700.css';
+@import '@fontsource/barlow-condensed/800.css';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 
 /* Design tokens. Components only use these names (bg-surface, text-muted, border-line, …),
    so dark mode is just a second set of values. */
 :root {
-  --canvas: #f2f4f6;
+  --canvas: #f4f5f2;
   --surface: #ffffff;
-  --surface-2: #f7f8fa;
-  --ink: #121a21;
-  --ink-2: #36424d;
-  --muted: #5f6c78;
-  --line: #dfe4e9;
-  --line-strong: #c5cdd5;
-  --brand: #0c5c8c;
-  --brand-hover: #0a4d76;
+  --surface-2: #f0f2ee;
+  --ink: #0f1712;
+  --ink-2: #33403a;
+  --muted: #5d6a63;
+  --line: #dde2dc;
+  --line-strong: #c3cbc4;
+  --brand: #0f5132; /* pitch green */
+  --brand-hover: #0b3f27;
   --brand-ink: #ffffff;
-  --brand-soft: #e2eef6;
-  --ok: #12704a;
-  --ok-soft: #e1f3ea;
+  --brand-soft: #e1efe7;
+  --accent: #f5c518; /* corner-flag yellow: sale badges and highlights only */
+  --accent-ink: #1d1a05;
+  --ok: #0b7a75;
+  --ok-soft: #dff2f1;
   --warn: #8f5400;
   --warn-soft: #fbf0dc;
   --bad: #b42318;
@@ -33,20 +38,22 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --canvas: #0d1318;
-    --surface: #141c23;
-    --surface-2: #19232b;
-    --ink: #e7ecf0;
-    --ink-2: #c2ccd5;
-    --muted: #93a0ac;
-    --line: #25313b;
-    --line-strong: #34424e;
-    --brand: #5baee0;
-    --brand-hover: #7cc0ea;
-    --brand-ink: #06202f;
-    --brand-soft: #13324a;
-    --ok: #4cc38a;
-    --ok-soft: #133126;
+    --canvas: #0c120e;
+    --surface: #131b16;
+    --surface-2: #18221c;
+    --ink: #e8eee9;
+    --ink-2: #c3cec6;
+    --muted: #93a29a;
+    --line: #243029;
+    --line-strong: #334238;
+    --brand: #4cc38a;
+    --brand-hover: #6fd3a2;
+    --brand-ink: #062113;
+    --brand-soft: #143425;
+    --accent: #f5c518;
+    --accent-ink: #1d1a05;
+    --ok: #45c4bd;
+    --ok-soft: #10302e;
     --warn: #e5a93b;
     --warn-soft: #3a2b10;
     --bad: #f07b6f;
@@ -58,7 +65,8 @@
 }
 
 @theme inline {
-  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Barlow', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', 'Barlow', ui-sans-serif, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   --color-canvas: var(--canvas);
@@ -73,6 +81,8 @@
   --color-brand-hover: var(--brand-hover);
   --color-brand-ink: var(--brand-ink);
   --color-brand-soft: var(--brand-soft);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
@@ -89,7 +99,7 @@
   }
   body {
     @apply bg-canvas font-sans text-ink antialiased;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.55;
   }
   /* One visible focus style for every interactive element. */
@@ -108,5 +118,14 @@
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }

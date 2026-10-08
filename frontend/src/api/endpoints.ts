@@ -1,6 +1,7 @@
 // One function per backend endpoint used by the app.
-import { query, request } from './client'
+import { getCartToken, query, request } from './client'
 import type {
+  Cart,
   Conversation,
   ConversationSummary,
   DocumentDetail,
@@ -10,11 +11,48 @@ import type {
   OrderStatus,
   OrderSummary,
   Page,
+  Payment,
+  PaymentMethod,
+  Product,
+  ProductCategory,
+  ProductSummary,
+  League,
+  ShippingMethod,
+  ShopInfo,
   Ticket,
   TicketPriority,
   TicketStatus,
   User,
 } from './types'
+
+export interface ProductQuery {
+  category?: ProductCategory | ''
+  team?: string
+  league?: string
+  size?: string
+  q?: string
+  min_price?: number
+  max_price?: number
+  on_sale?: boolean
+  sort?: 'popular' | 'new' | 'price_asc' | 'price_desc'
+  limit?: number
+  offset?: number
+}
+
+export interface CheckoutBody {
+  name: string
+  street: string
+  postcode: string
+  city: string
+  country: string
+  shipping_method: ShippingMethod
+  payment_method: PaymentMethod
+}
+
+const cartHeaders = (): Record<string, string> => {
+  const token = getCartToken()
+  return token ? { 'X-Cart-Token': token } : {}
+}
 
 export const api = {
   login(email: string, password: string) {
@@ -71,6 +109,56 @@ export const api = {
   },
   deleteDocument(id: number) {
     return request<void>(`/documents/${id}`, { method: 'DELETE' })
+  },
+
+  // --- shop ---
+  products(params: ProductQuery = {}) {
+    const { on_sale, ...rest } = params
+    return request<Page<ProductSummary>>(`/catalog/products${query({ ...rest, on_sale: on_sale ? 'true' : undefined })}`)
+  },
+  product(slug: string) {
+    return request<Product>(`/catalog/products/${encodeURIComponent(slug)}`)
+  },
+  leagues() {
+    return request<League[]>('/catalog/leagues')
+  },
+  shopInfo() {
+    return request<ShopInfo>('/shop/info')
+  },
+  cart() {
+    return request<Cart>('/cart', { headers: cartHeaders() })
+  },
+  addToCart(body: { variant_id: number; quantity: number; personalization_name?: string; personalization_number?: number }) {
+    return request<Cart>('/cart/items', { method: 'POST', json: body, headers: cartHeaders() })
+  },
+  updateCartItem(id: number, quantity: number) {
+    return request<Cart>(`/cart/items/${id}`, { method: 'PATCH', json: { quantity }, headers: cartHeaders() })
+  },
+  removeCartItem(id: number) {
+    return request<Cart>(`/cart/items/${id}`, { method: 'DELETE', headers: cartHeaders() })
+  },
+  quote(country: string, shipping_method: ShippingMethod) {
+    return request<{ subtotal: string; shipping_cost: string; total: string }>(`/cart/quote${query({ country, shipping_method })}`, {
+      headers: cartHeaders(),
+    })
+  },
+  claimCart(token: string) {
+    return request<Cart>('/cart/claim', { method: 'POST', headers: { 'X-Cart-Token': token } })
+  },
+  checkout(body: CheckoutBody) {
+    return request<{ order: Order; payment: Payment }>('/checkout', { method: 'POST', json: body })
+  },
+  payment(id: number) {
+    return request<Payment>(`/payments/${id}`)
+  },
+  completePayment(id: number, outcome: 'approve' | 'decline') {
+    return request<Payment>(`/payments/${id}/complete`, { method: 'POST', json: { outcome } })
+  },
+  retryPayment(orderId: number, payment_method?: PaymentMethod) {
+    return request<Payment>(`/orders/${orderId}/payments`, { method: 'POST', json: { payment_method } })
+  },
+  cancelOrder(orderId: number) {
+    return request<Order>(`/orders/${orderId}/cancel`, { method: 'POST' })
   },
 
   metrics(days = 14) {

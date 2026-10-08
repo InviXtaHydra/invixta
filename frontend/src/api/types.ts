@@ -23,17 +23,29 @@ export interface User {
 
 export interface OrderItem {
   product_id: number
+  product_slug: string
   product_name: string
+  category: ProductCategory
+  season: string | null
+  team: Team | null
+  size: string | null
   quantity: number
   unit_price: string
   line_total: string
+  personalization_name: string | null
+  personalization_number: number | null
 }
 
 export interface OrderSummary {
   id: number
   customer_id: number
   status: OrderStatus
+  subtotal: string
+  shipping_cost: string
   total_amount: string
+  payment_status: 'pending' | 'paid' | 'failed' | 'refunded'
+  payment_method: 'ideal' | 'bancontact' | 'card' | 'paypal' | null
+  shipping_method: 'standard' | 'express'
   tracking_number: string | null
   carrier: string | null
   estimated_delivery: string | null
@@ -44,6 +56,16 @@ export interface OrderSummary {
 
 export interface Order extends OrderSummary {
   items: OrderItem[]
+  shipping_name: string | null
+  shipping_street: string | null
+  shipping_postcode: string | null
+  shipping_city: string | null
+  shipping_country: string | null
+  paid_at: string | null
+  shipped_at: string | null
+  delivered_at: string | null
+  cancelled_at: string | null
+  can_cancel: boolean
 }
 
 export interface Ticket {
@@ -153,4 +175,100 @@ export interface Metrics {
   unresolved_questions: number
   recent_unresolved: { conversation_id: number; question: string | null; answered_at: string }[]
   chat_turns_per_day: { day: string; chat_turns: number }[]
+}
+
+// --- Shop ---------------------------------------------------------------------------------------
+
+export type ProductCategory = 'home' | 'away' | 'retro' | 'training' | 'kids' | 'accessory'
+export type ShippingMethod = 'standard' | 'express'
+export type PaymentMethod = 'ideal' | 'bancontact' | 'card' | 'paypal'
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
+export type JerseyPattern = 'plain' | 'stripes' | 'hoops' | 'halves' | 'sash'
+
+export interface Team {
+  slug: string
+  name: string
+  short_name: string
+  league: string
+  city: string
+  founded: number
+  primary_color: string
+  secondary_color: string
+  pattern: JerseyPattern | string
+}
+
+export interface League {
+  name: string
+  teams: Team[]
+}
+
+export interface ProductSummary {
+  id: number
+  slug: string
+  name: string
+  category: ProductCategory
+  season: string | null
+  price: string
+  compare_at_price: string | null
+  discount_percent: number | null
+  personalizable: boolean
+  team: Team | null
+  sizes_in_stock: string[]
+}
+
+export interface Variant {
+  id: number
+  size: string
+  sku: string
+  stock: number
+}
+
+export interface Product extends ProductSummary {
+  description: string
+  variants: Variant[]
+  personalization_price: string
+}
+
+export interface CartLine {
+  id: number
+  variant_id: number
+  product_slug: string
+  product_name: string
+  category: ProductCategory
+  season: string | null
+  team: Team | null
+  size: string
+  quantity: number
+  unit_price: string
+  line_total: string
+  personalization_name: string | null
+  personalization_number: number | null
+  stock: number
+}
+
+export interface Cart {
+  token: string | null
+  items: CartLine[]
+  item_count: number
+  subtotal: string
+  shipping_estimate: string
+  free_shipping_remaining: string
+}
+
+export interface ShopInfo {
+  countries: Record<string, string>
+  free_shipping_from: string
+  personalization_price: string
+  shipping: { method: ShippingMethod; cost: string; countries: string[] }[]
+  payment_methods: PaymentMethod[]
+}
+
+export interface Payment {
+  id: number
+  order_id: number
+  amount: string
+  method: PaymentMethod
+  status: PaymentStatus
+  created_at: string
+  decided_at: string | null
 }

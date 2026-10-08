@@ -1,7 +1,8 @@
 // A small fetch wrapper: adds the JWT, turns error responses into ApiError, and logs out on 401.
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
-const TOKEN_KEY = 'supportai.token'
+const TOKEN_KEY = 'kopbal.token'
+const CART_KEY = 'kopbal.cart'
 
 export class ApiError extends Error {
   readonly status: number
@@ -55,6 +56,24 @@ export async function errorMessage(response: Response): Promise<string> {
   return `Request failed (${response.status})`
 }
 
+/** The token of a guest cart (sent as X-Cart-Token); it's merged into the account after login. */
+export function getCartToken(): string | null {
+  try {
+    return localStorage.getItem(CART_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function setCartToken(token: string | null) {
+  try {
+    if (token) localStorage.setItem(CART_KEY, token)
+    else localStorage.removeItem(CART_KEY)
+  } catch {
+    // see setToken
+  }
+}
+
 export function authHeaders(): Record<string, string> {
   const token = getToken()
   return token ? { Authorization: `Bearer ${token}` } : {}
@@ -65,10 +84,11 @@ interface RequestOptions {
   json?: unknown
   form?: FormData | URLSearchParams
   signal?: AbortSignal
+  headers?: Record<string, string>
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const headers: Record<string, string> = { ...authHeaders() }
+  const headers: Record<string, string> = { ...authHeaders(), ...options.headers }
   let body: BodyInit | undefined
   if (options.json !== undefined) {
     headers['Content-Type'] = 'application/json'
