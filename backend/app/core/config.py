@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     llm_think: bool = False  # qwen3 "thinking" mode: better reasoning, but much slower on a laptop
     llm_timeout_seconds: int = 300
     agent_max_tool_rounds: int = 6
+    # The agent searches the knowledge base itself before the model answers (small local models often skip
+    # the search tool), and both the agent and /knowledge-base/ask rewrite the question into an English query.
+    agent_search_first: bool = True
+    rag_query_rewrite: bool = True
     chat_history_messages: int = 20  # earlier messages sent to the model for context
 
     # Document uploads

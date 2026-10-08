@@ -105,3 +105,11 @@ def test_ask_is_rate_limited_per_user(client: TestClient, db: Session, embedder:
         assert client.post("/knowledge-base/ask", json=body, headers=auth_header(alice)).status_code == 429
     finally:
         limiter.limit = original
+
+
+def test_rag_can_rewrite_a_dutch_question_into_an_english_query(db: Session, embedder: Embedder) -> None:
+    index_two_documents(db, embedder)
+    llm = ScriptedLLM(text_turn("how many days to return a product"), text_turn("Binnen 30 dagen [1]."))
+    result = RagService(db, embedder, llm, rewrite_query=True).answer("Hoeveel dagen heb ik om iets terug te sturen?")
+    assert result.answered and result.sources[0].filename == "Return Policy.pdf"
+    assert "Question: Hoeveel dagen" in llm.calls[1]["messages"][0]["content"]  # the model answers the original question

@@ -86,7 +86,7 @@ Why these choices:
 | ![Knowledge base](docs/screenshots/knowledge-base.png) **Admin: knowledge base** | ![Metrics](docs/screenshots/metrics.png) **Admin: metrics** |
 | ![Login](docs/screenshots/login.png) **Sign in with demo accounts** | ![Chat on mobile](docs/screenshots/chat-mobile.png) **Chat on a phone** |
 
-> The chat screenshots were made with the deterministic test model (`LLM_PROVIDER=scripted`, see [Testing](#testing)) because no Claude API key was configured. The tool calls, database lookups, vector search, sources and streaming in them are real; with Claude, the answer text is written by the model.
+> The chat screenshots show real answers from `qwen3:8b` in Ollama (an English order question and a Dutch return question), with the tool steps and sources the app recorded.
 
 ## Project Structure
 
@@ -105,7 +105,7 @@ supportai/
 │   │   ├── tools/          # tools the agent can call
 │   │   └── main.py
 │   ├── alembic/            # migrations
-│   ├── tests/              # 95 pytest tests
+│   ├── tests/              # 107 pytest tests
 │   ├── Dockerfile
 │   └── pyproject.toml      # pytest, ruff, mypy config
 ├── frontend/
@@ -198,6 +198,7 @@ All settings are in [`.env.example`](.env.example). The important ones:
 | `LLM_MODEL` | The Ollama model, `qwen3:8b` by default (any model with tool support works, e.g. `llama3.1:8b`) |
 | `LLM_PROVIDER` | `ollama` (default) or `scripted` (the rule-based test model used by the end-to-end tests) |
 | `LLM_THINK` | `false` by default. qwen3's thinking mode reasons more but is much slower on a laptop. |
+| `AGENT_SEARCH_FIRST`, `RAG_QUERY_REWRITE` | `true`: the agent searches the knowledge base before the model answers, and questions are rewritten into English search queries (see [AI Agent Architecture](#ai-agent-architecture)) |
 | `EMBEDDING_MODEL`, `EMBEDDING_DIM` | Local embedding model and vector size (384) |
 | `RAG_TOP_K`, `RAG_MIN_SCORE` | Chunks per search (5) and relevance threshold (0.6, chosen with the evaluation) |
 | `MAX_UPLOAD_MB` | Maximum PDF size (10) |
@@ -257,7 +258,7 @@ data: {"type": "text", "delta": "is on its way…"}
 data: {"type": "done", "conversation_id": 12, "message_id": 31, "message": "…", "sources": [], "tool_calls": [...], "latency_ms": 2140}
 ```
 
-The agent runs in a worker thread and pushes events into a queue, and the response sends them as they arrive. Access checks (403, 404, 429, 503) happen *before* the stream starts, so they are still normal HTTP errors. The browser reads the stream with `fetch()` because `EventSource` only supports GET without an `Authorization` header (`frontend/src/api/chatStream.ts`).
+The agent runs in a worker thread and pushes events into a queue, and the response sends them as they arrive. Access checks (403, 404, 429) happen *before* the stream starts, so they are still normal HTTP errors. If the model fails while answering (for example, Ollama isn't running), the stream ends with an `error` event that says how to fix it. The browser reads the stream with `fetch()` because `EventSource` only supports GET without an `Authorization` header (`frontend/src/api/chatStream.ts`).
 
 ## RAG Architecture
 
@@ -269,7 +270,7 @@ flowchart LR
     Clean --> Chunk["section-aware chunks<br/>≤ 800 chars + heading"]
     Chunk --> Embed["embed<br/>384-dim vectors"]
     Embed --> Store[("document_chunks<br/>pgvector + HNSW")]
-    Q["question"] --> QE["embed query"] --> Search["cosine search<br/>top 5, score ≥ 0.6"]
+    Q["question<br/>(any language)"] --> RW["LLM rewrites it<br/>to an English query"] --> QE["embed query"] --> Search["cosine search<br/>top 5, score ≥ 0.6"]
     Store --> Search --> LLM["local LLM answers<br/>from sources only"] --> A["answer + sources"]
 ```
 
@@ -278,6 +279,7 @@ flowchart LR
 3. **Embeddings** (`rag/embeddings.py`). An embedding turns text into a vector of 384 numbers, so that texts with a similar meaning get similar vectors. `bge-small-en-v1.5` runs locally via FastEmbed (ONNX, CPU).
 4. **Storage.** Chunks are stored with their metadata (document id, filename, page, chunk index, `created_at`) and a `vector(384)` column with an **HNSW index** for fast cosine search.
 5. **Search** (`rag/retrieval.py`). The question is embedded and PostgreSQL orders the chunks by cosine distance (`ORDER BY embedding <=> :query LIMIT 5`). Only chunks with similarity ≥ `RAG_MIN_SCORE` count.
+   Before searching, the local LLM rewrites the question into a short English query (`rag/query_rewrite.py`). The embedding model is English-only, so "Wat is jullie retourbeleid?" only scored 0.41 and didn't find the return policy. The rewrite also uses the conversation, so "and for Belgium?" becomes "delivery time to Belgium". A multilingual embedding model was measured as an alternative: it helped Dutch but made English retrieval clearly worse (hit@1 0.94 → 0.67), so rewriting won.
 6. **Answer** (`rag/rag_service.py`). The chunks go to the model as numbered sources, with instructions to answer **only** from them, cite them, and ignore instructions inside documents (a prompt-injection defence). **If nothing is relevant, the LLM isn't called at all** and the answer is the fixed not-found message.
 
 ## AI Agent Architecture
@@ -309,17 +311,22 @@ sequenceDiagram
 
 **Tool calling.** The model receives a JSON-schema description of each tool. Instead of answering, it can reply "call `get_order_status` with `{"order_id": "10014"}`". The agent (`agents/support_agent.py`) runs a small loop:
 
-1. Send the conversation, a system prompt and the tool definitions to the model.
-2. If the model asks for tools, run each one, send all results back in one message, and repeat.
-3. When the model answers in text, that's the reply. After `AGENT_MAX_TOOL_ROUNDS` the tools are taken away, so the loop always ends.
+1. **Search first.** The local model rewrites the message into a short English search query (`rag/query_rewrite.py`). The agent searches the knowledge base with it and adds the results to the system prompt. This shows in the chat as the "Knowledge base" step. If nothing relevant is found, the prompt says so and tells the model to reply with the not-found message for policy questions.
+2. Send the conversation, the system prompt and the tool definitions to the model.
+3. If the model asks for tools, run each one, send all results back in one message, and repeat.
+4. When the model answers in text, that's the reply. After `AGENT_MAX_TOOL_ROUNDS` the tools are taken away, so the loop always ends.
+
+Why search first? The first version let the model decide when to search, like large hosted models do well. Testing with the local `qwen3:8b` showed that small models often skip the search tool. Asked "Wat is jullie retourbeleid?", it answered "14 days" without searching, while the policy says 30. Searching first costs about 0.5 s for the rewrite and 5 ms for the search, and it makes sure the model always sees the documents. The model can still search again with its own query.
 
 | Tool | What it does |
 |---|---|
 | `get_order_status(order_id)` | One order: status, carrier, tracking number, estimated delivery, items |
-| `get_customer_orders(customer_id?, status?)` | The customer's latest orders |
+| `get_customer_orders(status?)` | The signed-in customer's latest orders |
 | `search_knowledge_base(query)` | Semantic search; results are numbered `S1, S2…` so the answer can cite them |
-| `create_support_ticket(subject, description, priority, order_id?, customer_id?)` | Opens a ticket; the order must be the customer's own |
-| `get_support_tickets(customer_id?, status?)` | The customer's tickets |
+| `create_support_ticket(subject, description, priority, order_id?)` | Opens a ticket; the order must be the customer's own |
+| `get_support_tickets(status?)` | The signed-in customer's tickets |
+
+The tools have **no `customer_id` argument**, unlike the examples in the original assignment: they always work on the signed-in customer. In testing, the local model made up a customer id when opening a ticket. The id was refused, so the customer got no ticket. Now the model can't name a customer at all, and unknown arguments are rejected with an error the model can correct.
 
 **Why the agent can't leak another customer's data.** The model never touches the database. It can only *ask* for a tool, and `SupportTools` runs the tool **as the signed-in user** through the same services as the REST API:
 
@@ -337,7 +344,7 @@ Even a model that was manipulated by a prompt can only reach data the user may s
 ## Testing
 
 ```bash
-# Backend: 95 tests against a real PostgreSQL + pgvector (inside the container)
+# Backend: 107 tests against a real PostgreSQL + pgvector (inside the container)
 docker compose exec backend pytest
 docker compose exec backend ruff check . && docker compose exec backend mypy app tests
 
@@ -349,6 +356,10 @@ docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build
 docker compose exec backend python scripts/seed_database.py --reset
 docker compose exec backend python scripts/ingest_documents.py
 cd frontend && npx playwright install chromium && npx playwright test
+
+# The same browser tests against the real local model (normal compose file, Ollama running):
+docker compose up -d --build   # without the e2e override
+E2E_REAL_LLM=1 npx playwright test   # longer timeouts: a local model needs 5–20 s per answer
 ```
 
 **Backend unit and integration tests** (`backend/tests/`) cover:
@@ -371,7 +382,7 @@ The tests run against a real PostgreSQL rather than SQLite, so enums, JSONB and 
 - The admin sees the documents and metrics.
 - A support agent changes a ticket's status.
 
-For repeatable runs (and in CI, where there's no GPU or 5 GB model), `docker-compose.e2e.yml` sets `LLM_PROVIDER=scripted`. This is a small rule-based stand-in (`agents/scripted_llm.py`): an order number leads to `get_order_status`, a question leads to `search_knowledge_base`, and it writes the answer from the tool result. The agent loop, tools, database, vector search and streaming stay real. It is clearly marked as test code and refused when `ENVIRONMENT=production`. The same tests also run against Claude, because they check data from the database, not exact wording.
+For repeatable runs (and in CI, where there's no GPU or 5 GB model), `docker-compose.e2e.yml` sets `LLM_PROVIDER=scripted`. This is a small rule-based stand-in (`agents/scripted_llm.py`): an order number leads to `get_order_status`, a question leads to `search_knowledge_base`, and it writes the answer from the tool result. The agent loop, tools, database, vector search and streaming stay real. It is clearly marked as test code and refused when `ENVIRONMENT=production`. The checks are about data from the database, not exact wording. `backend/tests/test_ollama_live.py` runs the real agent with the real local model; it is skipped when Ollama isn't running, as in CI.
 
 **CI** (`.github/workflows/ci.yml`) runs on every push:
 
@@ -381,41 +392,57 @@ For repeatable runs (and in CI, where there's no GPU or 5 GB model), `docker-com
 
 ## RAG Evaluation
 
-`scripts/evaluate_rag.py` measures the pipeline on **24 questions** (`scripts/eval/rag_eval_dataset.json`):
+`scripts/evaluate_rag.py` measures the pipeline on **36 questions** (`scripts/eval/rag_eval_dataset.json`):
 
-- 18 answerable questions, each with the document(s) that contain the answer and the facts the answer must state;
-- 6 questions the documents can't answer, where "not found" is the right answer.
+- 27 answerable questions (18 English, 9 Dutch), each with the document(s) that contain the answer and the facts the answer must state;
+- 9 questions the documents can't answer (6 English, 3 Dutch), where "not found" is the right answer.
 
 ```bash
-docker compose exec backend python scripts/evaluate_rag.py                 # retrieval + answers
-docker compose exec backend python scripts/evaluate_rag.py --skip-answers  # retrieval only (no model needed)
+docker compose exec backend python scripts/evaluate_rag.py                 # retrieval (raw + rewritten) and answers, needs Ollama
+docker compose exec backend python scripts/evaluate_rag.py --skip-answers  # retrieval with the raw question only (no model needed)
 ```
 
-Measured retrieval results (`top_k=5`, threshold 0.6; full report in `scripts/eval/results/latest.json`):
+All numbers below were measured on 2026-10-08 with `qwen3:8b` in Ollama on an Apple M4 (16 GB). The full report is in `scripts/eval/results/latest.json`.
 
-| Metric | Meaning | Result |
-|---|---|---|
-| hit@1 / hit@3 | The right document is the first / in the top 3 results | **0.944 / 1.000** |
-| MRR | Mean reciprocal rank of the first right chunk | **0.972** |
-| Context precision | Share of relevant chunks that come from the right document | **0.744** |
-| Fact coverage | Share of required facts present in the retrieved context | **0.944** |
-| Answerable retrieved | Answerable questions with at least one relevant chunk | **1.000** |
-| Unanswerable abstained | Unanswerable questions where nothing passes the threshold | **0.667** |
-| Retrieval latency | p50 / p95 (embedding + vector search) | **5.6 ms / 28.2 ms** |
+**Retrieval** (`top_k=5`, threshold 0.6). "Raw" searches with the customer's question as typed; "rewritten" first lets the local LLM turn it into an English search query, which is what the app does.
 
-**Answer metrics** (answer correctness, abstention accuracy on unanswerable questions, end-to-end latency) need a Claude API key. **They haven't been measured yet**, because no key was configured when the report was made. Run the script with `ANTHROPIC_API_KEY` set to produce them.
+| Metric | Meaning | Raw question | Rewritten query |
+|---|---|---|---|
+| hit@1 / hit@3 | The right document is the first / in the top 3 results | 0.667 / 0.815 | **0.926 / 1.000** |
+| hit@1, English only | | 0.944 | 0.944 |
+| hit@1, Dutch only | | 0.111 | **0.889** |
+| MRR | Mean reciprocal rank of the first right chunk | 0.745 | **0.963** |
+| Context precision | Share of relevant chunks that come from the right document | 0.758 | **0.797** |
+| Fact coverage | Share of required facts present in the retrieved context | 0.667 | **0.926** |
+| Answerable retrieved | Answerable questions with at least one relevant chunk | 0.704 | **0.963** |
+| Unanswerable abstained | Unanswerable questions where nothing passes the threshold | **0.778** | 0.556 |
+| Search latency | p50 (embedding + vector search; the rewrite adds about 0.5 s of LLM time) | 6.6 ms | 18.8 ms |
 
-**Choosing the threshold.** The script sweeps it:
+Rewriting fixes Dutch questions, but it also makes unanswerable questions look more like the documents: "gift wrapping" becomes "gift wrapping policy", which scores 0.64 against the return policy. For those, the model is the second guardrail. It is told to reply with the not-found message when the passages don't answer the question.
 
-- At 0.60 every answerable question still gets context, and 4 of the 6 unanswerable ones are stopped before the LLM.
-- At 0.66 all 6 are stopped, but 2 of the 18 answerable questions are lost.
+**Answers** (`qwen3:8b`, the full RAG pipeline with rewriting, like `/knowledge-base/ask`):
 
-Missing a real answer is worse, so the threshold is 0.60. For the 2 that pass, the prompt is the second guardrail.
+| Metric | Meaning | All | English | Dutch |
+|---|---|---|---|---|
+| Answer correctness | All required facts appear in the answer | **0.889** | 0.944 | 0.778 |
+| Abstention accuracy | Unanswerable questions answered with the not-found message | **0.889** | 1.000 | 0.667 |
+| Latency | p50 / p95 per answer, end to end | **3.8 s / 7.9 s** | | |
 
-| Threshold | 0.56 | 0.58 | **0.60** | 0.62 | 0.64 | 0.66 | 0.70 |
+What went wrong, so you can judge the numbers:
+
+- `shp-5`: the answer was right ("while your order is pending or being processed"), but the check looks for the exact word "processing". The metric is strict.
+- `nl-ret-0` ("Wat is jullie retourbeleid?"): the answer summarised the introduction of the policy and left out the 30 days.
+- `nl-ret-4`: the right passage ranked second and scored just below the threshold, so the answer was "not found". Wrong, but safe.
+- `nl-na-1` ("Bieden jullie cadeauverpakking aan?"): the model answered "we don't offer gift wrapping". The documents don't say that, so it is an unsupported claim.
+
+The answer checks look for literal facts in the answer, so they don't reward a good answer with other wording, and they can't judge tone. An LLM-as-judge would measure that better (see Future Improvements).
+
+**Choosing the threshold.** The sweep with rewritten queries shows that 0.60 still finds context for 26 of 27 answerable questions. Raising it to 0.66 stops every unanswerable question before the LLM, but then only 24 of 27 answerable questions get context. Missing a real answer is worse, so the threshold stays at 0.60, and the prompt handles the rest.
+
+| Threshold (rewritten) | 0.56 | 0.58 | **0.60** | 0.62 | 0.64 | 0.66 | 0.70 |
 |---|---|---|---|---|---|---|---|
-| Answerable retrieved | 1.000 | 1.000 | **1.000** | 0.944 | 0.944 | 0.889 | 0.778 |
-| Unanswerable abstained | 0.167 | 0.500 | **0.667** | 0.667 | 0.833 | 1.000 | 1.000 |
+| Answerable retrieved | 1.000 | 1.000 | **0.963** | 0.963 | 0.926 | 0.889 | 0.815 |
+| Unanswerable abstained | 0.222 | 0.333 | **0.556** | 0.667 | 0.667 | 1.000 | 1.000 |
 
 ### Observability
 
@@ -453,7 +480,8 @@ What was checked in the security review, and how:
 
 ## Future Improvements
 
-- **Multilingual embeddings.** `bge-small-en` is English-only. Dutch or French questions would retrieve better with a multilingual model such as `multilingual-e5`; measure it with the evaluation first.
+- **Better multilingual retrieval.** Query rewriting fixed most Dutch questions, but a stronger multilingual embedding model (for example `multilingual-e5-large`, 2.2 GB) could skip the rewrite step. Measure it with the evaluation first: the small multilingual model that was tried made English worse.
+- **A bigger local model** (for example `qwen3:14b` on a machine with 32 GB) for better Dutch answers and fewer unsupported claims.
 - **An LLM-as-judge** in the evaluation, for answers whose wording differs from the expected facts.
 - **Hybrid search** (keyword + vector) and a re-ranker for better context precision (0.744 now).
 - **Background ingestion** with a job queue, for large PDFs and OCR of scanned documents.

@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.agents.llm import LLMClient, LLMRefusalError
 from app.rag.embeddings import Embedder
+from app.rag.query_rewrite import rewrite_search_query
 from app.rag.retrieval import KnowledgeBaseSearch, RetrievedChunk
 
 logger = logging.getLogger("supportai.rag")
@@ -58,12 +59,14 @@ def is_not_found(answer: str) -> bool:
 
 
 class RagService:
-    def __init__(self, db: Session, embedder: Embedder, llm: LLMClient) -> None:
+    def __init__(self, db: Session, embedder: Embedder, llm: LLMClient, rewrite_query: bool = False) -> None:
         self.search = KnowledgeBaseSearch(db, embedder)
         self.llm = llm
+        self.rewrite_query = rewrite_query  # translate/condense the question into an English search query first
 
     def answer(self, question: str) -> RagAnswer:
-        chunks = self.search.search(question)
+        query = rewrite_search_query(self.llm, question) if self.rewrite_query else question
+        chunks = self.search.search(query)
         if not chunks:
             logger.info("rag answer", extra={"answered": False, "reason": "no_relevant_chunks"})
             return RagAnswer(answer=NOT_FOUND_MESSAGE, sources=[], answered=False)

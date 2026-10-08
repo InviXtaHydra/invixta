@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.agents.support_agent import FALLBACK_REPLY, SupportAgent
 from app.models import SupportTicket, TicketPriority, User
 from app.rag.embeddings import Embedder
+from app.rag.rag_service import NOT_FOUND_MESSAGE as NOT_FOUND
 from app.tools.support_tools import SupportTools
 from tests.conftest import ingest, make_order
 from tests.fakes import ScriptedLLM, text_turn, tool_results, tool_turn
@@ -149,3 +150,48 @@ def test_tool_rounds_are_capped(db: Session, embedder: Embedder, alice: User) ->
 def test_refusal_gives_the_fallback_reply(db: Session, embedder: Embedder, alice: User) -> None:
     result = run(db, alice, embedder, ScriptedLLM("refuse"))
     assert result.text == FALLBACK_REPLY
+
+
+def test_search_first_gives_the_model_the_documents_before_it_answers(db: Session, embedder: Embedder, alice: User) -> None:
+    ingest(db, embedder, "Return Policy.pdf", make_pdf(RETURNS_PDF_SECTIONS, title="Return Policy"))
+    events: list[dict[str, Any]] = []
+    llm = ScriptedLLM(text_turn("how many days to return a product"), text_turn("Je hebt 30 dagen [S1]."))
+    agent = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True)
+    result = agent.run([], "Hoeveel dagen heb ik om iets terug te sturen?", on_event=events.append)
+
+    rewrite_call, answer_call = llm.calls
+    assert "ENGLISH search query" in rewrite_call["system"]
+    assert "Hoeveel dagen" in rewrite_call["messages"][0]["content"]
+    assert result.tool_calls[0].name == "search_knowledge_base"
+    assert result.tool_calls[0].arguments == {"query": "how many days to return a product"}
+    assert "30 days" in answer_call["system"] and '"source": "S1"' in answer_call["system"]  # the documents reached the model
+    assert [e["type"] for e in events][:2] == ["tool_start", "tool_end"]  # shown in the chat trace
+    assert [s.filename for s in result.sources] == ["Return Policy.pdf"]
+
+
+def test_search_first_tells_the_model_when_nothing_was_found(db: Session, embedder: Embedder, alice: User) -> None:
+    ingest(db, embedder, "Return Policy.pdf", make_pdf(RETURNS_PDF_SECTIONS, title="Return Policy"))
+    llm = ScriptedLLM(text_turn("painter of the Mona Lisa"), text_turn(NOT_FOUND))
+    result = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True).run([], "Who painted the Mona Lisa?")
+    assert "found nothing relevant" in llm.calls[1]["system"]
+    assert result.sources == []
+
+
+def test_search_first_only_lists_sources_the_answer_cites(db: Session, embedder: Embedder, alice: User) -> None:
+    ingest(db, embedder, "Return Policy.pdf", make_pdf(RETURNS_PDF_SECTIONS, title="Return Policy"))
+    order = make_order(db, alice.customer)  # type: ignore[arg-type]
+    llm = ScriptedLLM(
+        text_turn("return a product"),
+        tool_turn(("get_order_status", {"order_id": str(order.id)})),
+        text_turn(f"Order #{order.id} has shipped."),
+    )
+    result = SupportAgent(llm, SupportTools(db, alice, embedder), alice, search_first=True).run([], f"Can I return order {order.id}?")
+    assert [c.name for c in result.tool_calls] == ["search_knowledge_base", "get_order_status"]
+    assert result.sources == []  # no [S#] in the answer → no sources listed
+
+
+def test_tools_reject_a_customer_id_from_the_model(db: Session, embedder: Embedder, alice: User, bob: User) -> None:
+    llm = ScriptedLLM(tool_turn(("get_customer_orders", {"customer_id": bob.customer.id})), text_turn("Sorry."))  # type: ignore[union-attr]
+    run(db, alice, embedder, llm)
+    [sent] = results_of_round(llm, 1)
+    assert sent["is_error"] is True and "customer_id" in sent["content"]

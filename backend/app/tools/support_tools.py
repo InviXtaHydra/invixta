@@ -2,6 +2,10 @@
 gets exactly the same authorization rules: a customer can never read another customer's data,
 whatever the model asks for.
 
+The tools have no customer_id argument: they always work on the signed-in customer. The model can't
+even name another customer (an earlier version accepted customer_id; a small local model then made
+up ids, which were refused, so its ticket never got created). Unknown arguments are rejected.
+
 A tool returns JSON for the model plus a short human-readable summary for the chat UI.
 """
 
@@ -12,14 +16,13 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError
 from app.models import Order, OrderStatus, TicketPriority, TicketStatus, User
 from app.rag.embeddings import Embedder
 from app.rag.retrieval import KnowledgeBaseSearch, RetrievedChunk
-from app.services.access import is_staff
 from app.services.order_service import OrderService
 from app.services.ticket_service import TicketService
 
@@ -44,13 +47,12 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
     {
         "name": "get_customer_orders",
         "description": (
-            "List the customer's orders, newest first. Use this when the customer doesn't give an order number "
+            "List the signed-in customer's orders, newest first. Use this when the customer doesn't give an order number "
             "(e.g. 'where is my order?') or asks about their orders in general."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
-                "customer_id": {"type": "integer", "description": "Leave out to use the signed-in customer"},
                 "status": {"type": "string", "enum": [s.value for s in OrderStatus], "description": "Only orders with this status"},
             },
             "required": [],
@@ -83,7 +85,6 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
                 "description": {"type": "string", "description": "What happened, in the customer's words, at least 10 characters"},
                 "priority": {"type": "string", "enum": [p.value for p in TicketPriority]},
                 "order_id": {"type": "string", "description": "Related order number, if any"},
-                "customer_id": {"type": "integer", "description": "Leave out to use the signed-in customer"},
             },
             "required": ["subject", "description", "priority"],
             "additionalProperties": False,
@@ -95,7 +96,6 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "customer_id": {"type": "integer", "description": "Leave out to use the signed-in customer"},
                 "status": {"type": "string", "enum": [s.value for s in TicketStatus]},
             },
             "required": [],
@@ -107,29 +107,30 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
 # --- Argument validation (the model's JSON is checked like any other user input) ---------------
 
 
-class OrderStatusArgs(BaseModel):
+class ToolArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")  # e.g. a made-up customer_id is an error the model hears about
+
+
+class OrderStatusArgs(ToolArgs):
     order_id: str = Field(min_length=1, max_length=20)
 
 
-class CustomerOrdersArgs(BaseModel):
-    customer_id: int | None = None
+class CustomerOrdersArgs(ToolArgs):
     status: OrderStatus | None = None
 
 
-class SearchArgs(BaseModel):
+class SearchArgs(ToolArgs):
     query: str = Field(min_length=3, max_length=500)
 
 
-class CreateTicketArgs(BaseModel):
+class CreateTicketArgs(ToolArgs):
     subject: str = Field(min_length=3, max_length=200)
     description: str = Field(min_length=10, max_length=5000)
     priority: TicketPriority = TicketPriority.MEDIUM
     order_id: str | None = Field(default=None, max_length=20)
-    customer_id: int | None = None
 
 
-class TicketsArgs(BaseModel):
-    customer_id: int | None = None
+class TicketsArgs(ToolArgs):
     status: TicketStatus | None = None
 
 
@@ -189,16 +190,6 @@ class SupportTools:
         )
         return result
 
-    # --- Scope helper -----------------------------------------------------------------------------
-
-    def _check_customer(self, customer_id: int | None) -> None:
-        """Customers may only name their own customer_id; staff may name anyone."""
-        if customer_id is None or is_staff(self.user):
-            return
-        own = self.user.customer.id if self.user.customer else None
-        if customer_id != own:
-            raise ToolError("You can only access the signed-in customer's own account")
-
     # --- Tools ----------------------------------------------------------------------------------
 
     def _tool_get_order_status(self, arguments: dict[str, Any]) -> ToolResult:
@@ -209,8 +200,7 @@ class SupportTools:
 
     def _tool_get_customer_orders(self, arguments: dict[str, Any]) -> ToolResult:
         args = CustomerOrdersArgs.model_validate(arguments)
-        self._check_customer(args.customer_id)
-        orders, total = self.orders.list_orders(self.user, customer_id=args.customer_id, status=args.status, limit=10, offset=0)
+        orders, total = self.orders.list_orders(self.user, status=args.status, limit=10, offset=0)
         data = {"total": total, "orders": [_order_json(o, with_items=False) for o in orders]}
         return ToolResult(content=json.dumps(data), is_error=False, summary=f"{len(orders)} order(s) found")
 
@@ -231,21 +221,17 @@ class SupportTools:
 
     def _tool_create_support_ticket(self, arguments: dict[str, Any]) -> ToolResult:
         args = CreateTicketArgs.model_validate(arguments)
-        self._check_customer(args.customer_id)
         description = args.description
         if args.order_id:
             order = self.orders.get_order(self.user, parse_order_number(args.order_id))  # must be their own order
             description = f"Order #{order.id}: {description}"
-        ticket = self.tickets.create_ticket(
-            self.user, subject=args.subject, description=description, priority=args.priority, customer_id=args.customer_id
-        )
+        ticket = self.tickets.create_ticket(self.user, subject=args.subject, description=description, priority=args.priority)
         data = {"ticket_id": ticket.id, "status": ticket.status.value, "priority": ticket.priority.value, "subject": ticket.subject}
         return ToolResult(content=json.dumps(data), is_error=False, summary=f"Ticket #{ticket.id} created")
 
     def _tool_get_support_tickets(self, arguments: dict[str, Any]) -> ToolResult:
         args = TicketsArgs.model_validate(arguments)
-        self._check_customer(args.customer_id)
-        tickets, total = self.tickets.list_tickets(self.user, customer_id=args.customer_id, status=args.status, limit=10, offset=0)
+        tickets, total = self.tickets.list_tickets(self.user, status=args.status, limit=10, offset=0)
         data = {
             "total": total,
             "tickets": [

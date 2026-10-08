@@ -10,6 +10,9 @@ if not os.environ.get("TEST_DATABASE_URL"):
     raise RuntimeError("Set TEST_DATABASE_URL (see .env.example) to run the tests")
 TEST_DATABASE_URL: str = os.environ["TEST_DATABASE_URL"]
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+# Tests script every model turn themselves; the extra rewrite/search-first turns are tested separately.
+os.environ["AGENT_SEARCH_FIRST"] = "false"
+os.environ["RAG_QUERY_REWRITE"] = "false"
 
 import pytest  # noqa: E402
 from alembic.config import Config  # noqa: E402

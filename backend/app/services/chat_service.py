@@ -65,7 +65,8 @@ class ChatService:
     def respond(self, user: User, turn: ChatTurn, message: str, on_event: AgentEventCallback | None = None) -> ChatResult:
         settings = get_settings()
         started = time.perf_counter()
-        agent = SupportAgent(self.llm, SupportTools(self.db, user, self.embedder), user, settings.agent_max_tool_rounds)
+        tools = SupportTools(self.db, user, self.embedder)
+        agent = SupportAgent(self.llm, tools, user, settings.agent_max_tool_rounds, search_first=settings.agent_search_first)
         # If the LLM fails this raises before anything is written; the request's session is discarded.
         result = agent.run(turn.history, message, on_event=on_event)
         latency_ms = round((time.perf_counter() - started) * 1000)

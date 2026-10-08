@@ -5,4 +5,7 @@ services:
   backend:
     environment:
       LLM_PROVIDER: scripted
+      # The rules of the scripted model decide the tools themselves; no rewrite/automatic search turn.
+      AGENT_SEARCH_FIRST: "false"
+      RAG_QUERY_REWRITE: "false"
       CHAT_MESSAGES_PER_MINUTE: "200"

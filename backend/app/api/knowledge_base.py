@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.agents.llm import LLMClient, get_llm
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.rate_limit import chat_limiter
@@ -41,7 +42,7 @@ def ask(
 ) -> AskResponse:
     """RAG answer: retrieve relevant chunks, let the LLM answer from them only, and return the sources."""
     chat_limiter().hit(f"user:{user.id}")  # every answer costs LLM tokens: same per-user limit as the chat
-    result = RagService(db, embedder, llm).answer(body.question)
+    result = RagService(db, embedder, llm, rewrite_query=get_settings().rag_query_rewrite).answer(body.question)
     return AskResponse(
         question=body.question,
         answer=result.answer,

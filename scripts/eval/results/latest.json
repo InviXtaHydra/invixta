@@ -1,345 +1,1561 @@
 {
-  "retrieval": {
-    "threshold": 0.6,
-    "top_k": 5,
-    "questions": 24,
-    "answerable": 18,
-    "unanswerable": 6,
-    "hit@1": 0.944,
-    "hit@3": 1.0,
-    "hit@5": 1.0,
-    "mrr": 0.972,
-    "context_precision": 0.744,
-    "fact_coverage": 0.944,
-    "answerable_retrieved": 1.0,
-    "unanswerable_abstained": 0.667,
-    "latency_ms_p50": 5.6,
-    "latency_ms_p95": 28.2,
-    "threshold_sweep": [
-      {
-        "threshold": 0.5,
-        "answerable_retrieved": 1.0,
-        "unanswerable_abstained": 0.167
+  "retrieval": [
+    {
+      "mode": "raw question",
+      "threshold": 0.6,
+      "top_k": 5,
+      "questions": 36,
+      "answerable": 27,
+      "unanswerable": 9,
+      "hit@1": 0.667,
+      "hit@3": 0.815,
+      "hit@5": 0.889,
+      "mrr": 0.745,
+      "context_precision": 0.758,
+      "fact_coverage": 0.667,
+      "answerable_retrieved": 0.704,
+      "unanswerable_abstained": 0.778,
+      "latency_ms_p50": 6.6,
+      "latency_ms_p95": 10.5,
+      "by_language": {
+        "en": {
+          "questions": 24,
+          "hit@1": 0.944,
+          "hit@3": 1.0,
+          "answerable_retrieved": 1.0,
+          "unanswerable_abstained": 0.667
+        },
+        "nl": {
+          "questions": 12,
+          "hit@1": 0.111,
+          "hit@3": 0.444,
+          "answerable_retrieved": 0.111,
+          "unanswerable_abstained": 1.0
+        }
       },
-      {
-        "threshold": 0.52,
-        "answerable_retrieved": 1.0,
-        "unanswerable_abstained": 0.167
+      "threshold_sweep": [
+        {
+          "threshold": 0.5,
+          "answerable_retrieved": 0.926,
+          "unanswerable_abstained": 0.222
+        },
+        {
+          "threshold": 0.52,
+          "answerable_retrieved": 0.778,
+          "unanswerable_abstained": 0.444
+        },
+        {
+          "threshold": 0.54,
+          "answerable_retrieved": 0.741,
+          "unanswerable_abstained": 0.444
+        },
+        {
+          "threshold": 0.56,
+          "answerable_retrieved": 0.741,
+          "unanswerable_abstained": 0.444
+        },
+        {
+          "threshold": 0.58,
+          "answerable_retrieved": 0.704,
+          "unanswerable_abstained": 0.667
+        },
+        {
+          "threshold": 0.6,
+          "answerable_retrieved": 0.704,
+          "unanswerable_abstained": 0.778
+        },
+        {
+          "threshold": 0.62,
+          "answerable_retrieved": 0.63,
+          "unanswerable_abstained": 0.778
+        },
+        {
+          "threshold": 0.64,
+          "answerable_retrieved": 0.63,
+          "unanswerable_abstained": 0.889
+        },
+        {
+          "threshold": 0.66,
+          "answerable_retrieved": 0.593,
+          "unanswerable_abstained": 1.0
+        },
+        {
+          "threshold": 0.68,
+          "answerable_retrieved": 0.556,
+          "unanswerable_abstained": 1.0
+        },
+        {
+          "threshold": 0.7,
+          "answerable_retrieved": 0.519,
+          "unanswerable_abstained": 1.0
+        }
+      ],
+      "per_question": [
+        {
+          "id": "ret-1",
+          "language": "en",
+          "query": "How many days do I have to send something back?",
+          "answerable": true,
+          "best_score": 0.812,
+          "top_document": "Return Policy.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 53.6
+        },
+        {
+          "id": "ret-2",
+          "language": "en",
+          "query": "Do I have to pay for the return shipping if I live in the Netherlands?",
+          "answerable": true,
+          "best_score": 0.784,
+          "top_document": "Return Policy.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 8.2
+        },
+        {
+          "id": "ret-3",
+          "language": "en",
+          "query": "Can I return bed sheets I already opened?",
+          "answerable": true,
+          "best_score": 0.805,
+          "top_document": "Return Policy.pdf",
+          "rank": 1,
+          "precision": 0.8,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 7.2
+        },
+        {
+          "id": "ret-4",
+          "language": "en",
+          "query": "My mug arrived broken, what should I do?",
+          "answerable": true,
+          "best_score": 0.605,
+          "top_document": "Product Information.pdf",
+          "rank": 2,
+          "precision": 0.0,
+          "fact_coverage": 0.0,
+          "abstained": false,
+          "latency_ms": 4.7
+        },
+        {
+          "id": "ret-5",
+          "language": "en",
+          "query": "How long until I get my money back after returning an item?",
+          "answerable": true,
+          "best_score": 0.873,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 5.9
+        },
+        {
+          "id": "shp-1",
+          "language": "en",
+          "query": "How long does delivery to Belgium take?",
+          "answerable": true,
+          "best_score": 0.852,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 8.8
+        },
+        {
+          "id": "shp-2",
+          "language": "en",
+          "query": "Is shipping free?",
+          "answerable": true,
+          "best_score": 0.725,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 10.5
+        },
+        {
+          "id": "shp-3",
+          "language": "en",
+          "query": "Which delivery companies do you work with?",
+          "answerable": true,
+          "best_score": 0.657,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 5.0
+        },
+        {
+          "id": "shp-4",
+          "language": "en",
+          "query": "My tracking hasn't moved in a week, what happens now?",
+          "answerable": true,
+          "best_score": 0.803,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 7.7
+        },
+        {
+          "id": "shp-5",
+          "language": "en",
+          "query": "Can I still change my delivery address?",
+          "answerable": true,
+          "best_score": 0.705,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 6.0
+        },
+        {
+          "id": "shp-6",
+          "language": "en",
+          "query": "Do you deliver to the United States?",
+          "answerable": true,
+          "best_score": 0.663,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 5.6
+        },
+        {
+          "id": "war-1",
+          "language": "en",
+          "query": "How long is the warranty on your products?",
+          "answerable": true,
+          "best_score": 0.768,
+          "top_document": "Warranty.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 4.6
+        },
+        {
+          "id": "war-2",
+          "language": "en",
+          "query": "Is the LED in the desk lamp covered for longer?",
+          "answerable": true,
+          "best_score": 0.757,
+          "top_document": "Product Information.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 7.8
+        },
+        {
+          "id": "war-3",
+          "language": "en",
+          "query": "I dropped my headphones in water, is that covered by warranty?",
+          "answerable": true,
+          "best_score": 0.699,
+          "top_document": "Warranty.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 6.6
+        },
+        {
+          "id": "pay-1",
+          "language": "en",
+          "query": "Can I pay with Bancontact?",
+          "answerable": true,
+          "best_score": 0.763,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 6.8
+        },
+        {
+          "id": "pay-2",
+          "language": "en",
+          "query": "Is it possible to pay after delivery?",
+          "answerable": true,
+          "best_score": 0.749,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 0.8,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 5.5
+        },
+        {
+          "id": "pay-3",
+          "language": "en",
+          "query": "I need an invoice with my company VAT number",
+          "answerable": true,
+          "best_score": 0.875,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 9.0
+        },
+        {
+          "id": "prd-1",
+          "language": "en",
+          "query": "How do I pair the Aurora headphones with my phone?",
+          "answerable": true,
+          "best_score": 0.789,
+          "top_document": "Product Information.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 6.6
+        },
+        {
+          "id": "na-1",
+          "language": "en",
+          "query": "Do you offer gift wrapping?",
+          "answerable": false,
+          "best_score": 0.646,
+          "top_document": "Return Policy.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": false,
+          "latency_ms": 3.4
+        },
+        {
+          "id": "na-2",
+          "language": "en",
+          "query": "What are the opening hours of your physical store?",
+          "answerable": false,
+          "best_score": 0.59,
+          "top_document": "Shipping Policy.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 3.4
+        },
+        {
+          "id": "na-3",
+          "language": "en",
+          "query": "Is there a student discount?",
+          "answerable": false,
+          "best_score": 0.567,
+          "top_document": "Payment FAQ.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 5.2
+        },
+        {
+          "id": "na-4",
+          "language": "en",
+          "query": "Who is the CEO of the company?",
+          "answerable": false,
+          "best_score": 0.475,
+          "top_document": "Payment FAQ.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 5.8
+        },
+        {
+          "id": "na-5",
+          "language": "en",
+          "query": "Do you sell gaming laptops?",
+          "answerable": false,
+          "best_score": 0.567,
+          "top_document": "Product Information.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 5.8
+        },
+        {
+          "id": "na-6",
+          "language": "en",
+          "query": "Can I collect my order at a pickup point instead of home delivery?",
+          "answerable": false,
+          "best_score": 0.636,
+          "top_document": "Shipping Policy.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": false,
+          "latency_ms": 7.7
+        },
+        {
+          "id": "nl-ret-0",
+          "language": "nl",
+          "query": "Wat is jullie retourbeleid?",
+          "answerable": true,
+          "best_score": 0.414,
+          "top_document": "Product Information.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": 0.0,
+          "abstained": true,
+          "latency_ms": 6.8
+        },
+        {
+          "id": "nl-ret-1",
+          "language": "nl",
+          "query": "Hoeveel dagen heb ik om iets terug te sturen?",
+          "answerable": true,
+          "best_score": 0.508,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 4,
+          "precision": null,
+          "fact_coverage": 0.0,
+          "abstained": true,
+          "latency_ms": 8.6
+        },
+        {
+          "id": "nl-ret-4",
+          "language": "nl",
+          "query": "Mijn mok kwam kapot aan, wat moet ik doen?",
+          "answerable": true,
+          "best_score": 0.489,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 5,
+          "precision": null,
+          "fact_coverage": 0.0,
+          "abstained": true,
+          "latency_ms": 7.3
+        },
+        {
+          "id": "nl-shp-1",
+          "language": "nl",
+          "query": "Hoe lang duurt de levering naar België?",
+          "answerable": true,
+          "best_score": 0.502,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 3,
+          "precision": null,
+          "fact_coverage": 0.0,
+          "abstained": true,
+          "latency_ms": 7.0
+        },
+        {
+          "id": "nl-shp-2",
+          "language": "nl",
+          "query": "Is verzending gratis?",
+          "answerable": true,
+          "best_score": 0.505,
+          "top_document": "Product Information.pdf",
+          "rank": 3,
+          "precision": null,
+          "fact_coverage": 0.0,
+          "abstained": true,
+          "latency_ms": 7.7
+        },
+        {
+          "id": "nl-shp-3",
+          "language": "nl",
+          "query": "Met welke vervoerders werken jullie?",
+          "answerable": true,
+          "best_score": 0.535,
+          "top_document": "Product Information.pdf",
+          "rank": 2,
+          "precision": null,
+          "fact_coverage": 0.0,
+          "abstained": true,
+          "latency_ms": 11.7
+        },
+        {
+          "id": "nl-war-1",
+          "language": "nl",
+          "query": "Hoe lang is de garantie op jullie producten?",
+          "answerable": true,
+          "best_score": 0.574,
+          "top_document": "Product Information.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": 0.0,
+          "abstained": true,
+          "latency_ms": 6.5
+        },
+        {
+          "id": "nl-pay-1",
+          "language": "nl",
+          "query": "Kan ik betalen met Bancontact?",
+          "answerable": true,
+          "best_score": 0.61,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 4.2
+        },
+        {
+          "id": "nl-pay-2",
+          "language": "nl",
+          "query": "Kan ik achteraf betalen?",
+          "answerable": true,
+          "best_score": 0.506,
+          "top_document": "Return Policy.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": 0.0,
+          "abstained": true,
+          "latency_ms": 5.0
+        },
+        {
+          "id": "nl-na-1",
+          "language": "nl",
+          "query": "Bieden jullie cadeauverpakking aan?",
+          "answerable": false,
+          "best_score": 0.51,
+          "top_document": "Shipping Policy.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 4.2
+        },
+        {
+          "id": "nl-na-2",
+          "language": "nl",
+          "query": "Wie is de CEO van het bedrijf?",
+          "answerable": false,
+          "best_score": 0.478,
+          "top_document": "Shipping Policy.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 4.6
+        },
+        {
+          "id": "nl-na-3",
+          "language": "nl",
+          "query": "Is er studentenkorting?",
+          "answerable": false,
+          "best_score": 0.506,
+          "top_document": "Payment FAQ.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 4.6
+        }
+      ]
+    },
+    {
+      "mode": "rewritten query",
+      "threshold": 0.6,
+      "top_k": 5,
+      "questions": 36,
+      "answerable": 27,
+      "unanswerable": 9,
+      "hit@1": 0.926,
+      "hit@3": 1.0,
+      "hit@5": 1.0,
+      "mrr": 0.963,
+      "context_precision": 0.797,
+      "fact_coverage": 0.926,
+      "answerable_retrieved": 0.963,
+      "unanswerable_abstained": 0.556,
+      "latency_ms_p50": 18.8,
+      "latency_ms_p95": 25.5,
+      "by_language": {
+        "en": {
+          "questions": 24,
+          "hit@1": 0.944,
+          "hit@3": 1.0,
+          "answerable_retrieved": 1.0,
+          "unanswerable_abstained": 0.5
+        },
+        "nl": {
+          "questions": 12,
+          "hit@1": 0.889,
+          "hit@3": 1.0,
+          "answerable_retrieved": 0.889,
+          "unanswerable_abstained": 0.667
+        }
       },
-      {
-        "threshold": 0.54,
-        "answerable_retrieved": 1.0,
-        "unanswerable_abstained": 0.167
+      "threshold_sweep": [
+        {
+          "threshold": 0.5,
+          "answerable_retrieved": 1.0,
+          "unanswerable_abstained": 0.111
+        },
+        {
+          "threshold": 0.52,
+          "answerable_retrieved": 1.0,
+          "unanswerable_abstained": 0.111
+        },
+        {
+          "threshold": 0.54,
+          "answerable_retrieved": 1.0,
+          "unanswerable_abstained": 0.222
+        },
+        {
+          "threshold": 0.56,
+          "answerable_retrieved": 1.0,
+          "unanswerable_abstained": 0.222
+        },
+        {
+          "threshold": 0.58,
+          "answerable_retrieved": 1.0,
+          "unanswerable_abstained": 0.333
+        },
+        {
+          "threshold": 0.6,
+          "answerable_retrieved": 0.963,
+          "unanswerable_abstained": 0.556
+        },
+        {
+          "threshold": 0.62,
+          "answerable_retrieved": 0.963,
+          "unanswerable_abstained": 0.667
+        },
+        {
+          "threshold": 0.64,
+          "answerable_retrieved": 0.926,
+          "unanswerable_abstained": 0.667
+        },
+        {
+          "threshold": 0.66,
+          "answerable_retrieved": 0.889,
+          "unanswerable_abstained": 1.0
+        },
+        {
+          "threshold": 0.68,
+          "answerable_retrieved": 0.852,
+          "unanswerable_abstained": 1.0
+        },
+        {
+          "threshold": 0.7,
+          "answerable_retrieved": 0.815,
+          "unanswerable_abstained": 1.0
+        }
+      ],
+      "per_question": [
+        {
+          "id": "ret-1",
+          "language": "en",
+          "query": "return policy days",
+          "answerable": true,
+          "best_score": 0.706,
+          "top_document": "Return Policy.pdf",
+          "rank": 1,
+          "precision": 0.8,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 18.5
+        },
+        {
+          "id": "ret-2",
+          "language": "en",
+          "query": "return shipping cost Netherlands",
+          "answerable": true,
+          "best_score": 0.838,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 2,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 14.4
+        },
+        {
+          "id": "ret-3",
+          "language": "en",
+          "query": "return opened bed sheets",
+          "answerable": true,
+          "best_score": 0.782,
+          "top_document": "Return Policy.pdf",
+          "rank": 1,
+          "precision": 0.75,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 17.3
+        },
+        {
+          "id": "ret-4",
+          "language": "en",
+          "query": "broken mug arrival damage procedure",
+          "answerable": true,
+          "best_score": 0.639,
+          "top_document": "Return Policy.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 23.8
+        },
+        {
+          "id": "ret-5",
+          "language": "en",
+          "query": "refund timeline after return",
+          "answerable": true,
+          "best_score": 0.813,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 18.9
+        },
+        {
+          "id": "shp-1",
+          "language": "en",
+          "query": "delivery time to belgium",
+          "answerable": true,
+          "best_score": 0.85,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 21.1
+        },
+        {
+          "id": "shp-2",
+          "language": "en",
+          "query": "free shipping",
+          "answerable": true,
+          "best_score": 0.753,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.6666666666666666,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 16.3
+        },
+        {
+          "id": "shp-3",
+          "language": "en",
+          "query": "delivery companies",
+          "answerable": true,
+          "best_score": 0.656,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.3333333333333333,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 13.0
+        },
+        {
+          "id": "shp-4",
+          "language": "en",
+          "query": "tracking update",
+          "answerable": true,
+          "best_score": 0.753,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.75,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 17.5
+        },
+        {
+          "id": "shp-5",
+          "language": "en",
+          "query": "change delivery address",
+          "answerable": true,
+          "best_score": 0.679,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.8,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 15.6
+        },
+        {
+          "id": "shp-6",
+          "language": "en",
+          "query": "shipping to united states",
+          "answerable": true,
+          "best_score": 0.696,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.8,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 14.8
+        },
+        {
+          "id": "war-1",
+          "language": "en",
+          "query": "warranty on products",
+          "answerable": true,
+          "best_score": 0.73,
+          "top_document": "Warranty.pdf",
+          "rank": 1,
+          "precision": 0.8,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 16.0
+        },
+        {
+          "id": "war-2",
+          "language": "en",
+          "query": "warranty on led in desk lamp",
+          "answerable": true,
+          "best_score": 0.812,
+          "top_document": "Product Information.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 11.7
+        },
+        {
+          "id": "war-3",
+          "language": "en",
+          "query": "warranty coverage for water damage to headphones",
+          "answerable": true,
+          "best_score": 0.719,
+          "top_document": "Warranty.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 25.5
+        },
+        {
+          "id": "pay-1",
+          "language": "en",
+          "query": "payments",
+          "answerable": true,
+          "best_score": 0.714,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 21.0
+        },
+        {
+          "id": "pay-2",
+          "language": "en",
+          "query": "payment after delivery",
+          "answerable": true,
+          "best_score": 0.749,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 27.1
+        },
+        {
+          "id": "pay-3",
+          "language": "en",
+          "query": "invoice with company VAT number",
+          "answerable": true,
+          "best_score": 0.88,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 19.5
+        },
+        {
+          "id": "prd-1",
+          "language": "en",
+          "query": "how to pair aurora headphones with phone",
+          "answerable": true,
+          "best_score": 0.802,
+          "top_document": "Product Information.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 20.7
+        },
+        {
+          "id": "na-1",
+          "language": "en",
+          "query": "gift wrapping",
+          "answerable": false,
+          "best_score": 0.642,
+          "top_document": "Return Policy.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": false,
+          "latency_ms": 18.8
+        },
+        {
+          "id": "na-2",
+          "language": "en",
+          "query": "store opening hours",
+          "answerable": false,
+          "best_score": 0.571,
+          "top_document": "Shipping Policy.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 10.1
+        },
+        {
+          "id": "na-3",
+          "language": "en",
+          "query": "student discount policy",
+          "answerable": false,
+          "best_score": 0.591,
+          "top_document": "Product Information.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 20.3
+        },
+        {
+          "id": "na-4",
+          "language": "en",
+          "query": "ceo of the company",
+          "answerable": false,
+          "best_score": 0.524,
+          "top_document": "Product Information.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 22.2
+        },
+        {
+          "id": "na-5",
+          "language": "en",
+          "query": "gaming laptops",
+          "answerable": false,
+          "best_score": 0.609,
+          "top_document": "Product Information.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": false,
+          "latency_ms": 13.8
+        },
+        {
+          "id": "na-6",
+          "language": "en",
+          "query": "order pickup instead of home delivery",
+          "answerable": false,
+          "best_score": 0.651,
+          "top_document": "Shipping Policy.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": false,
+          "latency_ms": 20.9
+        },
+        {
+          "id": "nl-ret-0",
+          "language": "nl",
+          "query": "what is your return policy?",
+          "answerable": true,
+          "best_score": 0.739,
+          "top_document": "Return Policy.pdf",
+          "rank": 1,
+          "precision": 0.8,
+          "fact_coverage": 0.0,
+          "abstained": false,
+          "latency_ms": 19.2
+        },
+        {
+          "id": "nl-ret-1",
+          "language": "nl",
+          "query": "how many days do i have to return something",
+          "answerable": true,
+          "best_score": 0.845,
+          "top_document": "Return Policy.pdf",
+          "rank": 1,
+          "precision": 0.8,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 10.3
+        },
+        {
+          "id": "nl-ret-4",
+          "language": "nl",
+          "query": "broken mug arrived, what should i do",
+          "answerable": true,
+          "best_score": 0.598,
+          "top_document": "Product Information.pdf",
+          "rank": 2,
+          "precision": null,
+          "fact_coverage": 0.0,
+          "abstained": true,
+          "latency_ms": 21.5
+        },
+        {
+          "id": "nl-shp-1",
+          "language": "nl",
+          "query": "how long does delivery to belgium take",
+          "answerable": true,
+          "best_score": 0.863,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 27.9
+        },
+        {
+          "id": "nl-shp-2",
+          "language": "nl",
+          "query": "free shipping",
+          "answerable": true,
+          "best_score": 0.753,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.6666666666666666,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 12.4
+        },
+        {
+          "id": "nl-shp-3",
+          "language": "nl",
+          "query": "shipping carriers",
+          "answerable": true,
+          "best_score": 0.72,
+          "top_document": "Shipping Policy.pdf",
+          "rank": 1,
+          "precision": 0.75,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 15.9
+        },
+        {
+          "id": "nl-war-1",
+          "language": "nl",
+          "query": "what is the warranty period on your products?",
+          "answerable": true,
+          "best_score": 0.757,
+          "top_document": "Warranty.pdf",
+          "rank": 1,
+          "precision": 0.6,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 23.2
+        },
+        {
+          "id": "nl-pay-1",
+          "language": "nl",
+          "query": "Can I pay with Bancontact?",
+          "answerable": true,
+          "best_score": 0.763,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 6.8
+        },
+        {
+          "id": "nl-pay-2",
+          "language": "nl",
+          "query": "can i pay later?",
+          "answerable": true,
+          "best_score": 0.725,
+          "top_document": "Payment FAQ.pdf",
+          "rank": 1,
+          "precision": 1.0,
+          "fact_coverage": 1.0,
+          "abstained": false,
+          "latency_ms": 19.5
+        },
+        {
+          "id": "nl-na-1",
+          "language": "nl",
+          "query": "gift wrapping",
+          "answerable": false,
+          "best_score": 0.642,
+          "top_document": "Return Policy.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": false,
+          "latency_ms": 14.3
+        },
+        {
+          "id": "nl-na-2",
+          "language": "nl",
+          "query": "Who is the CEO of the company?",
+          "answerable": false,
+          "best_score": 0.475,
+          "top_document": "Payment FAQ.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 20.9
+        },
+        {
+          "id": "nl-na-3",
+          "language": "nl",
+          "query": "student discount",
+          "answerable": false,
+          "best_score": 0.586,
+          "top_document": "Product Information.pdf",
+          "rank": null,
+          "precision": null,
+          "fact_coverage": null,
+          "abstained": true,
+          "latency_ms": 16.9
+        }
+      ]
+    }
+  ],
+  "answers": {
+    "model": "qwen3:8b",
+    "by_language": {
+      "en": {
+        "answer_correctness": 0.944,
+        "abstention_accuracy": 1.0
       },
-      {
-        "threshold": 0.56,
-        "answerable_retrieved": 1.0,
-        "unanswerable_abstained": 0.167
-      },
-      {
-        "threshold": 0.58,
-        "answerable_retrieved": 1.0,
-        "unanswerable_abstained": 0.5
-      },
-      {
-        "threshold": 0.6,
-        "answerable_retrieved": 1.0,
-        "unanswerable_abstained": 0.667
-      },
-      {
-        "threshold": 0.62,
-        "answerable_retrieved": 0.944,
-        "unanswerable_abstained": 0.667
-      },
-      {
-        "threshold": 0.64,
-        "answerable_retrieved": 0.944,
-        "unanswerable_abstained": 0.833
-      },
-      {
-        "threshold": 0.66,
-        "answerable_retrieved": 0.889,
-        "unanswerable_abstained": 1.0
-      },
-      {
-        "threshold": 0.68,
-        "answerable_retrieved": 0.833,
-        "unanswerable_abstained": 1.0
-      },
-      {
-        "threshold": 0.7,
-        "answerable_retrieved": 0.778,
-        "unanswerable_abstained": 1.0
+      "nl": {
+        "answer_correctness": 0.778,
+        "abstention_accuracy": 0.667
       }
-    ],
+    },
+    "answer_correctness": 0.889,
+    "abstention_accuracy": 0.889,
+    "latency_ms_p50": 3814,
+    "latency_ms_p95": 7875,
     "per_question": [
       {
         "id": "ret-1",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.812,
-        "top_document": "Return Policy.pdf",
-        "rank": 1,
-        "precision": 0.6,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 28.2
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Return Policy.pdf"
+        ],
+        "latency_ms": 5382,
+        "answer": "You have 30 days from the delivery date to return most products, and you must send the item back within 14 days of receiving your free return label [1][2]."
       },
       {
         "id": "ret-2",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.784,
-        "top_document": "Return Policy.pdf",
-        "rank": 1,
-        "precision": 0.6,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 9.2
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Return Policy.pdf"
+        ],
+        "latency_ms": 5741,
+        "answer": "If you live in the Netherlands, you do not have to pay for the return shipping. The return is handled by PostNL, and you receive a free return label by email within one working day [2]."
       },
       {
         "id": "ret-3",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.805,
-        "top_document": "Return Policy.pdf",
-        "rank": 1,
-        "precision": 0.8,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 7.1
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Return Policy.pdf"
+        ],
+        "latency_ms": 5557,
+        "answer": "If you have already opened the bed sheets, they cannot be returned as they show signs of use [3]. However, if the original seal is unbroken, there might be an exception, but this is not clearly specified in the provided information."
       },
       {
         "id": "ret-4",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.605,
-        "top_document": "Product Information.pdf",
-        "rank": 2,
-        "precision": 0.0,
-        "fact_coverage": 0.0,
-        "abstained": false,
-        "latency_ms": 5.9
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Return Policy.pdf"
+        ],
+        "latency_ms": 3610,
+        "answer": "If your mug arrived broken, report it within 48 hours of delivery by including your order number and photos of the product and packaging. We will send a free replacement or provide a full refund, whichever you prefer [1]."
       },
       {
         "id": "ret-5",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.873,
-        "top_document": "Payment FAQ.pdf",
-        "rank": 1,
-        "precision": 1.0,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 31.0
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Payment FAQ.pdf",
+          "Return Policy.pdf"
+        ],
+        "latency_ms": 5772,
+        "answer": "After returning an item, you will receive your refund within 5 working days once we receive the return [2]. It may take an additional 2 to 3 days for the refund to appear in your bank account, depending on your financial institution [1]."
       },
       {
         "id": "shp-1",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.852,
-        "top_document": "Shipping Policy.pdf",
-        "rank": 1,
-        "precision": 0.6,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 5.6
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Shipping Policy.pdf"
+        ],
+        "latency_ms": 4677,
+        "answer": "Delivery to Belgium takes 1 to 3 working days after shipping [1]."
       },
       {
         "id": "shp-2",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.725,
-        "top_document": "Shipping Policy.pdf",
-        "rank": 1,
-        "precision": 0.6,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 3.4
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Shipping Policy.pdf"
+        ],
+        "latency_ms": 2211,
+        "answer": "Shipping is free for orders of EUR 50 or more [1]. For smaller orders, shipping costs vary depending on the country."
       },
       {
         "id": "shp-3",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.657,
-        "top_document": "Shipping Policy.pdf",
-        "rank": 1,
-        "precision": 0.6,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 4.4
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Shipping Policy.pdf"
+        ],
+        "latency_ms": 2824,
+        "answer": "We work with the following delivery companies: PostNL, DHL, bpost, UPS, and DPD [1]."
       },
       {
         "id": "shp-4",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.803,
-        "top_document": "Shipping Policy.pdf",
-        "rank": 1,
-        "precision": 0.6,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 6.3
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Shipping Policy.pdf"
+        ],
+        "latency_ms": 4857,
+        "answer": "If your tracking hasn't updated in 5 working days, open a support ticket with your order number so we can investigate with the carrier [1]. If the parcel is confirmed lost, we will send a replacement at no cost or refund the order in full."
       },
       {
         "id": "shp-5",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.705,
-        "top_document": "Shipping Policy.pdf",
-        "rank": 1,
-        "precision": 0.6,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 6.2
+        "correct": false,
+        "answered": true,
+        "cited": [
+          "Shipping Policy.pdf"
+        ],
+        "latency_ms": 3814,
+        "answer": "Yes, you can still change your delivery address while your order is pending or being processed [1]."
       },
       {
         "id": "shp-6",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.663,
-        "top_document": "Shipping Policy.pdf",
-        "rank": 1,
-        "precision": 1.0,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 5.5
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Shipping Policy.pdf"
+        ],
+        "latency_ms": 3331,
+        "answer": "We currently don't ship outside the European Union [1]."
       },
       {
         "id": "war-1",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.768,
-        "top_document": "Warranty.pdf",
-        "rank": 1,
-        "precision": 0.6,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 7.2
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Warranty.pdf"
+        ],
+        "latency_ms": 5670,
+        "answer": "All products sold by SupportAI Store come with a 2-year warranty from the date of delivery, in line with EU consumer law [2]. Some products, like the Lumen Smart Desk Lamp, may have an extended warranty on specific components, such as the LED module, which is covered for 3 years [4]."
       },
       {
         "id": "war-2",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.757,
-        "top_document": "Product Information.pdf",
-        "rank": 1,
-        "precision": 1.0,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 5.9
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Product Information.pdf",
+          "Warranty.pdf"
+        ],
+        "latency_ms": 4458,
+        "answer": "Yes, the LED module in the Lumen Smart Desk Lamp is covered for a 3-year warranty, which is longer than the standard 2-year warranty for most products [1][2]."
       },
       {
         "id": "war-3",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.699,
-        "top_document": "Warranty.pdf",
-        "rank": 1,
-        "precision": 1.0,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 10.6
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Warranty.pdf"
+        ],
+        "latency_ms": 3194,
+        "answer": "No, damage caused by water or liquids is not covered by the warranty [2]."
       },
       {
         "id": "pay-1",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.763,
-        "top_document": "Payment FAQ.pdf",
-        "rank": 1,
-        "precision": 1.0,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 4.9
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Payment FAQ.pdf"
+        ],
+        "latency_ms": 3271,
+        "answer": "Yes, you can pay with Bancontact. We accept Bancontact as one of our payment methods [3]."
       },
       {
         "id": "pay-2",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.749,
-        "top_document": "Payment FAQ.pdf",
-        "rank": 1,
-        "precision": 0.8,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 3.4
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Payment FAQ.pdf"
+        ],
+        "latency_ms": 4398,
+        "answer": "You can pay with Klarna, which allows you to pay within 30 days after delivery [1]. However, other payment methods require payment at the time of ordering [2]."
       },
       {
         "id": "pay-3",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.875,
-        "top_document": "Payment FAQ.pdf",
-        "rank": 1,
-        "precision": 1.0,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 5.2
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Payment FAQ.pdf"
+        ],
+        "latency_ms": 3473,
+        "answer": "Yes, you can get an invoice with your company's VAT number. Open a support ticket with your order number and the company details, and we will send a corrected invoice within 2 working days [1]."
       },
       {
         "id": "prd-1",
+        "language": "en",
         "answerable": true,
-        "best_score": 0.789,
-        "top_document": "Product Information.pdf",
-        "rank": 1,
-        "precision": 1.0,
-        "fact_coverage": 1.0,
-        "abstained": false,
-        "latency_ms": 5.6
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Product Information.pdf"
+        ],
+        "latency_ms": 3698,
+        "answer": "To pair the Aurora headphones with your phone, hold the power button for 5 seconds until the light flashes blue, then select \"Aurora\" in your device's Bluetooth settings [1]."
       },
       {
         "id": "na-1",
+        "language": "en",
         "answerable": false,
-        "best_score": 0.646,
-        "top_document": "Return Policy.pdf",
-        "rank": null,
-        "precision": null,
-        "fact_coverage": null,
-        "abstained": false,
-        "latency_ms": 5.3
+        "correct": true,
+        "answered": false,
+        "cited": [],
+        "latency_ms": 2370,
+        "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
         "id": "na-2",
+        "language": "en",
         "answerable": false,
-        "best_score": 0.59,
-        "top_document": "Shipping Policy.pdf",
-        "rank": null,
-        "precision": null,
-        "fact_coverage": null,
-        "abstained": true,
-        "latency_ms": 3.8
+        "correct": true,
+        "answered": false,
+        "cited": [],
+        "latency_ms": 377,
+        "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
         "id": "na-3",
+        "language": "en",
         "answerable": false,
-        "best_score": 0.567,
-        "top_document": "Payment FAQ.pdf",
-        "rank": null,
-        "precision": null,
-        "fact_coverage": null,
-        "abstained": true,
-        "latency_ms": 9.2
+        "correct": true,
+        "answered": false,
+        "cited": [],
+        "latency_ms": 389,
+        "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
         "id": "na-4",
+        "language": "en",
         "answerable": false,
-        "best_score": 0.475,
-        "top_document": "Payment FAQ.pdf",
-        "rank": null,
-        "precision": null,
-        "fact_coverage": null,
-        "abstained": true,
-        "latency_ms": 3.6
+        "correct": true,
+        "answered": false,
+        "cited": [],
+        "latency_ms": 482,
+        "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
         "id": "na-5",
+        "language": "en",
         "answerable": false,
-        "best_score": 0.567,
-        "top_document": "Product Information.pdf",
-        "rank": null,
-        "precision": null,
-        "fact_coverage": null,
-        "abstained": true,
-        "latency_ms": 5.2
+        "correct": true,
+        "answered": false,
+        "cited": [],
+        "latency_ms": 1561,
+        "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
         "id": "na-6",
+        "language": "en",
         "answerable": false,
-        "best_score": 0.636,
-        "top_document": "Shipping Policy.pdf",
-        "rank": null,
-        "precision": null,
-        "fact_coverage": null,
-        "abstained": false,
-        "latency_ms": 3.9
+        "correct": true,
+        "answered": false,
+        "cited": [],
+        "latency_ms": 3433,
+        "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
+      },
+      {
+        "id": "nl-ret-0",
+        "language": "nl",
+        "answerable": true,
+        "correct": false,
+        "answered": true,
+        "cited": [
+          "Return Policy.pdf"
+        ],
+        "latency_ms": 11049,
+        "answer": "Ons retourbeleid geldt voor alle bestellingen die in Nederland, België en de rest van de Europese Unie zijn geleverd. Als je een product retourneert, krijg je de volledige productprijs, inclusief de oorspronkelijke verzendkosten, terug via de originele betalingsmethode binnen 5 werkdagen na ontvangst van de retour [2]. Als je een bestelling annuleert voordat het is verstuurd, krijg je een volledige terugbetaling binnen 3 tot 5 werkdagen zonder dat je iets hoeft te retourneren [2]."
+      },
+      {
+        "id": "nl-ret-1",
+        "language": "nl",
+        "answerable": true,
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Return Policy.pdf"
+        ],
+        "latency_ms": 5492,
+        "answer": "Je hebt 30 dagen om iets terug te sturen, vanaf de dag van levering, zoals aangegeven in de tracking van de bezorger [1]."
+      },
+      {
+        "id": "nl-ret-4",
+        "language": "nl",
+        "answerable": true,
+        "correct": false,
+        "answered": false,
+        "cited": [],
+        "latency_ms": 725,
+        "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
+      },
+      {
+        "id": "nl-shp-1",
+        "language": "nl",
+        "answerable": true,
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Shipping Policy.pdf"
+        ],
+        "latency_ms": 4903,
+        "answer": "De levering naar België duurt 1 tot 3 werkdagen na het verzenden van de bestelling [1]."
+      },
+      {
+        "id": "nl-shp-2",
+        "language": "nl",
+        "answerable": true,
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Shipping Policy.pdf"
+        ],
+        "latency_ms": 5360,
+        "answer": "Verzending is gratis voor bestellingen van €50 of meer. Voor kleinere bestellingen kost de verzending €4,95 in Nederland en België en €9,95 elders in de EU [1]."
+      },
+      {
+        "id": "nl-shp-3",
+        "language": "nl",
+        "answerable": true,
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Shipping Policy.pdf"
+        ],
+        "latency_ms": 14203,
+        "answer": "We werken met de volgende vervoerders: PostNL, DHL, bpost, UPS en DPD [2]."
+      },
+      {
+        "id": "nl-war-1",
+        "language": "nl",
+        "answerable": true,
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Warranty.pdf"
+        ],
+        "latency_ms": 7875,
+        "answer": "De garantie op onze producten bedraagt 2 jaar, in overeenstemming met de EU consumentenwet [2]. Sommige producten hebben een uitgebreide garantie, zoals de Lumen Smart Desk Lamp met 3 jaar garantie op het LED-module [3]."
+      },
+      {
+        "id": "nl-pay-1",
+        "language": "nl",
+        "answerable": true,
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Payment FAQ.pdf"
+        ],
+        "latency_ms": 4914,
+        "answer": "Ja, u kan betalen met Bancontact [1]."
+      },
+      {
+        "id": "nl-pay-2",
+        "language": "nl",
+        "answerable": true,
+        "correct": true,
+        "answered": true,
+        "cited": [
+          "Payment FAQ.pdf"
+        ],
+        "latency_ms": 3934,
+        "answer": "Ja, met Klarna kan je kiezen om te betalen binnen 30 dagen na levering [2]."
+      },
+      {
+        "id": "nl-na-1",
+        "language": "nl",
+        "answerable": false,
+        "correct": false,
+        "answered": true,
+        "cited": [
+          "Return Policy.pdf"
+        ],
+        "latency_ms": 1558,
+        "answer": "We bieden cadeauverpakking niet aan [1]."
+      },
+      {
+        "id": "nl-na-2",
+        "language": "nl",
+        "answerable": false,
+        "correct": true,
+        "answered": false,
+        "cited": [],
+        "latency_ms": 630,
+        "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
+      },
+      {
+        "id": "nl-na-3",
+        "language": "nl",
+        "answerable": false,
+        "correct": true,
+        "answered": false,
+        "cited": [],
+        "latency_ms": 330,
+        "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       }
     ]
-  },
-  "answers": {
-    "skipped": "ANTHROPIC_API_KEY is not set, so no answers were generated."
   }
 }
