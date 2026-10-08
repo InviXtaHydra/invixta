@@ -1,18 +1,18 @@
-# Kopbal
+# Invixta
 
 A web shop for football shirts with an AI support assistant built in. You can pick a club, choose your size, have your name and number printed on the back, pay, and follow the order to your door. When you have a question ("Where is my order?", "Which size should I take?", "Can I return a printed shirt?"), the assistant answers from **real data**: it looks the order up in PostgreSQL, searches the shop's policy documents with RAG, checks the stock, and opens tickets.
 
-**Everything is fictional.** The 12 clubs, both leagues and every crest are made up, payments go through a simulated payment page (TestPay), and a simulator plays the warehouse and the carrier. The AI runs **locally** in [Ollama](https://ollama.com): no API key, no costs.
+The AI runs **locally** in [Ollama](https://ollama.com): no API key, no costs. Two parts still stand in for outside services (see [Going live](#going-live)): no payment provider is connected yet, so the payment page runs in **test mode**, and a fulfillment simulator plays the warehouse and the carrier. The clubs, leagues and crests in the demo catalogue are made up, so there are no licensing issues.
 
 ![The product page: your name and number appear on the shirt while you type](docs/screenshots/product.png)
 
 ## Overview
 
-Kopbal grew out of SupportAI, an AI customer-support platform, and adds a complete shop around it:
+Invixta grew out of SupportAI, an AI customer-support platform, and adds a complete shop around it:
 
-- **Shop:** a catalogue of fictional clubs, shirts drawn as SVG in each club's colours and pattern, sizes with their own stock, name and number printing with a live preview, a cart (also for guests), checkout, and simulated payments.
+- **Shop:** a catalogue of 12 clubs in two leagues, shirts drawn as SVG in each club's colours and pattern, sizes with their own stock, name and number printing with a live preview, a cart (also for guests), checkout and payment.
 - **Orders that move:** a fulfillment simulator ships paid orders after a few minutes, with a carrier and a tracking number, and then delivers them. The order page shows it happening.
-- **Support assistant:** in a widget on every shop page and as a full chat. It answers with what it finds in the database and the documents, shows every step it takes ("Checking your order… ✓ Order database"), and cites its sources.
+- **Support assistant:** in a widget on every shop page and as a full chat. It answers with what it finds in the database and the documents, shows the steps a customer cares about ("Checked your order: Order #10014: shipped"), and names the help articles it used.
   - **Human in the loop:** it can *offer* to cancel an order, but only the customer's click on the button cancels it.
 - **Admin:** products, prices, sales and stock per size; the knowledge base (PDF upload); tickets; and metrics for the shop and the assistant.
 
@@ -25,7 +25,7 @@ Kopbal grew out of SupportAI, an AI customer-support platform, and adds a comple
 - Checkout with a server-side quote:
   - shipping is free from €50, otherwise €4.95 in the Benelux and €9.95 elsewhere in the EU;
   - express costs €7.50 extra and is only available in NL and BE.
-- TestPay, a clearly marked simulated payment provider: approve or decline. A declined payment can be retried.
+- Payment page (Invixta Pay, marked *Test mode* until a provider is connected): pay or cancel. A cancelled or failed payment can be retried from the order page.
 - Order page with a live timeline (ordered → paid → shipped → delivered), printed items, address, tracking. You can cancel until the order ships.
 - The AI assistant (widget and full chat), support tickets, profile and password change.
 
@@ -86,7 +86,7 @@ Why these choices:
 | | |
 |---|---|
 | ![Home](docs/screenshots/home.png) **Home: the new season** | ![Catalogue](docs/screenshots/shop.png) **Catalogue with filters** |
-| ![Checkout](docs/screenshots/checkout.png) **Checkout with a server-side quote** | ![TestPay](docs/screenshots/pay.png) **TestPay: the simulated payment page** |
+| ![Checkout](docs/screenshots/checkout.png) **Checkout with a server-side quote** | ![Payment](docs/screenshots/pay.png) **The payment page (test mode)** |
 | ![Order](docs/screenshots/order.png) **Order page with a live timeline** | ![Chat widget](docs/screenshots/widget.png) **The assistant in the shop** |
 | ![Cancel](docs/screenshots/chat-cancel.png) **Cancelling: the assistant offers, you confirm** | ![Admin products](docs/screenshots/admin-products.png) **Admin: prices and stock per size** |
 
@@ -95,7 +95,7 @@ The assistant's answers in these screenshots come from `qwen3:8b` running in Oll
 ## Project Structure
 
 ```text
-kopbal/
+invixta/
 ├── backend/
 │   ├── app/
 │   │   ├── api/            # auth, catalog, cart, checkout (+ payments), orders, tickets, chat, knowledge base, documents, admin
@@ -115,13 +115,14 @@ kopbal/
 │   └── nginx.conf          # static files, /api proxy (SSE), security headers
 ├── scripts/
 │   ├── seed_database.py    # demo data: 12 clubs, 70 products, 285 sizes, customers, orders, tickets
-│   ├── catalog_data.py     # the fictional clubs and products
+│   ├── catalog_data.py     # the demo catalogue: clubs, leagues, products
 │   ├── fulfillment_simulator.py
 │   ├── generate_sample_documents.py, ingest_documents.py
 │   └── evaluate_rag.py     # + eval/ dataset and results
 ├── sample_documents/       # the knowledge base: returns, shipping, sizes, printing, payments, care
 ├── docs/screenshots/
 ├── docker-compose.yml      # postgres + backend + simulator + frontend
+├── docker-compose.prod.yml # production override: only the shop published, no dev tools, docs off
 └── docker-compose.e2e.yml  # override for end-to-end tests (scripted model)
 ```
 
@@ -161,8 +162,8 @@ Requirements:
 | Role | Email | Password |
 |---|---|---|
 | Customer | `emma.devries@example.com` (also `lucas.janssens@`, `sofia.martens@`, `noah.peeters@`, `mila.claes@example.com`) | `Password123!` |
-| Support agent | `agent@kopbal.shop` | `Password123!` |
-| Admin | `admin@kopbal.shop` | `Password123!` |
+| Support agent | `agent@invixta.shop` | `Password123!` |
+| Admin | `admin@invixta.shop` | `Password123!` |
 
 **Is the AI ready?** <http://localhost:8100/health> shows `"llm": "ok"`:
 
@@ -174,7 +175,7 @@ The first answer after a while takes 10–30 s, because Ollama loads the model i
 **Try the whole journey:**
 
 1. Pick a shirt and type your name and number.
-2. Check out and approve the payment on TestPay.
+2. Check out and press *Pay* on the payment page (test mode).
 3. Watch the order page: after about 3 minutes the order is shipped with a tracking number, after about 10 minutes it's delivered. The timings are `SIMULATION_*_MINUTES` in `.env`.
 4. Ask the assistant in the corner about it.
 
@@ -185,7 +186,7 @@ All settings are in [`.env.example`](.env.example). The important ones:
 | Variable | Purpose |
 |---|---|
 | `POSTGRES_*`, `DATABASE_URL`, `TEST_DATABASE_URL` | Database credentials and URLs |
-| `ENVIRONMENT` | `production` refuses the placeholder JWT secret and the scripted test model |
+| `ENVIRONMENT` | `production` refuses the placeholder JWT secret and the scripted test model, and switches off `/docs` |
 | `JWT_SECRET_KEY`, `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | Token signing secret (≥ 32 characters) and lifetime |
 | `OLLAMA_URL`, `LLM_MODEL`, `LLM_PROVIDER`, `LLM_THINK` | Where Ollama runs (from Docker: `host.docker.internal:11434`), the model, `ollama` or `scripted`, qwen3 thinking mode |
 | `AGENT_SEARCH_FIRST`, `RAG_QUERY_REWRITE` | Context first: the agent looks up orders, products and documents before the model answers; questions are rewritten into English search queries |
@@ -202,7 +203,7 @@ Shop prices (printing €15, free shipping from €50, €4.95 / €9.95, expres
 |---|---|---|
 | `postgres` | `127.0.0.1:5433` | PostgreSQL 16 with pgvector; data in the `postgres_data` volume |
 | `backend` | `8100` | Runs migrations, then the API (non-root, embedding model baked into the image, health check) |
-| `simulator` | none | The fictional warehouse and carrier (`scripts/fulfillment_simulator.py`, every 20 s) |
+| `simulator` | none | Stands in for the warehouse and carrier (`scripts/fulfillment_simulator.py`, every 20 s) |
 | `frontend` | `4000` | nginx with the built React app; proxies `/api` with SSE buffering off |
 
 Ollama runs on the host, not in a container, because on a Mac only native apps can use the GPU. The backend reaches it via `host.docker.internal`.
@@ -214,9 +215,20 @@ docker compose logs -f simulator       # "shipped=1 delivered=0 cancelled=0"
 docker compose down                    # stop (add -v to delete the database)
 ```
 
+**Production.** `docker-compose.prod.yml` is an override for a server:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+- Only the shop (nginx, port 4000) is published; the API and the database are reachable only inside Docker.
+- The backend image is built without pytest/ruff/mypy, and every service restarts by itself.
+- `ENVIRONMENT=production`: the app won't start with the placeholder JWT secret or the scripted model, and Swagger (`/docs`, `/openapi.json`) is off.
+- Put HTTPS in front of it (a reverse proxy such as Caddy or Traefik, or the host's load balancer). Ollama must be reachable from the backend at `OLLAMA_URL`.
+
 ## API Documentation
 
-Swagger UI: **<http://localhost:8100/docs>**. Through the shop the same API is at `/api/…`.
+Swagger UI: **<http://localhost:8100/docs>** (development only). Through the shop the same API is at `/api/…`.
 
 | Endpoint | Who | Notes |
 |---|---|---|
@@ -226,7 +238,7 @@ Swagger UI: **<http://localhost:8100/docs>**. Through the shop the same API is a
 | `GET /cart/quote?country=&shipping_method=` | anyone | Subtotal, shipping and total, the same calculation as the checkout |
 | `GET /shop/info` | anyone | Countries, shipping options, payment methods |
 | `POST /checkout` | customer | Cart → order (`pending`) + payment. Locks the size rows (`SELECT … FOR UPDATE`), reserves stock. 409 if stock ran out. |
-| `GET /payments/{id}`, `POST /payments/{id}/complete` | owner | TestPay: `{"outcome": "approve" \| "decline"}` |
+| `GET /payments/{id}`, `POST /payments/{id}/complete` | owner | The payment page: `{"outcome": "approve" \| "decline"}`; with a real provider this becomes its webhook |
 | `POST /orders/{id}/payments`, `POST /orders/{id}/cancel` | owner / staff | Pay again; cancel before shipping (stock back, paid orders refunded) |
 | `GET /orders`, `/orders/{id}` | owner / staff | Items with size and printing, address, payment, timeline |
 | `POST /chat`, `POST /chat/stream` | customer | The assistant; the stream sends `start`, `tool_start`, `tool_end`, `text`, `done`/`error` events |
@@ -243,7 +255,7 @@ Swagger UI: **<http://localhost:8100/docs>**. Through the shop the same API is a
 
 - The cart stores sizes, quantities and printing, never prices.
 - At checkout the server locks the size rows, checks the stock again (two customers can't buy the last shirt), copies product names, sizes and prices into the order (so later price changes don't alter old orders), reserves the stock and creates a payment.
-- TestPay plays the payment provider: *approve* → `paid`, order `processing`; *decline* → `failed`, and the customer can pay again.
+- The payment page reports what a provider would: *approve* → `paid`, order `processing`; *decline* → `failed`, and the customer can pay again.
 - Unpaid orders are cancelled after 30 minutes and the stock goes back.
 
 **The simulator** (`services/fulfillment_service.py`) stands in for the warehouse and the carrier:
@@ -306,7 +318,7 @@ sequenceDiagram
 |---|---|
 | `get_order_status(order_id)` | Status, payment, carrier, tracking number, estimated delivery, items with size and printed name |
 | `get_customer_orders(status?)` | The customer's latest orders |
-| `search_products(query, size?, category?)` | Products, prices, sale prices and the sizes in stock |
+| `search_products(query?, size?, category?, min_price?, max_price?, on_sale?)` | Products, prices, sale prices and the sizes in stock, plus how many match |
 | `search_knowledge_base(query)` | Semantic search; results are numbered `S1, S2…` for citations |
 | `request_order_cancellation(order_id)` | Checks that the order can still be cancelled and *offers* it; the chat shows a confirmation button. It never cancels. |
 | `create_support_ticket(subject, description, priority, order_id?)` | Opens a ticket (damaged, wrong, misprinted, lost) |
@@ -319,6 +331,8 @@ sequenceDiagram
 | Asked about the return policy in Dutch, it answered "14 days" without searching (the policy says 30). | Before the model's first turn, the agent searches the knowledge base itself, with a rewritten query. |
 | Asked about a fresh order, it skipped `get_order_status` and invented a delivery time. | The agent looks up every order number in the message itself. |
 | A club in the message (also "Polder" for Polder United, with a size like "maat M") wasn't looked up reliably. | The agent searches that club's products itself. |
+| "Hebben jullie shirts tussen 40-50 euro?" got "we don't have those": the tool had no price filter, and the knowledge base's "not found" instruction won over the product data. | Prices ("tussen 40-50", "onder de €60", "vanaf 70"), sale words and categories are recognised (`agents/product_intent.py`) and passed to `search_products`; when products are found, the "not found" instruction is left out and the products come last in the prompt. A regression test covers the question. |
+| The same question then showed "Based on: Shirt Printing": the help-article search matched the word "shirts", and the model cited it next to the prices. | A pure product question with results skips the help-article search; it runs only when the question also touches a policy topic (printing, delivery, returns, payment, size advice, care). |
 
 The results go into the prompt and show in the chat as real steps. The model can still call every tool itself.
 
@@ -329,6 +343,8 @@ The results go into the prompt and show in the chat as real steps. The model can
 - **No leaks:** the model never touches the database. Tools run as the signed-in user through the same services as the API, so someone else's order is "not found". Tests check this at unit, API and browser level.
 
 **Streaming and persistence.** The agent runs in a worker thread and streams events over SSE. The worker has **its own database session**. Before, a customer leaving the page mid-answer closed the request's session and the new conversation was rolled back; an end-to-end test found this. The question and answer are saved together with the tool calls, sources and latency.
+
+**What the customer sees.** The chat shows only the steps that matter to a customer (checked your order, searched our help articles) and the titles of the articles used. Tool arguments, scores and timings stay in the logs and the admin metrics.
 
 ## Testing
 
@@ -350,7 +366,7 @@ cd frontend && npx playwright install chromium && npx playwright test
   - **LLM:** the Ollama client against a fake Ollama server, plus an optional live test with the real model.
 - **Frontend** (Vitest): the shirt colour rules, the product page (size needed, low stock, printing payload and preview), the checkout (including a regression test for a bug where the emptied cart sent you to `/cart` instead of the payment page), the cancel button (only after confirmation), the SSE parser, chat state and safe Markdown.
 - **End-to-end** (Playwright, 9 tests):
-  - **The shop journey:** browse → print a shirt → cart → sign in at checkout → TestPay → order page → ask the assistant.
+  - **The shop journey:** browse → print a shirt → cart → sign in at checkout → pay → order page → ask the assistant.
   - **Cancelling via the chat:** the order is untouched until the button is pressed.
   - **Admin stock:** a size set to 0 shows as sold out in the shop.
   - **Support flows:** order questions, knowledge-base answers, another customer's order refused, admin pages, ticket handling.
@@ -375,54 +391,53 @@ docker compose exec backend python scripts/evaluate_rag.py                 # ret
 docker compose exec backend python scripts/evaluate_rag.py --skip-answers  # retrieval with the raw question only
 ```
 
-Measured on 2026-10-08 with `qwen3:8b` in Ollama on an Apple M4 (16 GB), threshold 0.64. The full report is in `scripts/eval/results/latest.json`.
+Measured on 2026-10-08 with `qwen3:8b` in Ollama on an Apple M4 (16 GB), threshold 0.64, after the last change to the documents. The full report is in `scripts/eval/results/latest.json`.
 
 **Retrieval.** "Raw" searches with the question as typed; "rewritten" first lets the local LLM turn it into an English query, which is what the app does.
 
 | Metric | Raw question | Rewritten query |
 |---|---|---|
-| hit@1 / hit@3 (the right document first / in the top 3) | 0.793 / 0.966 | **0.931 / 0.966** |
-| hit@1 English / Dutch | 1.000 / 0.333 | 0.900 / **1.000** |
-| MRR | 0.874 | **0.957** |
+| hit@1 / hit@3 (the right document first / in the top 3) | 0.828 / 0.966 | **0.966 / 1.000** |
+| hit@1 English / Dutch | 1.000 / 0.444 | 0.950 / **1.000** |
+| MRR | 0.891 | **0.983** |
 | Context precision (relevant chunks from the right document) | 0.765 | **0.843** |
 | Fact coverage (required facts in the retrieved context) | 0.750 | **0.964** |
 | Answerable questions that get context | 0.759 | **1.000** |
-| Unanswerable questions stopped before the LLM | **0.778** | 0.556 |
-| Search latency p50 (the rewrite adds about 0.5 s of LLM time) | 8 ms | 26 ms |
+| Unanswerable questions stopped before the LLM | **0.889** | 0.667 |
+| Search latency p50 (the rewrite adds about 0.5 s of LLM time) | 11 ms | 18 ms |
 
-Rewriting is what makes Dutch questions work: hit@1 goes from 0.333 to 1.000. It also makes unanswerable questions look more like the documents, so fewer are stopped before the model; for those, the model is told to give the not-found message.
+Rewriting is what makes Dutch questions work: hit@1 goes from 0.444 to 1.000. It also makes unanswerable questions look more like the documents, so fewer are stopped before the model; for those, the model is told to give the not-found message.
 
 **Answers** (`qwen3:8b`, the full pipeline with rewriting, as in `/knowledge-base/ask`):
 
 | Metric | All | English | Dutch |
 |---|---|---|---|
-| Answer correctness (all required facts in the answer) | **0.931** | 0.900 | 1.000 |
+| Answer correctness (all required facts in the answer) | **0.966** | 0.950 | 1.000 |
 | Abstention accuracy (not-found message on unanswerable questions) | **1.000** | 1.000 | 1.000 |
-| Latency p50 / p95 per answer | **4.1 s / 9.1 s** | | |
+| Latency p50 / p95 per answer | **4.6 s / 7.7 s** | | |
 
-The two answers counted as wrong:
+The one answer counted as wrong:
 
-- `shp-3` ("Is express delivery available in Germany?") was answered correctly, "Express delivery is not available in Germany". It counts as wrong because it doesn't name the Netherlands and Belgium; the check is strict.
 - `siz-2` ("Do the retro shirts fit the same as the new shirts?") is a real miss. The rewrite dropped the word "retro" ("product fit comparison"), so the right passage scored just below the threshold, and the answer was "not found". That is wrong, but safe.
 
-**Choosing the threshold.** The first run used 0.60: abstention accuracy was 0.778 and answer correctness 0.897. The model then claimed things the documents don't say, for example "we don't sell football boots". The sweep showed that with rewritten queries every answerable question still gets context up to 0.64, while more unanswerable ones are stopped. So the threshold was raised to 0.64 and everything was measured again; these are the numbers above.
+**Choosing the threshold.** The first run used 0.60: abstention accuracy was 0.778 and answer correctness 0.897. The model then claimed things the documents don't say, for example "we don't sell football boots". The sweep showed that with rewritten queries every answerable question still gets context up to 0.64, while more unanswerable ones are stopped. So the threshold was raised to 0.64 and everything was measured again. The sweep below is from the latest run.
 
 | Threshold (rewritten) | 0.58 | 0.60 | 0.62 | **0.64** | 0.66 | 0.68 | 0.70 |
 |---|---|---|---|---|---|---|---|
-| Answerable questions with context | 1.000 | 1.000 | 1.000 | **1.000** | 0.966 | 0.931 | 0.862 |
-| Unanswerable stopped before the LLM | 0.222 | 0.333 | 0.556 | **0.556** | 0.889 | 1.000 | 1.000 |
+| Answerable questions with context | 1.000 | 1.000 | 1.000 | **1.000** | 0.966 | 0.931 | 0.931 |
+| Unanswerable stopped before the LLM | 0.333 | 0.444 | 0.667 | **0.667** | 0.889 | 1.000 | 1.000 |
 
 Keep in mind:
 
 - 38 questions is a small set, and the threshold was tuned on the same set.
-- The model's rewrites and answers vary a little between runs (for example, hit@1 was 0.966 in the first run and 0.931 in the second).
+- The model's rewrites and answers vary a little between runs (for example, hit@1 with rewriting was 0.966, 0.931 and 0.966 in three runs; in an earlier run `shp-3` was counted wrong because the correct answer didn't name the Netherlands and Belgium).
 - The answer check looks for literal facts. An LLM-as-judge would measure answers with other wording more fairly.
 
 ### Observability
 
 - **Logs:** structured JSON with a request id. LLM calls log model, tokens, latency and stop reason; tool calls log name, ok/error and duration; RAG logs chunks and best score. Never logged: passwords, tokens, keys, message texts, search queries or tool argument values. The redacting formatter is a second safety net; it once also hid harmless counters like `input_tokens`, which a test now covers.
 - **Metrics:** `GET /admin/metrics` and the admin page are computed with SQL.
-  - **Shop:** revenue of paid orders (fictional money), orders, cancellations, average order value, best sellers, sizes with low stock, orders per day.
+  - **Shop:** revenue of paid orders (refunds excluded), orders, cancellations, average order value, best sellers, sizes with low stock, orders per day.
   - **Assistant:** conversations, response latency (average and p95), tool calls per tool, knowledge-base searches, tickets, and the questions it couldn't answer, which show which documents are missing.
 
 ## Security
@@ -444,14 +459,23 @@ Keep in mind:
 
 - The JWT is stored in `localStorage`, and there is no token revocation.
 - Rate limits are in memory per process.
-- Docker Compose here has no HTTPS.
+- HTTPS is left to a proxy in front of the stack (see Production).
 - The guest cart token lives in `localStorage` too.
 
-Payments are simulated, so no payment data is ever handled.
+No card or bank data is ever handled: the payment page is in test mode, and a real provider keeps that data on its own pages.
+
+## Going live
+
+What is ready: the shop, the stock and price rules, the assistant, accounts, the admin, production settings and the tests. What a real launch still needs, because these are outside services with their own accounts and costs:
+
+- **A payment provider** (for example Mollie or Stripe): replace the test-mode payment page by the provider's checkout and `POST /payments/{id}/complete` by its webhook. Until then the payment page says *Test mode* and no money moves.
+- **Warehouse and carrier:** replace the simulator by the carrier's API (labels, tracking) or the warehouse system.
+- **Email** for order confirmations and return labels.
+- **HTTPS, a domain, backups** of the PostgreSQL volume, and legal pages (terms, privacy, imprint).
+- **The real catalogue:** the demo clubs are made up; real club shirts need licences and product photos.
 
 ## Future Improvements
 
-- Real payments through a provider's test mode (for example Mollie or Stripe) instead of TestPay, with webhooks.
 - Wishlists, reviews and product photos; more languages in the shop's interface.
 - A bigger local model (for example `qwen3:14b` with 32 GB RAM) for better Dutch answers, and an LLM-as-judge in the evaluation.
 - A stronger multilingual embedding model, measured against query rewriting.

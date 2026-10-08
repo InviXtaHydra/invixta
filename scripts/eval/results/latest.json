@@ -7,27 +7,27 @@
       "questions": 38,
       "answerable": 29,
       "unanswerable": 9,
-      "hit@1": 0.793,
+      "hit@1": 0.828,
       "hit@3": 0.966,
       "hit@5": 0.966,
-      "mrr": 0.874,
+      "mrr": 0.891,
       "context_precision": 0.765,
       "fact_coverage": 0.75,
       "answerable_retrieved": 0.759,
-      "unanswerable_abstained": 0.778,
-      "latency_ms_p50": 8.4,
-      "latency_ms_p95": 14.9,
+      "unanswerable_abstained": 0.889,
+      "latency_ms_p50": 11.1,
+      "latency_ms_p95": 33.2,
       "by_language": {
         "en": {
           "questions": 26,
           "hit@1": 1.0,
           "hit@3": 1.0,
           "answerable_retrieved": 1.0,
-          "unanswerable_abstained": 0.667
+          "unanswerable_abstained": 0.833
         },
         "nl": {
           "questions": 12,
-          "hit@1": 0.333,
+          "hit@1": 0.444,
           "hit@3": 0.889,
           "answerable_retrieved": 0.222,
           "unanswerable_abstained": 1.0
@@ -47,12 +47,12 @@
         {
           "threshold": 0.54,
           "answerable_retrieved": 0.897,
-          "unanswerable_abstained": 0.222
+          "unanswerable_abstained": 0.444
         },
         {
           "threshold": 0.56,
           "answerable_retrieved": 0.862,
-          "unanswerable_abstained": 0.333
+          "unanswerable_abstained": 0.444
         },
         {
           "threshold": 0.58,
@@ -62,17 +62,17 @@
         {
           "threshold": 0.6,
           "answerable_retrieved": 0.793,
-          "unanswerable_abstained": 0.667
+          "unanswerable_abstained": 0.778
         },
         {
           "threshold": 0.62,
           "answerable_retrieved": 0.759,
-          "unanswerable_abstained": 0.667
+          "unanswerable_abstained": 0.778
         },
         {
           "threshold": 0.64,
           "answerable_retrieved": 0.759,
-          "unanswerable_abstained": 0.778
+          "unanswerable_abstained": 0.889
         },
         {
           "threshold": 0.66,
@@ -102,7 +102,7 @@
           "precision": 0.6,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 66.6
+          "latency_ms": 54.0
         },
         {
           "id": "ret-2",
@@ -115,7 +115,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 24.7
+          "latency_ms": 13.2
         },
         {
           "id": "ret-3",
@@ -128,7 +128,7 @@
           "precision": 0.4,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 13.7
+          "latency_ms": 11.1
         },
         {
           "id": "ret-4",
@@ -141,7 +141,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 11.6
+          "latency_ms": 33.2
         },
         {
           "id": "ret-5",
@@ -154,7 +154,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 8.4
+          "latency_ms": 23.8
         },
         {
           "id": "shp-1",
@@ -167,7 +167,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 8.3
+          "latency_ms": 43.6
         },
         {
           "id": "shp-2",
@@ -180,7 +180,7 @@
           "precision": 0.6,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 10.9
+          "latency_ms": 7.5
         },
         {
           "id": "shp-3",
@@ -193,7 +193,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 7.0
+          "latency_ms": 6.5
         },
         {
           "id": "shp-4",
@@ -206,7 +206,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 6.2
+          "latency_ms": 10.6
         },
         {
           "id": "shp-5",
@@ -219,7 +219,7 @@
           "precision": 0.2,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 6.6
+          "latency_ms": 28.9
         },
         {
           "id": "shp-6",
@@ -232,7 +232,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 4.1
+          "latency_ms": 20.4
         },
         {
           "id": "siz-1",
@@ -245,7 +245,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 13.5
+          "latency_ms": 14.5
         },
         {
           "id": "siz-2",
@@ -258,7 +258,7 @@
           "precision": 0.3333333333333333,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 4.4
+          "latency_ms": 13.0
         },
         {
           "id": "siz-3",
@@ -271,7 +271,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 4.7
+          "latency_ms": 8.1
         },
         {
           "id": "prt-1",
@@ -284,7 +284,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 8.7
+          "latency_ms": 14.9
         },
         {
           "id": "prt-2",
@@ -297,7 +297,7 @@
           "precision": 0.4,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 14.9
+          "latency_ms": 5.8
         },
         {
           "id": "prt-3",
@@ -310,7 +310,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 8.9
+          "latency_ms": 13.2
         },
         {
           "id": "pay-1",
@@ -323,7 +323,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 8.0
+          "latency_ms": 8.3
         },
         {
           "id": "pay-2",
@@ -336,7 +336,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 9.7
+          "latency_ms": 13.1
         },
         {
           "id": "car-1",
@@ -349,20 +349,20 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 5.4
+          "latency_ms": 11.2
         },
         {
           "id": "na-1",
           "language": "en",
           "query": "Do you offer gift wrapping?",
           "answerable": false,
-          "best_score": 0.574,
+          "best_score": 0.581,
           "top_document": "Returns and Exchanges.pdf",
           "rank": null,
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 3.9
+          "latency_ms": 6.7
         },
         {
           "id": "na-2",
@@ -375,7 +375,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 4.3
+          "latency_ms": 12.6
         },
         {
           "id": "na-3",
@@ -388,20 +388,20 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 4.6
+          "latency_ms": 11.4
         },
         {
           "id": "na-4",
           "language": "en",
-          "query": "Who is the CEO of Kopbal?",
+          "query": "Who is the CEO of Invixta?",
           "answerable": false,
-          "best_score": 0.655,
-          "top_document": "Payment FAQ.pdf",
+          "best_score": 0.531,
+          "top_document": "Returns and Exchanges.pdf",
           "rank": null,
           "precision": null,
           "fact_coverage": null,
-          "abstained": false,
-          "latency_ms": 7.2
+          "abstained": true,
+          "latency_ms": 8.4
         },
         {
           "id": "na-5",
@@ -414,7 +414,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 5.1
+          "latency_ms": 5.5
         },
         {
           "id": "na-6",
@@ -427,7 +427,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": false,
-          "latency_ms": 6.4
+          "latency_ms": 8.0
         },
         {
           "id": "nl-ret-1",
@@ -440,7 +440,7 @@
           "precision": null,
           "fact_coverage": 0.0,
           "abstained": true,
-          "latency_ms": 11.3
+          "latency_ms": 14.9
         },
         {
           "id": "nl-ret-2",
@@ -453,7 +453,7 @@
           "precision": 0.5,
           "fact_coverage": null,
           "abstained": false,
-          "latency_ms": 10.8
+          "latency_ms": 14.0
         },
         {
           "id": "nl-shp-1",
@@ -466,20 +466,20 @@
           "precision": null,
           "fact_coverage": 0.0,
           "abstained": true,
-          "latency_ms": 10.8
+          "latency_ms": 10.7
         },
         {
           "id": "nl-shp-2",
           "language": "nl",
           "query": "Wat kost verzending naar Duitsland?",
           "answerable": true,
-          "best_score": 0.539,
-          "top_document": "Returns and Exchanges.pdf",
-          "rank": 2,
+          "best_score": 0.535,
+          "top_document": "Shipping and Delivery.pdf",
+          "rank": 1,
           "precision": null,
           "fact_coverage": 0.0,
           "abstained": true,
-          "latency_ms": 9.6
+          "latency_ms": 6.5
         },
         {
           "id": "nl-shp-3",
@@ -492,7 +492,7 @@
           "precision": null,
           "fact_coverage": 0.0,
           "abstained": true,
-          "latency_ms": 10.8
+          "latency_ms": 8.5
         },
         {
           "id": "nl-siz-1",
@@ -505,7 +505,7 @@
           "precision": null,
           "fact_coverage": 0.0,
           "abstained": true,
-          "latency_ms": 14.5
+          "latency_ms": 8.8
         },
         {
           "id": "nl-prt-1",
@@ -518,7 +518,7 @@
           "precision": null,
           "fact_coverage": 0.0,
           "abstained": true,
-          "latency_ms": 11.2
+          "latency_ms": 14.0
         },
         {
           "id": "nl-pay-1",
@@ -531,7 +531,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 8.3
+          "latency_ms": 13.5
         },
         {
           "id": "nl-car-1",
@@ -544,7 +544,7 @@
           "precision": null,
           "fact_coverage": 0.0,
           "abstained": true,
-          "latency_ms": 8.7
+          "latency_ms": 9.0
         },
         {
           "id": "nl-na-1",
@@ -557,20 +557,20 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 9.3
+          "latency_ms": 5.9
         },
         {
           "id": "nl-na-2",
           "language": "nl",
           "query": "Verkopen jullie voetbalschoenen?",
           "answerable": false,
-          "best_score": 0.557,
-          "top_document": "Returns and Exchanges.pdf",
+          "best_score": 0.521,
+          "top_document": "Shipping and Delivery.pdf",
           "rank": null,
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 5.3
+          "latency_ms": 4.4
         },
         {
           "id": "nl-na-3",
@@ -583,7 +583,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 3.2
+          "latency_ms": 3.3
         }
       ]
     },
@@ -594,23 +594,23 @@
       "questions": 38,
       "answerable": 29,
       "unanswerable": 9,
-      "hit@1": 0.931,
-      "hit@3": 0.966,
+      "hit@1": 0.966,
+      "hit@3": 1.0,
       "hit@5": 1.0,
-      "mrr": 0.957,
+      "mrr": 0.983,
       "context_precision": 0.843,
       "fact_coverage": 0.964,
       "answerable_retrieved": 1.0,
-      "unanswerable_abstained": 0.556,
-      "latency_ms_p50": 25.9,
-      "latency_ms_p95": 138.7,
+      "unanswerable_abstained": 0.667,
+      "latency_ms_p50": 17.7,
+      "latency_ms_p95": 27.2,
       "by_language": {
         "en": {
           "questions": 26,
-          "hit@1": 0.9,
-          "hit@3": 0.95,
+          "hit@1": 0.95,
+          "hit@3": 1.0,
           "answerable_retrieved": 1.0,
-          "unanswerable_abstained": 0.333
+          "unanswerable_abstained": 0.5
         },
         "nl": {
           "questions": 12,
@@ -639,27 +639,27 @@
         {
           "threshold": 0.56,
           "answerable_retrieved": 1.0,
-          "unanswerable_abstained": 0.0
+          "unanswerable_abstained": 0.111
         },
         {
           "threshold": 0.58,
           "answerable_retrieved": 1.0,
-          "unanswerable_abstained": 0.222
+          "unanswerable_abstained": 0.333
         },
         {
           "threshold": 0.6,
           "answerable_retrieved": 1.0,
-          "unanswerable_abstained": 0.333
+          "unanswerable_abstained": 0.444
         },
         {
           "threshold": 0.62,
           "answerable_retrieved": 1.0,
-          "unanswerable_abstained": 0.556
+          "unanswerable_abstained": 0.667
         },
         {
           "threshold": 0.64,
           "answerable_retrieved": 1.0,
-          "unanswerable_abstained": 0.556
+          "unanswerable_abstained": 0.667
         },
         {
           "threshold": 0.66,
@@ -673,7 +673,7 @@
         },
         {
           "threshold": 0.7,
-          "answerable_retrieved": 0.862,
+          "answerable_retrieved": 0.931,
           "unanswerable_abstained": 1.0
         }
       ],
@@ -689,7 +689,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 46.9
+          "latency_ms": 6.1
         },
         {
           "id": "ret-2",
@@ -702,7 +702,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 39.1
+          "latency_ms": 16.4
         },
         {
           "id": "ret-3",
@@ -715,7 +715,7 @@
           "precision": 0.4,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 165.7
+          "latency_ms": 18.6
         },
         {
           "id": "ret-4",
@@ -728,7 +728,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 43.2
+          "latency_ms": 17.6
         },
         {
           "id": "ret-5",
@@ -741,7 +741,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 23.7
+          "latency_ms": 23.6
         },
         {
           "id": "shp-1",
@@ -754,7 +754,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 18.4
+          "latency_ms": 18.7
         },
         {
           "id": "shp-2",
@@ -767,7 +767,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 48.6
+          "latency_ms": 12.4
         },
         {
           "id": "shp-3",
@@ -780,7 +780,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 27.0
+          "latency_ms": 8.0
         },
         {
           "id": "shp-4",
@@ -793,20 +793,20 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 34.5
+          "latency_ms": 17.7
         },
         {
           "id": "shp-5",
           "language": "en",
-          "query": "return policy after shipment",
+          "query": "cancel order after shipped",
           "answerable": true,
-          "best_score": 0.766,
-          "top_document": "Returns and Exchanges.pdf",
-          "rank": 4,
+          "best_score": 0.803,
+          "top_document": "Shipping and Delivery.pdf",
+          "rank": 1,
           "precision": 0.2,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 16.0
+          "latency_ms": 32.9
         },
         {
           "id": "shp-6",
@@ -819,7 +819,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 21.1
+          "latency_ms": 14.2
         },
         {
           "id": "siz-1",
@@ -832,7 +832,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 24.5
+          "latency_ms": 18.9
         },
         {
           "id": "siz-2",
@@ -845,7 +845,7 @@
           "precision": 0.5,
           "fact_coverage": 0.0,
           "abstained": false,
-          "latency_ms": 19.6
+          "latency_ms": 17.7
         },
         {
           "id": "siz-3",
@@ -858,7 +858,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 20.9
+          "latency_ms": 28.8
         },
         {
           "id": "prt-1",
@@ -871,7 +871,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 139.4
+          "latency_ms": 23.2
         },
         {
           "id": "prt-2",
@@ -884,7 +884,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 56.2
+          "latency_ms": 12.4
         },
         {
           "id": "prt-3",
@@ -897,20 +897,20 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 18.9
+          "latency_ms": 18.4
         },
         {
           "id": "pay-1",
           "language": "en",
           "query": "payments",
           "answerable": true,
-          "best_score": 0.685,
+          "best_score": 0.714,
           "top_document": "Payment FAQ.pdf",
           "rank": 1,
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 29.9
+          "latency_ms": 15.4
         },
         {
           "id": "pay-2",
@@ -923,7 +923,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 54.6
+          "latency_ms": 17.0
         },
         {
           "id": "car-1",
@@ -936,7 +936,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 29.7
+          "latency_ms": 22.2
         },
         {
           "id": "na-1",
@@ -949,7 +949,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 24.0
+          "latency_ms": 14.0
         },
         {
           "id": "na-2",
@@ -962,7 +962,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": false,
-          "latency_ms": 26.0
+          "latency_ms": 22.0
         },
         {
           "id": "na-3",
@@ -975,20 +975,20 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 10.5
+          "latency_ms": 17.2
         },
         {
           "id": "na-4",
           "language": "en",
-          "query": "Who is the CEO of Kopbal?",
+          "query": "ceo of invixta",
           "answerable": false,
-          "best_score": 0.655,
-          "top_document": "Payment FAQ.pdf",
+          "best_score": 0.553,
+          "top_document": "Returns and Exchanges.pdf",
           "rank": null,
           "precision": null,
           "fact_coverage": null,
-          "abstained": false,
-          "latency_ms": 22.5
+          "abstained": true,
+          "latency_ms": 17.9
         },
         {
           "id": "na-5",
@@ -1001,7 +1001,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": false,
-          "latency_ms": 18.4
+          "latency_ms": 17.1
         },
         {
           "id": "na-6",
@@ -1014,7 +1014,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": false,
-          "latency_ms": 23.9
+          "latency_ms": 17.5
         },
         {
           "id": "nl-ret-1",
@@ -1027,7 +1027,7 @@
           "precision": 0.6,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 10.3
+          "latency_ms": 21.5
         },
         {
           "id": "nl-ret-2",
@@ -1040,7 +1040,7 @@
           "precision": 1.0,
           "fact_coverage": null,
           "abstained": false,
-          "latency_ms": 18.4
+          "latency_ms": 19.2
         },
         {
           "id": "nl-shp-1",
@@ -1053,7 +1053,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 24.1
+          "latency_ms": 13.9
         },
         {
           "id": "nl-shp-2",
@@ -1066,7 +1066,7 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 137.7
+          "latency_ms": 16.4
         },
         {
           "id": "nl-shp-3",
@@ -1079,20 +1079,20 @@
           "precision": 0.8,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 59.0
+          "latency_ms": 22.1
         },
         {
           "id": "nl-siz-1",
           "language": "nl",
-          "query": "What size children's t-shirt fits a 10-year-old child?",
+          "query": "what size children's t-shirt fits a 10 year old child",
           "answerable": true,
-          "best_score": 0.683,
+          "best_score": 0.708,
           "top_document": "Size Guide.pdf",
           "rank": 1,
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 138.7
+          "latency_ms": 26.7
         },
         {
           "id": "nl-prt-1",
@@ -1105,7 +1105,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 37.5
+          "latency_ms": 18.9
         },
         {
           "id": "nl-pay-1",
@@ -1118,7 +1118,7 @@
           "precision": 1.0,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 70.2
+          "latency_ms": 14.8
         },
         {
           "id": "nl-car-1",
@@ -1131,7 +1131,7 @@
           "precision": 0.75,
           "fact_coverage": 1.0,
           "abstained": false,
-          "latency_ms": 137.5
+          "latency_ms": 21.6
         },
         {
           "id": "nl-na-1",
@@ -1144,7 +1144,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 16.8
+          "latency_ms": 27.2
         },
         {
           "id": "nl-na-2",
@@ -1157,7 +1157,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 25.9
+          "latency_ms": 6.6
         },
         {
           "id": "nl-na-3",
@@ -1170,7 +1170,7 @@
           "precision": null,
           "fact_coverage": null,
           "abstained": true,
-          "latency_ms": 21.6
+          "latency_ms": 25.6
         }
       ]
     }
@@ -1179,7 +1179,7 @@
     "model": "qwen3:8b",
     "by_language": {
       "en": {
-        "answer_correctness": 0.9,
+        "answer_correctness": 0.95,
         "abstention_accuracy": 1.0
       },
       "nl": {
@@ -1187,10 +1187,10 @@
         "abstention_accuracy": 1.0
       }
     },
-    "answer_correctness": 0.931,
+    "answer_correctness": 0.966,
     "abstention_accuracy": 1.0,
-    "latency_ms_p50": 4136,
-    "latency_ms_p95": 9141,
+    "latency_ms_p50": 4614,
+    "latency_ms_p95": 7711,
     "per_question": [
       {
         "id": "ret-1",
@@ -1202,7 +1202,7 @@
           "Returns and Exchanges.pdf",
           "Shirt Printing.pdf"
         ],
-        "latency_ms": 5876,
+        "latency_ms": 6788,
         "answer": "You have 30 days to return an unprinted shirt from the day the parcel is delivered, as shown in the carrier's tracking [1]. If the shirt is printed, it cannot be returned unless there is a mistake in the print or the shirt is damaged [2]."
       },
       {
@@ -1215,8 +1215,8 @@
           "Returns and Exchanges.pdf",
           "Shirt Printing.pdf"
         ],
-        "latency_ms": 5315,
-        "answer": "No, you cannot return a shirt with your name printed on it unless the print is wrong or the shirt is damaged [2][3]."
+        "latency_ms": 6084,
+        "answer": "You can return a shirt with your name printed on it only if the print is wrong or the shirt is damaged [2][3]. Otherwise, it cannot be returned for a refund."
       },
       {
         "id": "ret-3",
@@ -1227,7 +1227,7 @@
         "cited": [
           "Returns and Exchanges.pdf"
         ],
-        "latency_ms": 5651,
+        "latency_ms": 7651,
         "answer": "If your shirt is too small, you can swap it for a bigger size, provided you open a support ticket within 30 days with your order number and the size you need [1]. The exchange is free in the Netherlands and Belgium, but it depends on stock availability [1]. If your desired size is sold out, a refund will be issued instead."
       },
       {
@@ -1240,7 +1240,7 @@
           "Payment FAQ.pdf",
           "Returns and Exchanges.pdf"
         ],
-        "latency_ms": 5519,
+        "latency_ms": 7711,
         "answer": "After returning an item, you will get your money back within 5 working days once we receive the return, and the refund will go to your original payment method [2]. Depending on your bank, it may take an additional 2 to 3 days for the money to appear in your account [1]."
       },
       {
@@ -1252,8 +1252,8 @@
         "cited": [
           "Returns and Exchanges.pdf"
         ],
-        "latency_ms": 5170,
-        "answer": "If your shirt arrived with the wrong name printed on it, report it within 14 days of delivery [2]. Include your order number and a photo. We will send a free replacement or reprint, or give a full refund, whichever you prefer. You don't need to send the item back unless we ask for it."
+        "latency_ms": 7179,
+        "answer": "If your shirt arrived with the wrong name printed on it, report it within 14 days of delivery by including your order number and a photo [2]. We will send a free replacement or reprint, or give a full refund, whichever you prefer. You don't need to send the item back unless we ask for it."
       },
       {
         "id": "shp-1",
@@ -1264,7 +1264,7 @@
         "cited": [
           "Shipping and Delivery.pdf"
         ],
-        "latency_ms": 2606,
+        "latency_ms": 5040,
         "answer": "Delivery to Belgium takes 1 to 3 working days for standard delivery [1]. Express delivery arrives the next working day [1]."
       },
       {
@@ -1276,20 +1276,20 @@
         "cited": [
           "Shipping and Delivery.pdf"
         ],
-        "latency_ms": 1629,
+        "latency_ms": 4614,
         "answer": "Shipping to Germany costs EUR 9.95 [1]."
       },
       {
         "id": "shp-3",
         "language": "en",
         "answerable": true,
-        "correct": false,
+        "correct": true,
         "answered": true,
         "cited": [
           "Shipping and Delivery.pdf"
         ],
-        "latency_ms": 3638,
-        "answer": "Express delivery is not available in Germany [4]."
+        "latency_ms": 4233,
+        "answer": "Express delivery is only available in the Netherlands and Belgium, according to the information provided [4]. Therefore, express delivery is not available in Germany."
       },
       {
         "id": "shp-4",
@@ -1300,7 +1300,7 @@
         "cited": [
           "Shipping and Delivery.pdf"
         ],
-        "latency_ms": 1583,
+        "latency_ms": 4341,
         "answer": "In Belgium, your parcel is delivered by bpost [1]."
       },
       {
@@ -1312,7 +1312,7 @@
         "cited": [
           "Shipping and Delivery.pdf"
         ],
-        "latency_ms": 5763,
+        "latency_ms": 4806,
         "answer": "No, you cannot cancel an order after it has shipped. Once the order has shipped, it cannot be cancelled, but you can return unprinted items after delivery [1]."
       },
       {
@@ -1324,8 +1324,8 @@
         "cited": [
           "Shipping and Delivery.pdf"
         ],
-        "latency_ms": 5614,
-        "answer": "No, we do not ship to Switzerland. We deliver only within the European Union, and Switzerland is not part of the EU [1]."
+        "latency_ms": 6475,
+        "answer": "No, we do not ship to Switzerland. We deliver to the Netherlands, Belgium, Luxembourg, Germany, France, Austria, Denmark, Spain, Ireland, Italy, and Portugal, but not to Switzerland or other countries outside the European Union [1]."
       },
       {
         "id": "siz-1",
@@ -1336,7 +1336,7 @@
         "cited": [
           "Size Guide.pdf"
         ],
-        "latency_ms": 5769,
+        "latency_ms": 6424,
         "answer": "Based on the size guide, a chest measurement of 98 cm falls within the range for a Medium (M) size, which fits a chest of 94 to 100 cm [1]. Therefore, you should take a Medium (M) size."
       },
       {
@@ -1346,7 +1346,7 @@
         "correct": false,
         "answered": false,
         "cited": [],
-        "latency_ms": 4136,
+        "latency_ms": 4005,
         "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
@@ -1358,7 +1358,7 @@
         "cited": [
           "Size Guide.pdf"
         ],
-        "latency_ms": 3209,
+        "latency_ms": 2936,
         "answer": "The kids kit size that fits an 8 year old is 128 cm [1]."
       },
       {
@@ -1370,7 +1370,7 @@
         "cited": [
           "Shirt Printing.pdf"
         ],
-        "latency_ms": 6652,
+        "latency_ms": 6159,
         "answer": "The cost to print a name and number on a shirt is EUR 15.00, as this price applies whether you choose a name, a number, or both [1]."
       },
       {
@@ -1382,7 +1382,7 @@
         "cited": [
           "Shirt Printing.pdf"
         ],
-        "latency_ms": 4021,
+        "latency_ms": 3705,
         "answer": "No, you cannot have your name printed on a training top. The sources state that training tops cannot be printed [1]."
       },
       {
@@ -1394,7 +1394,7 @@
         "cited": [
           "Shirt Printing.pdf"
         ],
-        "latency_ms": 2100,
+        "latency_ms": 1801,
         "answer": "The name on the back can have up to 12 characters [1]."
       },
       {
@@ -1406,8 +1406,8 @@
         "cited": [
           "Payment FAQ.pdf"
         ],
-        "latency_ms": 3581,
-        "answer": "Yes, you can pay with Bancontact [2]."
+        "latency_ms": 2954,
+        "answer": "Yes, you can pay with Bancontact [3]."
       },
       {
         "id": "pay-2",
@@ -1418,7 +1418,7 @@
         "cited": [
           "Payment FAQ.pdf"
         ],
-        "latency_ms": 4898,
+        "latency_ms": 4336,
         "answer": "If your payment was declined, open the order on your order page and choose \"Pay now\" to try again with the same or another payment method. Your items will remain reserved while the order is pending [1]."
       },
       {
@@ -1431,8 +1431,8 @@
           "Product Care.pdf",
           "Shirt Printing.pdf"
         ],
-        "latency_ms": 7987,
-        "answer": "You should wash your printed shirt inside out at 30 degrees and avoid using a tumble dryer or ironing the print [1]. Additionally, do not use bleach or fabric softener, and wash it with similar colours [3]."
+        "latency_ms": 5818,
+        "answer": "You should wash your printed shirt inside out at 30 degrees and avoid using a tumble dryer or ironing the print [1]. Additionally, do not use bleach or fabric softener [3]."
       },
       {
         "id": "na-1",
@@ -1441,7 +1441,7 @@
         "correct": true,
         "answered": false,
         "cited": [],
-        "latency_ms": 916,
+        "latency_ms": 605,
         "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
@@ -1451,7 +1451,7 @@
         "correct": true,
         "answered": false,
         "cited": [],
-        "latency_ms": 3309,
+        "latency_ms": 1815,
         "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
@@ -1461,7 +1461,7 @@
         "correct": true,
         "answered": false,
         "cited": [],
-        "latency_ms": 1042,
+        "latency_ms": 502,
         "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
@@ -1471,7 +1471,7 @@
         "correct": true,
         "answered": false,
         "cited": [],
-        "latency_ms": 2320,
+        "latency_ms": 679,
         "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
@@ -1481,7 +1481,7 @@
         "correct": true,
         "answered": false,
         "cited": [],
-        "latency_ms": 3122,
+        "latency_ms": 2883,
         "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
@@ -1491,7 +1491,7 @@
         "correct": true,
         "answered": false,
         "cited": [],
-        "latency_ms": 3487,
+        "latency_ms": 3720,
         "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
@@ -1504,8 +1504,8 @@
           "Returns and Exchanges.pdf",
           "Shirt Printing.pdf"
         ],
-        "latency_ms": 9141,
-        "answer": "Je hebt 30 dagen om een shirt terug te sturen, mits het ongedrukt is, ongebruikt en de etiketten intact zijn [1]. Als het shirt is gedrukt, kan het alleen worden teruggestaan als er een fout in de druk is of het shirt beschadigd is [2]."
+        "latency_ms": 8417,
+        "answer": "Je hebt 30 dagen om een shirt terug te sturen, mits het ongedrukt is, ongebruikt en de etiketten erop nog aanwezig zijn [1]. Als het shirt gedrukt is, kan het alleen worden teruggestaan als er een fout in de druk is of het shirt beschadigd is [2]."
       },
       {
         "id": "nl-ret-2",
@@ -1514,11 +1514,10 @@
         "correct": true,
         "answered": true,
         "cited": [
-          "Returns and Exchanges.pdf",
-          "Shirt Printing.pdf"
+          "Returns and Exchanges.pdf"
         ],
-        "latency_ms": 8442,
-        "answer": "Ja, je kunt een bedrukt shirt retourneren, maar alleen onder bepaalde voorwaarden. Als het shirt beschadigd is of de druk fout is, kun je het gratis retourneren [4]. Voor andere redenen kan een bedrukt shirt niet worden teruggerekend of gewisseld, tenzij het beschadigd is of de druk fout is [3]."
+        "latency_ms": 11215,
+        "answer": "Ja, je kunt een bedrukt shirt retourneren onder bepaalde voorwaarden. Als het shirt beschadigd is, het verkeerde nummer of naam heeft, of als de drukking fout is, kan je het shirt retourneren en krijg je een gratis vervanging of volledige terugbetaling [4]. Voor andere redenen kan een bedrukt shirt niet worden geretourneerd of gewisseld, tenzij het beschadigd is of de drukking fout is [2]."
       },
       {
         "id": "nl-shp-1",
@@ -1529,8 +1528,8 @@
         "cited": [
           "Shipping and Delivery.pdf"
         ],
-        "latency_ms": 10169,
-        "answer": "De levering naar België duurt 1 tot 3 werkdagen voor standaardlevering [1]. Voor expresslevering arriveert het product de volgende werkdag [1]."
+        "latency_ms": 6483,
+        "answer": "De levering naar België duurt 1 tot 3 werkdagen voor standaardlevering [1]. Voor expresslevering arriveert het pakket de volgende werkdag [1]."
       },
       {
         "id": "nl-shp-2",
@@ -1541,7 +1540,7 @@
         "cited": [
           "Shipping and Delivery.pdf"
         ],
-        "latency_ms": 9456,
+        "latency_ms": 6763,
         "answer": "Verzending naar Duitsland kost EUR 9,95 [1]. De levering duurt 3 tot 7 werkdagen [3]. De pakketten naar Duitsland worden verzonden met DHL [4]."
       },
       {
@@ -1553,7 +1552,7 @@
         "cited": [
           "Shipping and Delivery.pdf"
         ],
-        "latency_ms": 8396,
+        "latency_ms": 5507,
         "answer": "In België wordt de verzending gedaan met bpost [1]."
       },
       {
@@ -1565,8 +1564,8 @@
         "cited": [
           "Size Guide.pdf"
         ],
-        "latency_ms": 6741,
-        "answer": "De maat kindertenue die past bij een kind van 10 jaar is 140 cm [1]."
+        "latency_ms": 5793,
+        "answer": "Een kindertenue past bij een kind van 10 jaar in de maat 140 cm [1]."
       },
       {
         "id": "nl-prt-1",
@@ -1577,7 +1576,7 @@
         "cited": [
           "Shirt Printing.pdf"
         ],
-        "latency_ms": 8481,
+        "latency_ms": 6587,
         "answer": "Het kost EUR 15,00 per shirt om een naam en nummer te laten drukken, ongeacht of je alleen een naam, alleen een nummer of zowel een naam als een nummer kiest [1]."
       },
       {
@@ -1589,7 +1588,7 @@
         "cited": [
           "Payment FAQ.pdf"
         ],
-        "latency_ms": 3884,
+        "latency_ms": 4285,
         "answer": "Ja, u kan betalen met PayPal [1]."
       },
       {
@@ -1602,7 +1601,7 @@
           "Product Care.pdf",
           "Shirt Printing.pdf"
         ],
-        "latency_ms": 6539,
+        "latency_ms": 4973,
         "answer": "Je moet je shirt wassen bij 30 graden [1][3]."
       },
       {
@@ -1612,7 +1611,7 @@
         "correct": true,
         "answered": false,
         "cited": [],
-        "latency_ms": 916,
+        "latency_ms": 396,
         "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
@@ -1622,7 +1621,7 @@
         "correct": true,
         "answered": false,
         "cited": [],
-        "latency_ms": 1293,
+        "latency_ms": 687,
         "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       },
       {
@@ -1632,7 +1631,7 @@
         "correct": true,
         "answered": false,
         "cited": [],
-        "latency_ms": 1668,
+        "latency_ms": 654,
         "answer": "I couldn't find enough information in the knowledge base to answer that reliably."
       }
     ]
