@@ -93,8 +93,7 @@ DOCUMENTS: dict[str, list[tuple[str, list[str]]]] = {
             [
                 "Standard shipping is free for orders of EUR 50 or more. For smaller orders it costs EUR 4.95 in the Netherlands, "
                 "Belgium and Luxembourg and EUR 9.95 elsewhere in the EU.",
-                "Express delivery costs EUR 7.50 extra, also on orders above EUR 50, and is only available in the Netherlands and "
-                "Belgium.",
+                "Express delivery costs EUR 7.50 extra, also on orders above EUR 50, and is only available in the Netherlands and Belgium.",
             ],
         ),
         (
