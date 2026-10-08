@@ -68,6 +68,9 @@ class Settings(BaseSettings):
     simulation_ship_after_minutes: float = 3
     simulation_deliver_after_minutes: float = 10
     simulation_payment_timeout_minutes: float = 30  # unpaid orders are cancelled after this
+    # Only orders placed in the last N hours are shipped and delivered by the simulator, so the older demo
+    # orders from the seed keep their story (e.g. "shipped three days ago, arriving tomorrow").
+    simulation_recent_hours: float = 24
 
     # Simple per-process rate limits (see app/core/rate_limit.py)
     login_attempts_per_minute: int = 10

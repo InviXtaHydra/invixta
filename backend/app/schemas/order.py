@@ -4,12 +4,17 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
 
 from app.models import Order, OrderItem
-from app.models.enums import OrderStatus, PaymentMethod, PaymentStatus, ShippingMethod
+from app.models.enums import OrderStatus, PaymentMethod, PaymentStatus, ProductCategory, ShippingMethod
+from app.schemas.catalog import TeamRead
 
 
 class OrderItemRead(BaseModel):
     product_id: int
+    product_slug: str
     product_name: str
+    category: ProductCategory
+    season: str | None
+    team: TeamRead | None
     size: str | None
     quantity: int
     unit_price: Decimal
@@ -21,7 +26,11 @@ class OrderItemRead(BaseModel):
     def from_item(cls, item: OrderItem) -> "OrderItemRead":
         return cls(
             product_id=item.product_id,
+            product_slug=item.product.slug,
             product_name=item.product_name or item.product.name,
+            category=item.product.category,
+            season=item.product.season,
+            team=TeamRead.model_validate(item.product.team) if item.product.team else None,
             size=item.size,
             quantity=item.quantity,
             unit_price=item.price,

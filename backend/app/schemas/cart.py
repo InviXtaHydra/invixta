@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field
 
-from app.models import Cart
+from app.models import Cart, ProductCategory
 from app.schemas.catalog import TeamRead
 from app.services.cart_service import cart_totals, line_price
 
@@ -23,6 +23,8 @@ class CartLine(BaseModel):
     variant_id: int
     product_slug: str
     product_name: str
+    category: ProductCategory
+    season: str | None
     team: TeamRead | None
     size: str
     quantity: int
@@ -54,6 +56,8 @@ class CartRead(BaseModel):
                     variant_id=item.variant_id,
                     product_slug=product.slug,
                     product_name=product.name,
+                    category=product.category,
+                    season=product.season,
                     team=TeamRead.model_validate(product.team) if product.team else None,
                     size=item.variant.size,
                     quantity=item.quantity,
@@ -72,3 +76,9 @@ class CartRead(BaseModel):
             shipping_estimate=totals.shipping_estimate,
             free_shipping_remaining=totals.free_shipping_remaining,
         )
+
+
+class CartQuote(BaseModel):
+    subtotal: Decimal
+    shipping_cost: Decimal
+    total: Decimal

@@ -1,14 +1,15 @@
 """The shopping cart. Works for guests (X-Cart-Token header) and for signed-in users (JWT)."""
 
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user, get_optional_user
 from app.core.exceptions import NotFoundError
-from app.models import User
-from app.schemas.cart import CartItemAdd, CartItemUpdate, CartRead
-from app.services.cart_service import CartService, normalize_personalization
+from app.models import ShippingMethod, User
+from app.schemas.cart import CartItemAdd, CartItemUpdate, CartQuote, CartRead
+from app.services.cart_service import CartService, cart_totals, normalize_personalization
+from app.services.pricing import shipping_cost
 
 router = APIRouter(prefix="/cart", tags=["cart"])
 
@@ -66,3 +67,17 @@ def claim_cart(
 ) -> CartRead:
     """After signing in: move the guest cart's items into your own cart."""
     return CartRead.from_cart(CartService(db).claim(user, token))
+
+
+@router.get("/quote", response_model=CartQuote, responses={400: {"description": "Not shipped there, or no express"}})
+def quote(
+    country: str = Query(min_length=2, max_length=2),
+    shipping_method: ShippingMethod = ShippingMethod.STANDARD,
+    user: User | None = Depends(get_optional_user),
+    token: str | None = CartToken,
+    db: Session = Depends(get_db),
+) -> CartQuote:
+    """What the order will cost with this delivery country and method: the same calculation as the checkout."""
+    totals = cart_totals(CartService(db).find(user, token))
+    shipping = shipping_cost(country.upper(), shipping_method, totals.subtotal)
+    return CartQuote(subtotal=totals.subtotal, shipping_cost=shipping, total=totals.subtotal + shipping)

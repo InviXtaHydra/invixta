@@ -158,3 +158,16 @@ def test_fulfillment_simulator_ships_delivers_and_cancels(client: TestClient, db
     assert cancelled is not None and cancelled.status == OrderStatus.CANCELLED
     db.refresh(variant)
     assert variant.stock == 4  # the reserved shirt is back in stock
+
+
+def test_simulator_leaves_older_orders_alone(client: TestClient, db: Session, alice: User) -> None:
+    """Seeded orders that shipped days ago keep their status; only recent orders are moved along."""
+    from tests.conftest import make_order
+
+    old = make_order(db, alice.customer, status=OrderStatus.SHIPPED)  # type: ignore[arg-type]
+    old.created_at = datetime.now(UTC) - timedelta(days=4)
+    old.shipped_at = datetime.now(UTC) - timedelta(days=2)
+    db.flush()
+    assert FulfillmentService(db).advance(datetime.now(UTC)).delivered == 0
+    db.refresh(old)
+    assert old.status == OrderStatus.SHIPPED

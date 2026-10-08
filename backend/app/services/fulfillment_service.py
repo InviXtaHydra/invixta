@@ -5,6 +5,9 @@ and the carrier's tracking; here advance() makes them happen after a few minutes
     shipped            ──after SIMULATION_DELIVER_AFTER_MINUTES──▶ delivered
     pending (unpaid)   ──after SIMULATION_PAYMENT_TIMEOUT_MINUTES──▶ cancelled, stock back
 
+Shipping and delivering only happen for orders placed in the last SIMULATION_RECENT_HOURS: the older
+demo orders from the seed already have a consistent story and are left alone.
+
 Run it in a loop with scripts/fulfillment_simulator.py (the `simulator` service in docker compose).
 """
 
@@ -46,8 +49,9 @@ class FulfillmentService:
         settings = get_settings()
         result = AdvanceResult()
 
+        recent = Order.created_at >= now - timedelta(hours=settings.simulation_recent_hours)
         ship_before = now - timedelta(minutes=settings.simulation_ship_after_minutes)
-        for order in self._orders(Order.status == OrderStatus.PROCESSING, Order.paid_at <= ship_before):
+        for order in self._orders(Order.status == OrderStatus.PROCESSING, Order.paid_at <= ship_before, recent):
             order.status = OrderStatus.SHIPPED
             order.shipped_at = now
             order.carrier = carrier_for(order.shipping_country, self.rng)
@@ -56,7 +60,7 @@ class FulfillmentService:
             result.shipped += 1
 
         deliver_before = now - timedelta(minutes=settings.simulation_deliver_after_minutes)
-        for order in self._orders(Order.status == OrderStatus.SHIPPED, Order.shipped_at <= deliver_before):
+        for order in self._orders(Order.status == OrderStatus.SHIPPED, Order.shipped_at <= deliver_before, recent):
             order.status = OrderStatus.DELIVERED
             order.delivered_at = now
             result.delivered += 1

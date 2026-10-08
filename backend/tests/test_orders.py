@@ -31,7 +31,11 @@ def test_order_detail_includes_items_and_shipping(client: TestClient, db: Sessio
     assert body["items"] == [
         {
             "product_id": order.items[0].product_id,
+            "product_slug": order.items[0].product.slug,
             "product_name": "Test Mug",
+            "category": "accessory",
+            "season": None,
+            "team": None,
             "size": "One size",
             "quantity": 2,
             "unit_price": "12.50",

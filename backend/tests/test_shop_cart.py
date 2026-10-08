@@ -83,3 +83,15 @@ def test_carts_are_private(client: TestClient, db: Session, alice: User, bob: Us
     assert client.delete(f"/cart/items/{line_id}", headers=auth_header(bob)).status_code == 404
     assert client.get("/cart", headers=auth_header(bob)).json()["items"] == []
     assert client.get("/cart", headers={"Authorization": "Bearer not-a-token"}).status_code == 401
+
+
+def test_quote_uses_the_checkout_rules(client: TestClient, db: Session, alice: User) -> None:
+    headers = auth_header(alice)
+    client.post("/cart/items", json={"variant_id": make_product(db, "Socks", "12.95").variants[0].id}, headers=headers)
+    assert client.get("/cart/quote", params={"country": "nl"}, headers=headers).json() == {
+        "subtotal": "12.95",
+        "shipping_cost": "4.95",
+        "total": "17.90",
+    }
+    assert client.get("/cart/quote", params={"country": "DE"}, headers=headers).json()["shipping_cost"] == "9.95"
+    assert client.get("/cart/quote", params={"country": "DE", "shipping_method": "express"}, headers=headers).status_code == 400

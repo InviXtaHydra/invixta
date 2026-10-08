@@ -1,7 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import Order, OrderItem, OrderStatus
+from app.models import Order, OrderItem, OrderStatus, Product
 
 
 class OrderRepository:
@@ -26,7 +26,11 @@ class OrderRepository:
 
     def get(self, order_id: int, *, customer_id: int | None) -> Order | None:
         """Fetch one order with its items and products. With customer_id, only that customer's order."""
-        query = select(Order).options(selectinload(Order.items).selectinload(OrderItem.product)).where(Order.id == order_id)
+        query = (
+            select(Order)
+            .options(selectinload(Order.items).selectinload(OrderItem.product).selectinload(Product.team))
+            .where(Order.id == order_id)
+        )
         if customer_id is not None:
             query = query.where(Order.customer_id == customer_id)
         return self.db.scalar(query)
